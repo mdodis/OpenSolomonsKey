@@ -12,7 +12,6 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 15x12 play area
 
 TODO(mdodis):
-* Start win32 layer
 */
 
 #include<stdio.h>
@@ -26,6 +25,13 @@ TODO(mdodis):
 #include<GL/glu.h>
 
 #include "OpenSolomonsKey.h"
+
+u32 g_wind_width;
+u32 g_wind_height;
+u32 g_view_width;
+u32 g_view_height;
+double       g_tile_scale;
+
 
 Display                 *dpy;
 Window                  root;
@@ -62,7 +68,6 @@ x11_init()
         printf("\n\tvisual %p selected\n", (void *)vi->visualid); /* %p creates hexadecimal output like in glxinfo */
     }
     
-    
     cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
     
     swa.colormap = cmap;
@@ -75,7 +80,6 @@ x11_init()
     
     glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
     glXMakeCurrent(dpy, win, glc);
-    
 }
 
 internal void
@@ -92,6 +96,10 @@ int main(int argc, char *argv[])
 {
     x11_init();
     
+    
+    cb_init();
+    
+    
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
@@ -99,29 +107,17 @@ int main(int argc, char *argv[])
                 XGetWindowAttributes(dpy, win, &gwa);
                 g_wind_width = gwa.width;
                 g_wind_height = gwa.height;
-                
-                g_tile_scale = get_tilescale_and_dimensions(
-                    g_wind_width, g_wind_height,
-                    &g_view_width, &g_view_height);
-                
-                glMatrixMode(GL_PROJECTION);
-                glLoadIdentity();
-                glOrtho(0,g_view_width , g_view_height, 0, -1.f, 1.f);
-                
-                printf("\tResize: W:%d|%d H:%d|%d\n\t 64px is now %f\n",
-                       g_wind_width,
-                       g_view_width,
-                       g_wind_height,
-                       g_view_height,
-                       g_tile_scale);
-                
+                cb_resize();
             }
             
         }
-        // Render code here
         
-        DrawAQuad();
+        // Render code here
+        cb_render();
         
         glXSwapBuffers(dpy, win);
     }
 }
+
+
+#include "OpenSolomonsKey.cpp"
