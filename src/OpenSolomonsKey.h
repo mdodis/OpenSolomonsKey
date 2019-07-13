@@ -2,7 +2,7 @@
 #define OSK_HH
 #include <stdint.h>
 
-#define OSK_ROUND_TO_POW_64
+//#define OSK_ROUND_TO_POW_64
 
 #define internal static
 #define global   static
@@ -12,7 +12,7 @@ typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef int8_t   i8;
+typedef int8_t   i18;
 typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;

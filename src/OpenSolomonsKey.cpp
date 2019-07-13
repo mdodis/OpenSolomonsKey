@@ -111,6 +111,8 @@ global u32 g_text_id;
 global u32 g_horiz_l0_id;
 global u32 g_horiz_l1_id;
 
+global u32 g_atlas;
+
 void
 cb_init()
 {
@@ -119,22 +121,30 @@ cb_init()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
-    
+    //
     int w, h, n;
-    u8* data = load_image_as_rgba_pixels("glassesboy.png",&w,&h,&n);
-    g_text_id = gl_load_rgba_texture(data, w, h);
-    stbi_image_free(data);
+    //u8* data = load_image_as_rgba_pixels("glassesboy.png",&w,&h,&n);
+    //g_text_id = gl_load_rgba_texture(data, w, h);
+    //stbi_image_free(data);
+    //
+    //data = load_image_as_rgba_pixels("horiz_l0.png",&w,&h,&n);
+    //assert(data);
+    //g_horiz_l0_id = gl_load_rgba_texture(data, w, h);
+    //stbi_image_free(data);
+    //
+    //data = load_image_as_rgba_pixels("horiz_l1.png",&w,&h,&n);
+    //assert(data);
+    //g_horiz_l1_id = gl_load_rgba_texture(data, w, h);
+    //stbi_image_free(data);
+    //
     
-    data = load_image_as_rgba_pixels("horiz_l0.png",&w,&h,&n);
-    assert(data);
-    g_horiz_l0_id = gl_load_rgba_texture(data, w, h);
-    stbi_image_free(data);
     
-    data = load_image_as_rgba_pixels("horiz_l1.png",&w,&h,&n);
+    u8* data = load_image_as_rgba_pixels("Phoebus.png",&w,&h,&n);
     assert(data);
-    g_horiz_l1_id = gl_load_rgba_texture(data, w, h);
-    stbi_image_free(data);
+    g_atlas = gl_load_rgba_texture(data, w, h);
+    
     return;
+    stbi_image_free(data);
 }
 
 unsigned long upper_power_of_two(unsigned long v)
@@ -253,39 +263,43 @@ cb_render(InputState istate, float dt)
         y+= dt * 0.5f;
     }
     
+    glBindTexture(GL_TEXTURE_2D, g_atlas);
+    
+    int x = 0;
+    int y = 0;
+    int w = g_tile_scale;
+    int h = g_tile_scale;
+    int tilesizes = 16;
+    
+    float norm_atlw = 1.f / 1024.f;
+    float norm_atlh = 1.f / 1024.f;
+    
+    double inc = 1.0 / (double)tilesizes;
+    
+    
+    int tilex = 0;
+    int tiley = 5;
+    
+    glBegin(GL_QUADS);
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    
+    glTexCoord2f(inc * tilex, inc * (tiley + 1) );
+    glVertex2f(x, y + h); // lower left
+    
+    glTexCoord2f(inc * (tilex + 1), inc * (tiley + 1) );
+    glVertex2f( x + w, y + h); // lower right
+    
+    glTexCoord2f(inc *  (tilex + 1), inc * tiley);
+    glVertex2f(x + w, y); // upper right
+    
+    glTexCoord2f(inc * tilex, inc * tiley); // upper left
+    glVertex2f(x, y);
+    glEnd();
+    
+    
+    
+    
     //gl_draw_rect_textured(0, y * g_pixel_scale, g_tile_scale, g_tile_scale, g_text_id);
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 1),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l0_id);
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 2),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l1_id);
-    
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 3),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l0_id);
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 4),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l1_id);
-    
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 5),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l0_id);
-    
-    gl_draw_rect_textured(
-        0 ,ftrunc(g_tile_scale * 6),
-        g_tile_scale / 2, g_tile_scale,
-        g_horiz_l1_id);
     
     
     //glFlush();
