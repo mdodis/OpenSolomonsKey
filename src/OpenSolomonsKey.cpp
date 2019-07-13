@@ -4,6 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+
+inline i32 ftrunc(float n) { return (i32)(n + 0.5f); }
+
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
  of dimensions (1024x896) will get a tilescale of 64 pixels
@@ -28,6 +31,7 @@ u32* out_w, u32* out_h)
         {
             vh = current_h;
             vw = (i32)((double)(vh) * W_2_H);
+            vw = ftrunc(vw);
             
             leftover = (i32)current_w - (i32)vw;
             if (leftover < 0)
@@ -35,6 +39,7 @@ u32* out_w, u32* out_h)
                 // if the new one is bigger than what we show
                 vh += leftover;
                 vw = (i32)((double)(vh) * W_2_H);
+                vw = ftrunc(vw);
             }
             leftover = (i32)current_w - (i32)vw;
             assert(leftover >= 0);
@@ -43,6 +48,7 @@ u32* out_w, u32* out_h)
         } else {
             vw = current_w;
             vh = (i32)((double)(vw) * HEIGHT_2_WIDTH_SCALE);
+            vh = ftrunc(vh);
             
             leftover = (i32)current_h - (i32)vh;
             assert(leftover >= 0);
@@ -58,42 +64,90 @@ u32* out_w, u32* out_h)
     return (int)vw * (0.0625);
 }
 
-void
-cb_init()
+internal u32 
+gl_load_rgba_texture(u8* data, i32 width, i32 height)
 {
-    int i_w, i_h, i_n;
-    unsigned char* data = stbi_load("glassesboy.png", &i_w, &i_h, &i_n, 4);
-    printf("%d %d and %d channels.\n", i_w, i_h, i_n);
-    
-    
-    
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    //glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    glGenTextures(1, &g_text_id);
-    glBindTexture(GL_TEXTURE_2D, g_text_id);
+    u32 result;
+    glGenTextures(1, &result);
+    glBindTexture(GL_TEXTURE_2D, result);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+    //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
     
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         GL_RGBA,
-        i_w, i_h,
+        width, height,
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
         data);
-    stbi_image_free(data);
     
     assert(glGetError() == GL_NO_ERROR);
     
+    return result;
+}
+
+internal u8*
+load_image_as_rgba_pixels(
+const char* const name,
+i32* out_width,
+i32* out_height,
+i32* out_n)
+{
+    int i_w, i_h, i_n;
+    unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
+    
+    return data;
+}
+
+/// test
+global u32 g_text_id;
+global u32 g_horiz_l0_id;
+global u32 g_horiz_l1_id;
+
+void
+cb_init()
+{
+    
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    
+    int w, h, n;
+    u8* data = load_image_as_rgba_pixels("glassesboy.png",&w,&h,&n);
+    g_text_id = gl_load_rgba_texture(data, w, h);
+    stbi_image_free(data);
+    
+    data = load_image_as_rgba_pixels("horiz_l0.png",&w,&h,&n);
+    assert(data);
+    g_horiz_l0_id = gl_load_rgba_texture(data, w, h);
+    stbi_image_free(data);
+    
+    data = load_image_as_rgba_pixels("horiz_l1.png",&w,&h,&n);
+    assert(data);
+    g_horiz_l1_id = gl_load_rgba_texture(data, w, h);
+    stbi_image_free(data);
     return;
+}
+
+unsigned long upper_power_of_two(unsigned long v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v++;
+    return v;
+    
 }
 
 void
@@ -102,6 +156,17 @@ cb_resize()
     g_tile_scale = get_tilescale_and_dimensions(
         g_wind_width, g_wind_height,
         &g_view_width, &g_view_height);
+    
+#ifdef OSK_ROUND_TO_POW_64
+    g_tile_scale = upper_power_of_two((u64)g_tile_scale);
+    
+    g_view_width  = g_tile_scale * 16;
+    g_view_height = (i32)((double)(g_view_width) * HEIGHT_2_WIDTH_SCALE);
+    
+    int lx = (i32)g_wind_width - g_view_width;
+    int ly = (i32)g_wind_height - g_view_height;
+    glViewport(lx / 2, ly / 2, g_view_width, g_view_height);
+#endif
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -115,6 +180,8 @@ cb_resize()
            g_wind_height,
            g_view_height,
            g_tile_scale);
+    
+    g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
 /*
@@ -161,8 +228,10 @@ float r, float g, float b, float a)
     
 }
 
+i32 y = 0;
+
 void
-cb_render()
+cb_render(InputState istate, float dt)
 {
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -179,8 +248,46 @@ cb_render()
         
     }
     
-    gl_draw_rect_textured(0, 0, g_tile_scale, g_tile_scale, g_text_id);
+    if (istate.spacebar_pressed)
+    {
+        y+= dt * 0.5f;
+    }
     
-    glFlush();
+    //gl_draw_rect_textured(0, y * g_pixel_scale, g_tile_scale, g_tile_scale, g_text_id);
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 1),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l0_id);
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 2),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l1_id);
+    
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 3),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l0_id);
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 4),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l1_id);
+    
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 5),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l0_id);
+    
+    gl_draw_rect_textured(
+        0 ,ftrunc(g_tile_scale * 6),
+        g_tile_scale / 2, g_tile_scale,
+        g_horiz_l1_id);
+    
+    
+    //glFlush();
 }
 

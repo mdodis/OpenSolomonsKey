@@ -14,9 +14,12 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 TODO(mdodis):
 */
 
+#define OSK_PLATFORM_X11
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<assert.h>
+#include <time.h>
 
 #include<X11/X.h>
 #include<X11/Xlib.h>
@@ -91,30 +94,65 @@ x11_kill()
     XCloseDisplay(dpy);
 }
 
+timespec timespec_diff(timespec start, timespec end)
+{
+    timespec temp;
+    if ((end.tv_nsec - start.tv_nsec) < 0) {
+        temp.tv_sec = end.tv_sec - start.tv_sec - 1;
+        temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+    } else {
+        temp.tv_sec = end.tv_sec - start.tv_sec;
+        temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+    }
+    return temp;
+}
+
+internal char _x11_internal_keys[32];
+
+b32 x11_get_key_state(i32 key)
+{
+    int keycode = XKeysymToKeycode(dpy, key);
+    if (_x11_internal_keys[keycode / 8] & (0x1 << ( keycode % 8 )))
+        return true;
+    else return false;
+    
+}
 
 int main(int argc, char *argv[])
 {
     x11_init();
     
-    
     cb_init();
     
-    
+    struct timespec last, now, delta_timespec;
+    clock_gettime(CLOCK_MONOTONIC, &last);
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
-            if(xev.type == Expose) {
-                XGetWindowAttributes(dpy, win, &gwa);
-                g_wind_width = gwa.width;
-                g_wind_height = gwa.height;
-                cb_resize();
+            switch(xev.type)
+            {
+                case Expose:
+                {
+                    XGetWindowAttributes(dpy, win, &gwa);
+                    g_wind_width = gwa.width;
+                    g_wind_height = gwa.height;
+                    cb_resize();
+                } break;
+                
             }
-            
         }
         
-        // Render code here
-        cb_render();
+        XQueryKeymap(dpy, _x11_internal_keys);
+        ISTATE_KEYDOWN_ACTION(XK_space, spacebar_pressed);
         
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        delta_timespec = timespec_diff(last, now);
+        float delta = delta_timespec.tv_nsec / 1000000.f;
+        assert(delta > 0);
+        // Render code here
+        cb_render(g_input_state, delta);
+        
+        last = now;
         glXSwapBuffers(dpy, win);
     }
 }

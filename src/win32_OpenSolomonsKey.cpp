@@ -1,3 +1,5 @@
+#define OSK_PLATFORM_WIN32
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
