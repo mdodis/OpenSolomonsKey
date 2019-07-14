@@ -4,6 +4,11 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+glm::mat4 g_projection;
 
 inline i32 ftrunc(float n) { return (i32)(n + 0.5f); }
 
@@ -64,7 +69,7 @@ u32* out_w, u32* out_h)
     return (int)vw * (0.0625);
 }
 
-internal u32 
+internal u32
 gl_load_rgba_texture(u8* data, i32 width, i32 height)
 {
     u32 result;
@@ -104,53 +109,106 @@ i32* out_n)
     return data;
 }
 
-/// test
-global u32 g_text_id;
-global u32 g_horiz_l0_id;
-global u32 g_horiz_l1_id;
 
-global u32 g_atlas;
-
+u32 g_shd_2d;
+u32 g_quad_vao;
 void
 cb_init()
 {
     
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
+    
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
+    
+    u32 vertex, fragment;
+    
+    int success;
+    char infoLog[512];
+    
+    // vertex Shader
+    vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &g_2d_vs, NULL);
+    glCompileShader(vertex);
+    // print compile errors if any
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if(!success)
+    {
+        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
+        assert(0);
+    };
+    
+    // fragment Shader
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &g_2d_fs, NULL);
+    glCompileShader(fragment);
+    // print compile errors if any
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if(!success)
+    {
+        assert(0);
+        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        //std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+    
+    // shader Program
+    g_shd_2d = glCreateProgram();
+    glAttachShader(g_shd_2d, vertex);
+    glAttachShader(g_shd_2d, fragment);
+    glLinkProgram(g_shd_2d);
+    // print linking errors if any
+    glGetProgramiv(g_shd_2d, GL_LINK_STATUS, &success);
+    if(!success)
+    {
+        glGetProgramInfoLog(g_shd_2d, 512, NULL, infoLog);
+        printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n",infoLog);
+        assert(0);
+    }
+    
+    // delete the shaders as they're linked into our program now and no longer necessery
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+    
     //
-    int w, h, n;
-    //u8* data = load_image_as_rgba_pixels("glassesboy.png",&w,&h,&n);
-    //g_text_id = gl_load_rgba_texture(data, w, h);
-    //stbi_image_free(data);
-    //
-    //data = load_image_as_rgba_pixels("horiz_l0.png",&w,&h,&n);
-    //assert(data);
-    //g_horiz_l0_id = gl_load_rgba_texture(data, w, h);
-    //stbi_image_free(data);
-    //
-    //data = load_image_as_rgba_pixels("horiz_l1.png",&w,&h,&n);
-    //assert(data);
-    //g_horiz_l1_id = gl_load_rgba_texture(data, w, h);
-    //stbi_image_free(data);
+    // NOTE: Initialize vbo for sprites
     //
     
+    GLuint VBO;
+    GLfloat vertices[] = { 
+        // Pos      // Tex
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f, 
+        
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f
+    };
     
-    u8* data = load_image_as_rgba_pixels("test_tilemap.png",&w,&h,&n);
-    assert(data);
-    g_atlas = gl_load_rgba_texture(data, w, h);
+    glGenVertexArrays(1, &g_quad_vao);
+    glGenBuffers(1, &VBO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    
+    glBindVertexArray(g_quad_vao);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);  
+    glBindVertexArray(0);
     
     return;
-    stbi_image_free(data);
 }
 
 #include <math.h>
-int highestPowerof2(int n) 
-{ 
-    int p = (int)log2(n); 
-    return (int)pow(2, p);  
-} 
+int highestPowerof2(int n)
+{
+    int p = (int)log2(n);
+    return (int)pow(2, p);
+}
 
 void
 cb_resize()
@@ -170,9 +228,11 @@ cb_resize()
     glViewport(lx / 2, ly / 2, g_view_width, g_view_height);
 #endif
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0,g_view_width , g_view_height, 0, -1.f, 1.f);
+    g_projection = glm::ortho(0.0f,  (float)g_view_width, (float)g_view_height, 0.0f, -1.0f, 1.0f);  
+    
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadIdentity();
+    //glOrtho(0,g_view_width , g_view_height, 0, -1.f, 1.f);
     
     printf("LEFT PAD: %f\n", HORIZ_SCREEN_PAD);
     
@@ -186,118 +246,11 @@ cb_resize()
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
-/*
-NOTE(miked): Has to be preceded by a call to glBegin(GL_QUADS)
-*/
-internal void
-gl_draw_rect_textured(
-i32 x, i32 y,
-i32 w, i32 h,
-u32 texture_id)
-{
-    
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    
-    glBegin(GL_QUADS);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    glTexCoord2f(0.f, 0.f);
-    glVertex2f(x, y + h);
-    glTexCoord2f(1.f, 0.f);
-    glVertex2f( x + w, y + h);
-    glTexCoord2f(1.f, -1.f);
-    glVertex2f(x + w, y);
-    glTexCoord2f(0.f, -1.f);
-    glVertex2f(x, y);
-    glEnd();
-    
-}
-
-internal void
-gl_draw_rect_untextured(
-float x, float y,
-float w,  float h,
-float r, float g, float b, float a)
-{
-    glBindTexture(GL_TEXTURE_2D, 0);
-    
-    glBegin(GL_QUADS);
-    glColor4f(r, g, b, a);
-    glVertex2f(x, y + h);
-    glVertex2f( x + w, y + h);
-    glVertex2f(x + w, y);
-    glVertex2f(x, y);
-    glEnd();
-    
-}
-
-int x = 0;
-i32 y = 0;
-
-int tilex = 0;
-int tiley = 0;
-
 void
 cb_render(InputState istate, float dt)
 {
-    glClearColor( 0.156, 0.156,  0.156, 1.0);
+    glClearColor( 0.500, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    for (int i = 0; i < 16; i++)
-    {
-        for (int j = 0; j < 14; j++)
-        {
-            gl_draw_rect_untextured(
-                g_tile_scale * (i + 0), g_tile_scale * (j + 0),
-                g_tile_scale, g_tile_scale,
-                (float)i / 15.f, (float)(i + j) / 28.f,(float)j / 13.f, 1.f);
-        }
-        
-    }
-    
-    if (istate.spacebar_pressed)
-    {
-        y += dt * 0.5f;
-        x+= dt * 0.5f;
-    }
-    
-    glBindTexture(GL_TEXTURE_2D, g_atlas);
-    
-    
-    int w = g_tile_scale;
-    int h = g_tile_scale;
-    
-    double incx = 1.0 / 5.0;
-    double incy = 1.0 / 5.0;
-    
-    glPushMatrix();
-    
-    
-    glBegin(GL_QUADS);
-    glColor4f(1.0, 1.0, 1.0, 1.0);
-    
-    glTexCoord2d(incx * tilex, incy * tiley); // upper left
-    glVertex2f(x, y);
-    
-    
-    glTexCoord2d(incx *  (tilex + 1), incy * tiley);
-    glVertex2f(x + w, y); // upper right
-    
-    
-    glTexCoord2d(incx * (tilex + 1), incy * (tiley + 1) );
-    glVertex2f( x + w, y + h); // lower right
-    
-    
-    glTexCoord2d(incx * tilex, incy * (tiley + 1) );
-    glVertex2f(x, y + h); // lower left
-    
-    glEnd();
-    
-    glPopMatrix();
-    
-    
-    //gl_draw_rect_textured(0, y * g_pixel_scale, g_tile_scale, g_tile_scale, g_text_id);
-    
-    
-    //glFlush();
 }
 
