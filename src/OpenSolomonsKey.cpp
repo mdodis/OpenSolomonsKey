@@ -75,8 +75,6 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-    //glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
     
     glTexImage2D(
         GL_TEXTURE_2D,
@@ -139,7 +137,7 @@ cb_init()
     //
     
     
-    u8* data = load_image_as_rgba_pixels("Phoebus.png",&w,&h,&n);
+    u8* data = load_image_as_rgba_pixels("test_tilemap.png",&w,&h,&n);
     assert(data);
     g_atlas = gl_load_rgba_texture(data, w, h);
     
@@ -147,18 +145,12 @@ cb_init()
     stbi_image_free(data);
 }
 
-unsigned long upper_power_of_two(unsigned long v)
-{
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-    
-}
+#include <math.h>
+int highestPowerof2(int n) 
+{ 
+    int p = (int)log2(n); 
+    return (int)pow(2, p);  
+} 
 
 void
 cb_resize()
@@ -168,7 +160,7 @@ cb_resize()
         &g_view_width, &g_view_height);
     
 #ifdef OSK_ROUND_TO_POW_64
-    g_tile_scale = upper_power_of_two((u64)g_tile_scale);
+    g_tile_scale = highestPowerof2((u64)g_tile_scale);
     
     g_view_width  = g_tile_scale * 16;
     g_view_height = (i32)((double)(g_view_width) * HEIGHT_2_WIDTH_SCALE);
@@ -238,7 +230,11 @@ float r, float g, float b, float a)
     
 }
 
+int x = 0;
 i32 y = 0;
+
+int tilex = 0;
+int tiley = 0;
 
 void
 cb_render(InputState istate, float dt)
@@ -260,43 +256,43 @@ cb_render(InputState istate, float dt)
     
     if (istate.spacebar_pressed)
     {
-        y+= dt * 0.5f;
+        y += dt * 0.5f;
+        x+= dt * 0.5f;
     }
     
     glBindTexture(GL_TEXTURE_2D, g_atlas);
     
-    int x = 0;
-    int y = 0;
+    
     int w = g_tile_scale;
     int h = g_tile_scale;
-    int tilesizes = 16;
     
-    float norm_atlw = 1.f / 1024.f;
-    float norm_atlh = 1.f / 1024.f;
+    double incx = 1.0 / 5.0;
+    double incy = 1.0 / 5.0;
     
-    double inc = 1.0 / (double)tilesizes;
+    glPushMatrix();
     
-    
-    int tilex = 0;
-    int tiley = 5;
     
     glBegin(GL_QUADS);
     glColor4f(1.0, 1.0, 1.0, 1.0);
     
-    glTexCoord2f(inc * tilex, inc * (tiley + 1) );
-    glVertex2f(x, y + h); // lower left
+    glTexCoord2d(incx * tilex, incy * tiley); // upper left
+    glVertex2f(x, y);
     
-    glTexCoord2f(inc * (tilex + 1), inc * (tiley + 1) );
-    glVertex2f( x + w, y + h); // lower right
     
-    glTexCoord2f(inc *  (tilex + 1), inc * tiley);
+    glTexCoord2d(incx *  (tilex + 1), incy * tiley);
     glVertex2f(x + w, y); // upper right
     
-    glTexCoord2f(inc * tilex, inc * tiley); // upper left
-    glVertex2f(x, y);
+    
+    glTexCoord2d(incx * (tilex + 1), incy * (tiley + 1) );
+    glVertex2f( x + w, y + h); // lower right
+    
+    
+    glTexCoord2d(incx * tilex, incy * (tiley + 1) );
+    glVertex2f(x, y + h); // lower left
+    
     glEnd();
     
-    
+    glPopMatrix();
     
     
     //gl_draw_rect_textured(0, y * g_pixel_scale, g_tile_scale, g_tile_scale, g_text_id);

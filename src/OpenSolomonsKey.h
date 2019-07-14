@@ -2,7 +2,7 @@
 #define OSK_HH
 #include <stdint.h>
 
-//#define OSK_ROUND_TO_POW_64
+#define OSK_ROUND_TO_POW_64
 
 #define internal static
 #define global   static
