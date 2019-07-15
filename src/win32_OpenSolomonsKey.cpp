@@ -7,6 +7,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <GL/glew.h>
 #include <GL/GL.h>
 
 #include "OpenSolomonsKey.h"
@@ -17,6 +18,12 @@ global WNDCLASSA g_wc;
 global HWND     g_wind;
 global HDC      g_dc;
 global bool     g_running = true;
+
+u32 g_wind_width;
+u32 g_wind_height;
+u32 g_view_width;
+u32 g_view_height;
+double g_tile_scale;
 
 internal LRESULT CALLBACK
 win32_windproc(
@@ -123,9 +130,14 @@ win32_init(HINSTANCE hInstance)
     OutputDebugStringA((char*)glGetString(GL_VERSION));
     OutputDebugStringA("\n");
     
-    ShowWindow(g_wind, SW_SHOW);
     ReleaseDC(g_wind, dev_ctx);
-    
+ 
+}
+
+
+b32 win32_get_key_state(i32 key)
+{
+    return GetAsyncKeyState(key);
 }
 
 int WinMain(
@@ -135,13 +147,24 @@ LPSTR     lpCmdLine,
 int       nShowCmd)
 {
     MSG message;
-    
+    LARGE_INTEGER perf_last, perf_now = {};
+    LARGE_INTEGER perf_freq;
+
     win32_init(hInstance);
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK)
+    {
+        OutputDebugStringA("NOPE\n");
+        return 10;
+    }
+    cb_init();
+    ShowWindow(g_wind, SW_SHOW);
     
     g_dc = GetDC(g_wind);
-    
-    
-    cb_init();
+
+    QueryPerformanceFrequency(&perf_freq);
+    QueryPerformanceCounter(&perf_last);
+
     while (g_running)
     {
         while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE))
@@ -150,9 +173,20 @@ int       nShowCmd)
             DispatchMessage(&message);
         }
         
-        cb_render();
+        ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
+
+
+        QueryPerformanceCounter(&perf_now);
+        i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
+        float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
+        assert(delta >= 0);
+
+        cb_render(g_input_state,delta);
+        perf_last = perf_now;
         SwapBuffers(g_dc); 
     }
+
+    return 0;
 }
 
 #undef OSK_CLASS_NAME

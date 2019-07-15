@@ -47,12 +47,12 @@ global InputState g_input_state;
 #define IS_POW2(x) x && !(x & (x - 1))
 
 
-#ifdef OSK_PLATFORM_X11
+#if   defined(OSK_PLATFORM_X11)
 
 b32 x11_get_key_state(i32 key);
 #define ISTATE_KEYDOWN_ACTION(k, a) g_input_state.a = x11_get_key_state(k)
 
-#elif OSK_PLATFORM_WIN32
+#elif defined(OSK_PLATFORM_WIN32)
 
 b32 win32_get_key_state(i32 key);
 #define ISTATE_KEYDOWN_ACTION(k, a) g_input_state.a = win32_get_key_state(k)
