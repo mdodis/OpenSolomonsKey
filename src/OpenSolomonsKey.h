@@ -63,4 +63,41 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
 
+
+
+const char* const g_2d_vs =
+R"EOS(
+#version 330 core
+layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
+
+out vec2 TexCoords;
+
+uniform mat4 model;
+uniform mat4 projection;
+
+void main()
+{
+    TexCoords = vertex.zw;
+    gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
+}
+
+)EOS";
+
+const char* const g_2d_fs =
+R"EOS(
+#version 330 core
+in vec2 TexCoords;
+out vec4 color;
+
+uniform sampler2DArray sampler;
+uniform int layer = 0;
+
+void main()
+{    
+      color =  texture(sampler, vec3(TexCoords,layer));
+      //color = vec4(0.0, 1.0, 0.0, 1.0);
+    }
+    
+)EOS";
+
 #endif //! OSK_HH

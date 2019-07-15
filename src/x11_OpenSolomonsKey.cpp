@@ -16,17 +16,24 @@ TODO(mdodis):
 
 #define OSK_PLATFORM_X11
 
+#define GL_GLEXT_PROTOTYPES
+#define GLX_GLXEXT_PROTOTYPES
+
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
+
 #include<assert.h>
 #include <time.h>
 
 #include<X11/X.h>
 #include<X11/Xlib.h>
+
+#include <GL/glew.h>
 #include<GL/gl.h>
 #include<GL/glx.h>
-#include<GL/glu.h>
 
+#include<GL/glu.h>
 #include "OpenSolomonsKey.h"
 
 u32 g_wind_width;
@@ -38,7 +45,23 @@ double       g_tile_scale;
 
 Display                 *dpy;
 Window                  root;
-GLint                   att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
+GLint                   att[] =
+{
+    GLX_X_RENDERABLE    , True,
+    GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+    GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+    GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
+    GLX_RED_SIZE        , 8,
+    GLX_GREEN_SIZE      , 8,
+    GLX_BLUE_SIZE       , 8,
+    GLX_ALPHA_SIZE      , 8,
+    GLX_DEPTH_SIZE      , 24,
+    GLX_STENCIL_SIZE    , 8,
+    GLX_DOUBLEBUFFER    , True,
+    //GLX_SAMPLE_BUFFERS  , 1,
+    //GLX_SAMPLES         , 4,
+    None
+};
 XVisualInfo             *vi;
 Colormap                cmap;
 XSetWindowAttributes    swa;
@@ -47,42 +70,206 @@ GLXContext              glc;
 XWindowAttributes       gwa;
 XEvent                  xev;
 
+global bool g_ctx_error = false;
 
+static int ctxErrorHandler( Display *dpy, XErrorEvent *ev )
+{
+    g_ctx_error = true;
+    return 0;
+}
+
+static bool isExtensionSupported(const char *extList, const char *extension)
+{
+    const char *start;
+    const char *where, *terminator;
+    
+    /* Extension names should not have spaces. */
+    where = strchr(extension, ' ');
+    if (where || *extension == '\0')
+        return false;
+    
+    /* It takes a bit of care to be fool-proof about parsing the
+       OpenGL extensions string. Don't be fooled by sub-strings,
+       etc. */
+    for (start=extList;;) {
+        where = strstr(start, extension);
+        
+        if (!where)
+            break;
+        
+        terminator = where + strlen(extension);
+        
+        if ( where == start || *(where - 1) == ' ' )
+            if ( *terminator == ' ' || *terminator == '\0' )
+            return true;
+        
+        start = terminator;
+    }
+    
+    return false;
+}
+
+/*
+Oh dear god...
+*/
 internal void
 x11_init()
 {
+    int glx_major, glx_minor;
     
     dpy = XOpenDisplay(NULL);
-    
-    if(dpy == NULL) {
+    if (dpy == NULL)
+    {
         printf("\n\tcannot connect to X server\n\n");
         exit(0);
     }
     
+    int screen = DefaultScreen(dpy);
     root = DefaultRootWindow(dpy);
     
-    vi = glXChooseVisual(dpy, 0, att);
+    if (!glXQueryVersion(dpy, &glx_major, &glx_minor) ||
+        ( (glx_major == 1) && (glx_minor < 3) )  || (glx_major < 1) )
+    {
+        printf("invalid glx version\n");
+        exit(20);
+    }
     
-    if(vi == NULL) {
-        printf("\n\tno appropriate visual found\n\n");
-        exit(0);
+    int elemc;
+    GLXFBConfig *fbcfg = glXChooseFBConfig(dpy, screen, att, &elemc);
+    if (!fbcfg)
+    {
+        puts("Couldn't get FB configs\n");
+        exit(2);
     }
-    else {
-        printf("\n\tvisual %p selected\n", (void *)vi->visualid); /* %p creates hexadecimal output like in glxinfo */
+    else printf("Got %d FB configs\n", elemc);
+    
+    // get visual info
+    
+    int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
+    
+    for (int i=0; i<elemc; ++i)
+    {
+        XVisualInfo *t_vi = glXGetVisualFromFBConfig( dpy, fbcfg[i] );
+        if ( t_vi )
+        {
+            int samp_buf, samples;
+            glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLE_BUFFERS, &samp_buf );
+            glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLES       , &samples  );
+            
+            printf( "  Matching fbconfig %d, visual ID 0x%2x: SAMPLE_BUFFERS = %d,"
+                   " SAMPLES = %d\n",
+                   i, t_vi->visualid, samp_buf, samples );
+            
+            if ( best_fbc < 0 || samp_buf && samples > best_num_samp )
+                best_fbc = i, best_num_samp = samples;
+            if ( worst_fbc < 0 || !samp_buf || samples < worst_num_samp )
+                worst_fbc = i, worst_num_samp = samples;
+        }
+        XFree( t_vi );
     }
+    
+    GLXFBConfig bestFbc = fbcfg[ best_fbc ];
+    XFree(fbcfg);
+    
+    vi = glXGetVisualFromFBConfig(dpy, bestFbc);
+    printf( "Chosen visual ID = 0x%x\n", vi->visualid );
     
     cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
     
     swa.colormap = cmap;
+    swa.background_pixmap = None;
+    swa.border_pixel = 0;
     swa.event_mask = ExposureMask | KeyPressMask;
     
     win = XCreateWindow(dpy, root, 0, 0, 1024, 896, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
     
+    XFree(vi);
+    
     XMapWindow(dpy, win);
     XStoreName(dpy, win, "Open Solomon's Key");
     
-    glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
-    glXMakeCurrent(dpy, win, glc);
+    // Get the default screen's GLX extension list
+    const char *glxExts = glXQueryExtensionsString( dpy, DefaultScreen( dpy ) );
+	PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC) glXGetProcAddress((const GLubyte*)"glXCreateContextAttribsARB");
+    
+    int (*oldHandler)(Display*, XErrorEvent*) =
+        XSetErrorHandler(&ctxErrorHandler);
+    
+    
+    // Check for the GLX_ARB_create_context extension string and the function.
+    // If either is not present, use GLX 1.3 context creation method.
+    if ( !isExtensionSupported( glxExts, "GLX_ARB_create_context" ) ||
+        !glXCreateContextAttribsARB )
+    {
+        printf( "glXCreateContextAttribsARB() not found"
+               " ... using old-style GLX context\n" );
+        glc = glXCreateNewContext( dpy, bestFbc, GLX_RGBA_TYPE, 0, True );
+    }
+    else
+    {
+        int context_attribs[] =
+        {
+            GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 0,
+            //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+            None
+        };
+        
+        printf( "Creating context\n" );
+        glc = glXCreateContextAttribsARB( dpy, bestFbc, 0,
+                                         True, context_attribs );
+        
+        // Sync to ensure any errors generated are processed.
+        XSync( dpy, False );
+        if ( !g_ctx_error && glc )
+            printf( "Created GL 3.0 context\n" );
+        else
+        {
+            // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
+            // When a context version below 3.0 is requested, implementations will
+            // return the newest context version compatible with OpenGL versions less
+            // than version 3.0.
+            // GLX_CONTEXT_MAJOR_VERSION_ARB = 1
+            context_attribs[1] = 1;
+            // GLX_CONTEXT_MINOR_VERSION_ARB = 0
+            context_attribs[3] = 0;
+            
+            g_ctx_error = false;
+            
+            printf( "Failed to create GL 3.0 context"
+                   " ... using old-style GLX context\n" );
+            glc = glXCreateContextAttribsARB( dpy, bestFbc, 0,
+                                             True, context_attribs );
+        }
+    }
+    
+    // Sync to ensure any errors generated are processed.
+    XSync( dpy, False );
+    
+    // Restore the original error handler
+    XSetErrorHandler( oldHandler );
+    
+    if ( g_ctx_error || !glc )
+    {
+        printf( "Failed to create an OpenGL context\n" );
+        exit(1);
+    }
+    
+    // Verifying that context is a direct context
+    if ( ! glXIsDirect ( dpy, glc ) )
+    {
+        printf( "Indirect GLX rendering context obtained\n" );
+    }
+    else
+    {
+        printf( "Direct GLX rendering context obtained\n" );
+    }
+    
+    printf( "Making context current\n" );
+    glXMakeCurrent( dpy, win, glc );
+    
+    // NOTE(miked): if this ever fails, switch to a windowing lib.
+    // I'm not doing this again
 }
 
 internal void
@@ -118,9 +305,22 @@ b32 x11_get_key_state(i32 key)
     
 }
 
+internal void
+gl_load()
+{
+    glewExperimental = true;
+    if (glewInit() != GLEW_OK)
+    {
+        puts("failed to init glew\n");
+        exit(-10);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     x11_init();
+    
+    gl_load();
     
     cb_init();
     
