@@ -80,6 +80,7 @@ void main()
     TexCoords = vertex.zw;
     gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
 }
+
 )EOS";
 
 const char* const g_2d_fs =
@@ -88,13 +89,15 @@ R"EOS(
 in vec2 TexCoords;
 out vec4 color;
 
-uniform sampler2D image;
-uniform vec3 spriteColor;
+uniform sampler2DArray sampler;
+uniform int layer = 0;
 
 void main()
 {    
-      color = vec4(spriteColor, 1.0) * texture(image, TexCoords);
+      color =  texture(sampler, vec3(TexCoords,layer));
+      //color = vec4(0.0, 1.0, 0.0, 1.0);
     }
+    
 )EOS";
 
 #endif //! OSK_HH
