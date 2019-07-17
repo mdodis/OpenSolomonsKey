@@ -305,7 +305,7 @@ cb_resize()
         g_wind_width, g_wind_height,
         &g_view_width, &g_view_height);
     
-#ifdef OSK_ROUND_TO_POW_64
+#ifdef OSK_ROUND_TO_POW_2
     g_tile_scale = highestPowerof2((u64)g_tile_scale);
     
     g_view_width  = g_tile_scale * 16;
@@ -348,6 +348,7 @@ b32 mirrory = false)
     
     glm::mat4 model(1.0f);
     
+    model = glm::scale(model, glm::vec3(g_pixel_scale, g_pixel_scale, 1.f));
     // ORIGIN on BOTTOM-CENTER
     // model = glm::translate(model, glm::vec3(pos - glm::vec2(-0.5f * size.x, size.y), 0.0f));
     // ORIGIN on TOP-LEFT
@@ -395,22 +396,21 @@ cb_render(InputState istate, float dt)
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    
     if (istate.move_right)
     {
-        position.x += 0.2f * g_pixel_scale * dt;
+        position.x += 0.2f * dt;
     }
     else if (istate.move_left)
     {
-        position.x -= 0.2f * g_pixel_scale * dt;
+        position.x -= 0.2f * dt;
     }
     if (istate.move_up)
     {
-        position.y -= 0.2f * g_pixel_scale * dt;
+        position.y -= 0.2f * dt;
     }
     else if (istate.move_down)
     {
-        position.y += 0.2f * g_pixel_scale * dt;
+        position.y += 0.2f * dt;
     }
     
     if (istate.spacebar_pressed)
@@ -420,20 +420,22 @@ cb_render(InputState istate, float dt)
         my = false;
     else my = true;
     
-    glm::vec2 size(g_tile_scale,g_tile_scale);
+    glm::vec2 size(64,64);
     //rotate += dt * 0.1f;
     
+#if 1
     for(int i = 0; i < 16; ++i )
     {
         for(int j = 0; j < 14; ++j )
         {
             gl_quick_tilemap_draw(
                 &g_tilemap_texture,
-                {i * g_tile_scale, j * g_tile_scale},
-                {g_tile_scale, g_tile_scale});
+                {i * 64, j * 64},
+                {64, 64});
             
         }
     }
+#endif
     
     gl_quick_tilemap_draw(
         &g_tilemap_texture,
