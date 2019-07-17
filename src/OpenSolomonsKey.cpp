@@ -10,6 +10,12 @@
 
 glm::mat4 g_projection;
 
+u32 g_shd_2d;
+u32 g_quad_vao;
+
+TilemapTexture g_tilemap_texture;
+Tilemap        g_tilemap;
+
 inline i32 ftrunc(float n) { return (i32)(n + 0.5f); }
 
 /* Calculate aspect ratio from current window dimensions.
@@ -69,6 +75,22 @@ u32* out_w, u32* out_h)
     return (int)vw * (0.0625);
 }
 
+
+internal u8*
+load_image_as_rgba_pixels(
+const char* const name,
+i32* out_width,
+i32* out_height,
+i32* out_n)
+{
+    int i_w, i_h, i_n;
+    unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
+    
+    return data;
+}
+
+
+
 internal u32
 gl_load_rgba_texture(u8* data, i32 width, i32 height)
 {
@@ -96,23 +118,73 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     return result;
 }
 
-internal u8*
-load_image_as_rgba_pixels(
-const char* const name,
-i32* out_width,
-i32* out_height,
-i32* out_n)
+
+internal TilemapTexture
+gl_load_rgba_tilemap(
+u8* data, 
+i32 width,
+i32 height,
+i32 tilemap_rows,
+i32 tilemap_cols)
 {
-    int i_w, i_h, i_n;
-    unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
+    u32 tilemap_id;
     
-    return data;
+    glGenTextures(1, &tilemap_id);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, tilemap_id);
+    
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL,  1);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE); 
+    
+    i32 tile_width = width / tilemap_cols;
+    i32 tile_height = height / tilemap_rows;
+    
+    glTexStorage3D(
+        GL_TEXTURE_2D_ARRAY,
+        1, GL_RGBA8,
+        tile_width, tile_height,
+        tilemap_rows * tilemap_cols);
+    
+    glPixelStorei(GL_UNPACK_ROW_LENGTH,   width);
+    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, height);
+    
+    for (i32 x = 0; x < tilemap_cols; x++)
+    {
+        for (i32 y = 0; y < tilemap_rows; y++)
+        {
+            // target (GL_TEXTURE_2D_ARRAY)
+            // miplevels 0 for just single image
+            // 0 (const)
+            // 0 (const)
+            // x * tiles_x + y
+            // tile_width
+            // tiles_height
+            // 1 (const)
+            // pformat (GL_BGR)
+            // iformat (GL_UNSIGNED_BYTE)
+            // pixels + (x * tile_height * width + y * tile_width) * components
+            // http://docs.gl/gl4/glTexSubImage3D
+            glTexSubImage3D(
+                GL_TEXTURE_2D_ARRAY,
+                0, 0, 0,
+                x * tilemap_cols + y,
+                tile_width, tile_height, 1,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                data + (x * tile_height * width + y * tile_width) * 4);
+        }
+    }
+    
+    glPixelStorei(GL_UNPACK_ROW_LENGTH,   0);
+    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+    
+    assert(glGetError() == GL_NO_ERROR);
+    
+    return TilemapTexture{tilemap_id, width, height, tilemap_rows, tilemap_cols};
 }
-
-
-u32 g_shd_2d;
-u32 g_quad_vao;
-u32 g_tilemap;
 
 void
 cb_init()
@@ -172,10 +244,6 @@ cb_init()
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     
-    //
-    // NOTE: Initialize vbo for sprites
-    //
-    
     int w, h, n;
     u8* data = load_image_as_rgba_pixels("Phoebus.png", &w, &h, &n);
     
@@ -183,65 +251,11 @@ cb_init()
     
     assert(data);
     glActiveTexture(GL_TEXTURE0);
-    glGenTextures(1, &g_tilemap);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, g_tilemap);
-    
-    // set up texture handle parameters
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BASE_LEVEL, 0); // !single image!
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL,  1); // !single image! mat->mips == 1
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // GL_LINEAR
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // GL_LINEAR 
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE); // GL_CLAMP_TO_EDGE
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE); // GL_CLAMP_TO_EDGE
-    
-    
-    int twidth = w;
-    int theight = h;
-    
-    int tiles_x = 16;
-    int tiles_y = 16;
-    int p_dx = 64;
-    int p_dy = 64;
-    
-    glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, p_dx, p_dy, tiles_x * tiles_y);
-    
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, twidth); // width
-    glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, theight); // height
-    //glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    
-    for (int x=0; x<tiles_x; x++) {
-        for (int y=0; y<tiles_y; y++) {
-            
-            // target (GL_TEXTURE_2D_ARRAY)
-            // miplevels 0 for just single image
-            // 0 (const)
-            // 0 (const)
-            // x * tiles_x + y
-            // tile_width
-            // tiles_height
-            // 1 (const)
-            // pformat (GL_BGR)
-            // iformat (GL_UNSIGNED_BYTE)
-            // pixels + (x * tile_height * width + y * tile_width) * components
-            // http://docs.gl/gl4/glTexSubImage3D
-            glTexSubImage3D(
-                GL_TEXTURE_2D_ARRAY,
-                0, 0, 0,
-                x * tiles_x + y,
-                p_dx, p_dy, 1,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                data + (x * p_dy * twidth + y * p_dx) * 4);
-        }
-    }
-    
-    // These parameters have been chosen for Apanga, where I want a
-    // pixelated appearance to the textures as they're magnified.
+    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 16, 16);
     
     GLuint sampler_loc = glGetUniformLocation(g_shd_2d, "sampler");
     glUniform1i(sampler_loc, 0);
     assert(glGetError() == GL_NO_ERROR);
-    
     
     GLuint VBO;
     GLfloat vertices[] = { 
@@ -314,51 +328,118 @@ cb_resize()
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
+internal void
+gl_quick_tilemap_draw(
+TilemapTexture const* tm,
+glm::vec2 pos,
+glm::vec2 size,
+float rotate = 0.f,
+i32 tm_index = 0,
+b32 mirrorx = false,
+b32 mirrory = false)
+{
+    
+    glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
+    glBindVertexArray(g_quad_vao);
+    glUseProgram(g_shd_2d);
+    
+    GLuint layer_loc = glGetUniformLocation(g_shd_2d, "layer");
+    glUniform1i(layer_loc,tm_index );
+    
+    glm::mat4 model(1.0f);
+    
+    // ORIGIN on BOTTOM-CENTER
+    // model = glm::translate(model, glm::vec3(pos - glm::vec2(-0.5f * size.x, size.y), 0.0f));
+    // ORIGIN on TOP-LEFT
+    model = glm::translate(model, glm::vec3(pos, 0.0f));
+    
+    model = glm::translate(model, glm::vec3(0.5f * size.x, .5*size.y, 0.0f));
+    model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f)); 
+    model = glm::translate(model, glm::vec3(-0.5f * size.x,-.5*size.y, 0.0f)); 
+    
+    
+    if (mirrory)
+    {
+        model = glm::translate(model, glm::vec3(0, 1.f * size.y, 0.0f));
+        model = glm::scale(model, glm::vec3(1.0f, -1.f,1.f));
+    }
+    
+    
+    if (mirrorx)
+    {
+        model = glm::translate(model, glm::vec3(1.f* size.x, 0, 0.0f));
+        model = glm::scale(model, glm::vec3(-1.0f, 1.f,1.f));
+    }
+    
+    model = glm::scale(model, glm::vec3(size, 1.0f));
+    
+    GLuint loc = glGetUniformLocation(g_shd_2d, "model");
+    glUniformMatrix4fv(
+        loc,
+        1,
+        GL_FALSE,
+        glm::value_ptr(model));
+    
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+glm::vec2 position(0,0);
+float rotate = -90.f;
+b32 mx = false;
+b32 my = false;
+
 void
 cb_render(InputState istate, float dt)
 {
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    glm::vec2 position(0,0);
-    glm::vec2 size(g_tile_scale,g_tile_scale);
-    float rotate = 0.f;
     
-    glBindTexture(GL_TEXTURE_2D_ARRAY, g_tilemap);
-    glBindVertexArray(g_quad_vao);
-    
-    
-    GLuint layer_loc = glGetUniformLocation(g_shd_2d, "layer");
-    
-    for (int i = 0; i < 16; i++)
+    if (istate.move_right)
     {
-        for(int j = 0; j < 12; j++)
+        position.x += 0.2f * g_pixel_scale * dt;
+    }
+    else if (istate.move_left)
+    {
+        position.x -= 0.2f * g_pixel_scale * dt;
+    }
+    if (istate.move_up)
+    {
+        position.y -= 0.2f * g_pixel_scale * dt;
+    }
+    else if (istate.move_down)
+    {
+        position.y += 0.2f * g_pixel_scale * dt;
+    }
+    
+    if (istate.spacebar_pressed)
+        mx = false;
+    else mx = true;
+    if (istate.m_pressed)
+        my = false;
+    else my = true;
+    
+    glm::vec2 size(g_tile_scale,g_tile_scale);
+    //rotate += dt * 0.1f;
+    
+    for(int i = 0; i < 16; ++i )
+    {
+        for(int j = 0; j < 14; ++j )
         {
-            glUniform1i(layer_loc, i);
-            position.x = g_tile_scale * i;
-            position.y = g_tile_scale * j;
-            
-            glm::mat4 model(1.0f);
-            model = glm::translate(model, glm::vec3(position, 0.0f));  
-            
-            //model = glm::translate(model, glm::vec3(0.5f * size.x, 0.5f * size.y, 0.0f)); 
-            //model = glm::rotate(model, rotate, glm::vec3(0.0f, 0.0f, 1.0f)); 
-            //model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
-            
-            model = glm::scale(model, glm::vec3(size, 1.0f)); 
-            
-            GLuint loc = glGetUniformLocation(g_shd_2d, "model");
-            glUniformMatrix4fv(
-                loc,
-                1,
-                GL_FALSE,
-                glm::value_ptr(model));
-            
-            
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            gl_quick_tilemap_draw(
+                &g_tilemap_texture,
+                {i * g_tile_scale, j * g_tile_scale},
+                {g_tile_scale, g_tile_scale});
             
         }
     }
+    
+    gl_quick_tilemap_draw(
+        &g_tilemap_texture,
+        position, size,rotate, 1, mx, my);
+    
+    
     
 }
 

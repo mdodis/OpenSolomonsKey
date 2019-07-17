@@ -12,12 +12,12 @@ typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef int8_t   i18;
+typedef int8_t   i8;
 typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
 
-typedef i32 b32;
+typedef i32      b32;
 
 extern u32    g_wind_width;
 extern u32    g_wind_height;
@@ -32,7 +32,10 @@ typedef struct
 {
     b32 move_right;
     b32 move_left;
+    b32 move_up;
+    b32 move_down;
     b32 spacebar_pressed;
+    b32 m_pressed;
 } InputState;
 
 global InputState g_input_state;
@@ -99,5 +102,20 @@ void main()
     }
     
 )EOS";
+
+typedef struct
+{
+    u32 texture_id;
+    i32 width, height;
+    i32 rows, cols;
+}  TilemapTexture;
+
+typedef struct
+{
+    const i32 rows = 15;
+    const i32 cols = 12;
+    TilemapTexture const* texture;
+    
+} Tilemap;
 
 #endif //! OSK_HH

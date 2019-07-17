@@ -348,6 +348,11 @@ int main(int argc, char *argv[])
         
         XQueryKeymap(dpy, _x11_internal_keys);
         ISTATE_KEYDOWN_ACTION(XK_space, spacebar_pressed);
+        ISTATE_KEYDOWN_ACTION(XK_Right, move_right);
+        ISTATE_KEYDOWN_ACTION(XK_Left, move_left);
+        ISTATE_KEYDOWN_ACTION(XK_Up, move_up);
+        ISTATE_KEYDOWN_ACTION(XK_Down, move_down);
+        ISTATE_KEYDOWN_ACTION(XK_M, m_pressed);
         
         clock_gettime(CLOCK_MONOTONIC, &now);
         delta_timespec = timespec_diff(last, now);
