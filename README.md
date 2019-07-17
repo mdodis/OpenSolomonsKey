@@ -9,6 +9,7 @@ Solomon's Key (ソロモンの鍵 Soromon no Kagi) is a puzzle game developed by
     - [ ] bounding box drawing (for debugging)
     - [ ] minkowski aabb (dont forget the penetration vector)
 - [ ] Level storage
+- [X] Removed GLEW
 - [X] Time measurement
 - [X] Input handling
 - [X] Tilemap

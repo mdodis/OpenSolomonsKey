@@ -16,25 +16,22 @@ TODO(mdodis):
 
 #define OSK_PLATFORM_X11
 
-#define GL_GLEXT_PROTOTYPES
-#define GLX_GLXEXT_PROTOTYPES
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-
-#include<assert.h>
+#include <assert.h>
 #include <time.h>
 
-#include<X11/X.h>
-#include<X11/Xlib.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
 
-#include <GL/glew.h>
-#include<GL/gl.h>
-#include<GL/glx.h>
-
-#include<GL/glu.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
 #include "OpenSolomonsKey.h"
+#include "gl_funcs.h"
+
 
 u32 g_wind_width;
 u32 g_wind_height;
@@ -303,17 +300,6 @@ b32 x11_get_key_state(i32 key)
         return true;
     else return false;
     
-}
-
-internal void
-gl_load()
-{
-    glewExperimental = true;
-    if (glewInit() != GLEW_OK)
-    {
-        puts("failed to init glew\n");
-        exit(-10);
-    }
 }
 
 int main(int argc, char *argv[])

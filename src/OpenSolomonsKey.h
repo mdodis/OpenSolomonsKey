@@ -2,7 +2,7 @@
 #define OSK_HH
 #include <stdint.h>
 
-#define OSK_ROUND_TO_POW_64
+//#define OSK_ROUND_TO_POW_2
 
 #define internal static
 #define global   static
@@ -39,7 +39,6 @@ typedef struct
 } InputState;
 
 global InputState g_input_state;
-
 
 #define W_2_H 1.1428571428571428
 #define HEIGHT_2_WIDTH_SCALE 0.875
@@ -103,6 +102,47 @@ void main()
     
 )EOS";
 
+
+const char* const g_debug_line_vs =
+R"EOS(
+#version 330 core
+layout (location = 0) in vec2 vertex; // <vec2 position>
+
+uniform mat4 model;
+uniform mat4 projection;
+
+void main()
+{
+    gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
+}
+
+)EOS";
+
+
+
+const char* const g_debug_line_fs =
+R"EOS(
+#version 330 core
+out vec4 color;
+
+void main()
+{    
+      color = vec4(1.0, 0.0, 0.0, 1.0);
+    }
+    
+)EOS";
+
+typedef struct
+{
+    u32 id = 0;
+    
+    void apply();
+    void create(const char* const vsrc, const char* const fsrc);
+} GLShader;
+
+global GLShader g_shd_2d;
+global GLShader g_shd_debug_line;
+
 typedef struct
 {
     u32 texture_id;
@@ -117,5 +157,10 @@ typedef struct
     TilemapTexture const* texture;
     
 } Tilemap;
+
+struct
+{
+    u32 lines_vao;
+} g_debug;
 
 #endif //! OSK_HH

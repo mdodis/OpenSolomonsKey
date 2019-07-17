@@ -8,9 +8,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "gl_funcs.h"
+
 glm::mat4 g_projection;
 
-u32 g_shd_2d;
 u32 g_quad_vao;
 
 TilemapTexture g_tilemap_texture;
@@ -121,7 +122,7 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
 
 internal TilemapTexture
 gl_load_rgba_tilemap(
-u8* data, 
+u8* data,
 i32 width,
 i32 height,
 i32 tilemap_rows,
@@ -137,7 +138,7 @@ i32 tilemap_cols)
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE); 
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
     
     i32 tile_width = width / tilemap_cols;
     i32 tile_height = height / tilemap_rows;
@@ -186,15 +187,9 @@ i32 tilemap_cols)
     return TilemapTexture{tilemap_id, width, height, tilemap_rows, tilemap_cols};
 }
 
-void
-cb_init()
+
+void GLShader::create(const char* const vsrc, const char* const fsrc)
 {
-    
-    glActiveTexture(GL_TEXTURE0);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
-    
     u32 vertex, fragment;
     
     int success;
@@ -202,7 +197,7 @@ cb_init()
     
     // vertex Shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &g_2d_vs, NULL);
+    glShaderSource(vertex, 1, &vsrc, NULL);
     glCompileShader(vertex);
     // print compile errors if any
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
@@ -215,7 +210,7 @@ cb_init()
     
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &g_2d_fs, NULL);
+    glShaderSource(fragment, 1, &fsrc, NULL);
     glCompileShader(fragment);
     // print compile errors if any
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
@@ -227,42 +222,59 @@ cb_init()
     };
     
     // shader Program
-    g_shd_2d = glCreateProgram();
-    glAttachShader(g_shd_2d, vertex);
-    glAttachShader(g_shd_2d, fragment);
-    glLinkProgram(g_shd_2d);
+    this->id= glCreateProgram();
+    glAttachShader(this->id, vertex);
+    glAttachShader(this->id, fragment);
+    glLinkProgram(this->id);
     // print linking errors if any
-    glGetProgramiv(g_shd_2d, GL_LINK_STATUS, &success);
+    glGetProgramiv(this->id, GL_LINK_STATUS, &success);
     if(!success)
     {
-        glGetProgramInfoLog(g_shd_2d, 512, NULL, infoLog);
+        glGetProgramInfoLog(this->id, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n",infoLog);
         assert(0);
     }
-    glUseProgram(g_shd_2d);
+    glUseProgram(this->id);
     // delete the shaders as they're linked into our program now and no longer necessery
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     
+}
+
+void GLShader::apply()
+{
+    glUseProgram(this->id);
+}
+
+void
+cb_init()
+{
+    
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    
+    g_shd_debug_line.create(g_debug_line_vs,g_debug_line_fs );
+    g_shd_2d.create(g_2d_vs, g_2d_fs);
+    
+    
     int w, h, n;
     u8* data = load_image_as_rgba_pixels("Phoebus.png", &w, &h, &n);
-    
-    printf("n: %d\n", n);
-    
     assert(data);
+    
     glActiveTexture(GL_TEXTURE0);
     g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 16, 16);
     
-    GLuint sampler_loc = glGetUniformLocation(g_shd_2d, "sampler");
+    GLuint sampler_loc = glGetUniformLocation(g_shd_2d.id, "sampler");
     glUniform1i(sampler_loc, 0);
-    assert(glGetError() == GL_NO_ERROR);
     
     GLuint VBO;
-    GLfloat vertices[] = { 
+    GLfloat vertices[] = {
         // Pos      // Tex
         0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 0.0f,
         
         0.0f, 1.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 1.0f, 1.0f,
@@ -278,7 +290,7 @@ cb_init()
     glBindVertexArray(g_quad_vao);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);  
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     
     GLenum err = glGetError();
@@ -288,6 +300,23 @@ cb_init()
         exit(-10);
     }
     
+    
+    float verts[4] = {0.f, 0.f, 0.f, 1.f};
+    
+    glGenVertexArrays(1, &g_debug.lines_vao);
+    glGenBuffers(1, &VBO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    
+    glBindVertexArray(g_debug.lines_vao);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    
+    
+    assert(glGetError() == GL_NO_ERROR);
     return;
 }
 
@@ -318,7 +347,7 @@ cb_resize()
     
     g_projection = glm::ortho(0.0f, (float)g_view_width, (float)g_view_height, 0.0f);
     
-    GLuint loc = glGetUniformLocation(g_shd_2d, "projection");
+    GLuint loc = glGetUniformLocation(g_shd_2d.id, "projection");
     glUniformMatrix4fv(
         loc,
         1,
@@ -341,9 +370,9 @@ b32 mirrory = false)
     
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
     glBindVertexArray(g_quad_vao);
-    glUseProgram(g_shd_2d);
+    glUseProgram(g_shd_2d.id);
     
-    GLuint layer_loc = glGetUniformLocation(g_shd_2d, "layer");
+    GLuint layer_loc = glGetUniformLocation(g_shd_2d.id, "layer");
     glUniform1i(layer_loc,tm_index );
     
     glm::mat4 model(1.0f);
@@ -355,8 +384,8 @@ b32 mirrory = false)
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     
     model = glm::translate(model, glm::vec3(0.5f * size.x, .5*size.y, 0.0f));
-    model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f)); 
-    model = glm::translate(model, glm::vec3(-0.5f * size.x,-.5*size.y, 0.0f)); 
+    model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, glm::vec3(-0.5f * size.x,-.5*size.y, 0.0f));
     
     
     if (mirrory)
@@ -374,7 +403,7 @@ b32 mirrory = false)
     
     model = glm::scale(model, glm::vec3(size, 1.0f));
     
-    GLuint loc = glGetUniformLocation(g_shd_2d, "model");
+    GLuint loc = glGetUniformLocation(g_shd_2d.id, "model");
     glUniformMatrix4fv(
         loc,
         1,
@@ -440,8 +469,5 @@ cb_render(InputState istate, float dt)
     gl_quick_tilemap_draw(
         &g_tilemap_texture,
         position, size,rotate, 1, mx, my);
-    
-    
-    
 }
 
