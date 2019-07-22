@@ -28,6 +28,7 @@ extern u32    g_view_height;
 extern double g_tile_scale;  // base scale for everything
 double        g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
+
 typedef struct
 {
     b32 move_right;
@@ -46,9 +47,6 @@ global InputState g_input_state;
 #define HORIZ_SCREEN_PAD (g_tile_scale / 2.0)
 #define VERTC_SCREEN_PAD (g_tile_scale)
 
-#define IS_POW2(x) x && !(x & (x - 1))
-
-
 #if   defined(OSK_PLATFORM_X11)
 
 b32 x11_get_key_state(i32 key);
@@ -65,102 +63,28 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
 
-
-
-const char* const g_2d_vs =
-R"EOS(
-#version 330 core
-layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
-
-out vec2 TexCoords;
-
-uniform mat4 model;
-uniform mat4 projection;
-
-void main()
-{
-    TexCoords = vertex.zw;
-    gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
-}
-
-)EOS";
-
-const char* const g_2d_fs =
-R"EOS(
-#version 330 core
-in vec2 TexCoords;
-out vec4 color;
-
-uniform sampler2DArray sampler;
-uniform int layer = 0;
-
-void main()
-{    
-      color =  texture(sampler, vec3(TexCoords,layer));
-      //color = vec4(0.0, 1.0, 0.0, 1.0);
-    }
-    
-)EOS";
-
-
-const char* const g_debug_line_vs =
-R"EOS(
-#version 330 core
-layout (location = 0) in vec2 vertex; // <vec2 position>
-
-uniform mat4 model;
-uniform mat4 projection;
-
-void main()
-{
-    gl_Position = projection * model * vec4(vertex.xy, 0.0, 1.0);
-}
-
-)EOS";
-
-
-
-const char* const g_debug_line_fs =
-R"EOS(
-#version 330 core
-out vec4 color;
-
-void main()
-{    
-      color = vec4(1.0, 0.0, 0.0, 1.0);
-    }
-    
-)EOS";
-
+/*
+Box in sprite space (i.e 64 over 64)
+*/
 typedef struct
 {
-    u32 id = 0;
-    
-    void apply();
-    void create(const char* const vsrc, const char* const fsrc);
-} GLShader;
+    i32 min_x = 0;
+    i32 min_y = 0;
+    i32 max_x = 64;
+    i32 max_y = 64;
+} AABox;
 
-global GLShader g_shd_2d;
-global GLShader g_shd_debug_line;
-
-typedef struct
+union ivec2
 {
-    u32 texture_id;
-    i32 width, height;
-    i32 rows, cols;
-}  TilemapTexture;
-
-typedef struct
-{
-    const i32 rows = 15;
-    const i32 cols = 12;
-    TilemapTexture const* texture;
-    
-} Tilemap;
-
-struct
-{
-    u32 lines_vao;
-} g_debug;
+    struct
+    {
+        i32 x, y;
+    };
+    struct
+    {
+        i32 w, h;
+    };
+    i32 e[2];
+};
 
 #endif //! OSK_HH

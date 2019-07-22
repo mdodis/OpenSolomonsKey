@@ -131,7 +131,7 @@ win32_init(HINSTANCE hInstance)
     OutputDebugStringA("\n");
     
     ReleaseDC(g_wind, dev_ctx);
- 
+    
 }
 
 
@@ -149,7 +149,7 @@ int       nShowCmd)
     MSG message;
     LARGE_INTEGER perf_last, perf_now = {};
     LARGE_INTEGER perf_freq;
-
+    
     win32_init(hInstance);
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -161,10 +161,10 @@ int       nShowCmd)
     ShowWindow(g_wind, SW_SHOW);
     
     g_dc = GetDC(g_wind);
-
+    
     QueryPerformanceFrequency(&perf_freq);
     QueryPerformanceCounter(&perf_last);
-
+    
     while (g_running)
     {
         while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE))
@@ -174,18 +174,18 @@ int       nShowCmd)
         }
         
         ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
-
-
+        
+        
         QueryPerformanceCounter(&perf_now);
         i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
         float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
         assert(delta >= 0);
-
+        
         cb_render(g_input_state,delta);
         perf_last = perf_now;
         SwapBuffers(g_dc); 
     }
-
+    
     return 0;
 }
 
