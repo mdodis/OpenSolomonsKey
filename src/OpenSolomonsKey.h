@@ -63,17 +63,6 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
 
-/*
-Box in sprite space (i.e 64 over 64)
-*/
-typedef struct
-{
-    i32 min_x = 0;
-    i32 min_y = 0;
-    i32 max_x = 64;
-    i32 max_y = 64;
-} AABox;
-
 union ivec2
 {
     struct
@@ -85,6 +74,43 @@ union ivec2
         i32 w, h;
     };
     i32 e[2];
+};
+
+/*
+Box in sprite space (i.e 64 over 64)
+*/
+struct AABox
+{
+    i32 min_x = 0;
+    i32 min_y = 0;
+    i32 max_x = 64;
+    i32 max_y = 64;
+    
+    AABox translate(ivec2 position)
+    {
+        return AABox
+        {
+            min_x + position.x,
+            min_y + position.y,
+            min_x + position.x + max_x,
+            min_y + position.y + max_y
+        };
+    }
+    
+};
+
+enum PaletteEntryType
+{
+    PENTRY_EMPTY_SPACE,        /*params: -*/
+    PENTRY_BLOCK_BREAKABLE,    /*params: tilemapidx, tileidx*/
+    PENTRY_BLOCK_UNBREAKABLE,  /*params: tilemapidx, tileidx*/
+    PENTRY_UNKNOWN
+};
+
+struct PaletteEntry
+{
+    PaletteEntryType type;
+    i32 params[2];
 };
 
 #endif //! OSK_HH

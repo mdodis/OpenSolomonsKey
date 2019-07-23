@@ -11,16 +11,19 @@
 #include "gl_funcs.h"
 #include "gl_graphics.h"
 
+#define IS_DIGIT(x) (x >= '0' && x <= '9')
+#define ENUM_TO_STR(x) #x
+
 u32 g_quad_vao;
 
 global GLShader g_shd_2d;
 GLTilemapTexture g_tilemap_texture;
 
-Tilemap        g_tilemap;
+//Tilemap        g_tilemap;
 
 glm::mat4 g_projection;
 
-inline i32 ftrunc(float n) { return (i32)(n + 0.5f); }
+inline i32 ftrunc(float n) { return (i32)(n); }
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
@@ -246,10 +249,184 @@ ivec2* const opt_pen = 0)
     return false;
 }
 
+
+internal b32
+string_cmp_indentifier(
+const char* c,
+const char* str,
+u64* out_size)
+{
+    u64 size = 0;
+    
+    while (*c != ' ' && *c != '\n')
+    {
+        if (*c != *str)
+        {
+            if (*str == 0) break;
+            return false;
+        }
+        
+        size++;
+        c++; str++;
+    }
+    *out_size = size;
+    return true;
+}
+
+internal const char*
+string_trim(const char* c)
+{
+    while(
+        *c == ' ' ||
+        *c == '\n')
+        c++;
+    return c;
+}
+
+internal const char*
+string_parse_uint(const char* c, u64* out_i)
+{
+    u64 res = 0;
+    while (*c && IS_DIGIT(*c))
+    {
+        res *= 10;
+        res += *c - '0';
+        
+        c++;
+    }
+    *out_i = res;
+    return c;
+}
+
+global PaletteEntry g_palette[64];
+global u64 g_tilemap[15][12];
+global u64 g_palette_size;
+
+internal void load_test_level(
+PaletteEntry palette[64],
+u64* out_size)
+{ 
+    char* level;
+    u64 size;
+    FILE* f = fopen("test_level.oskmap", "rb");
+    if (!f) exit(-1);
+    
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    level = (char*)malloc(size + 1);
+    assert(level);
+    fread(level, size, 1, f);
+    level[size] = 0;
+    fclose(f);
+    
+    const char* c = level;
+    
+    u64 palette_size, counter = 0;
+    
+    while(*c != 0)
+    {
+        switch(*c)
+        {
+            case '#':
+            {
+                c++;
+                u64 stride = 0;
+                if (string_cmp_indentifier(c, "PALETTE", &stride))
+                {
+                    puts("PALETTE");
+                    c += stride;
+                    
+                    c = string_trim(c);
+                    c = string_parse_uint(c, &palette_size);
+                    
+                    *out_size = palette_size;
+                    
+                    printf("%ld\n", palette_size);
+                    
+                }
+                else if (string_cmp_indentifier(c, ENUM_TO_STR(PENTRY_EMPTY_SPACE), &stride))
+                {
+                    puts("PENTRY_EMPTY_SPACE");
+                    c += stride;
+                    
+                    palette[counter].type = PENTRY_EMPTY_SPACE;
+                    
+                    counter++;
+                }
+                else if (string_cmp_indentifier(c, ENUM_TO_STR(PENTRY_BLOCK_BREAKABLE), &stride))
+                {
+                    puts("PENTRY_BLOCK_BREAKABLE");
+                    c += stride;
+                    
+                    palette[counter].type = PENTRY_BLOCK_BREAKABLE;
+                    
+                    counter++;
+                }
+                else if (string_cmp_indentifier(c, ENUM_TO_STR(PENTRY_BLOCK_UNBREAKABLE), &stride))
+                {
+                    puts("PENTRY_BLOCK_UNBREAKABLE");
+                    c += stride;
+                    
+                    palette[counter].type = PENTRY_BLOCK_UNBREAKABLE;
+                    
+                    counter++;
+                }
+                else if (string_cmp_indentifier(c, "MAP", &stride))
+                {
+                    puts("MAP");
+                    c += stride;
+                    u64 layer_num;
+                    
+                    c = string_trim(c);
+                    c = string_parse_uint(c, &layer_num);
+                    printf("%d\n", layer_num);
+                    c = string_trim(c);
+                    
+                    for(u32 j = 0; j < 12; ++j)
+                    {
+                        for(u32 i = 0; i < 15; ++i)
+                        {
+                            u64 idx;
+                            c = string_trim(c);
+                            c = string_parse_uint(c, &idx);
+                            
+                            g_tilemap[i][j] = idx;
+                            
+                            printf("%d ", idx);
+                        }
+                        puts("");
+                    }
+                    
+                    
+                }
+                else
+                {
+                    puts("UNKNOWN directive!");
+                    exit(6);
+                }
+                
+                if (counter > palette_size)
+                {
+                    puts("ERR: palette_size smaller than the counter");
+                    exit(5);
+                }
+                
+            } break;
+            
+            default:
+            {
+                c++;
+            } break;
+        }
+        
+    }
+    //exit(-1);
+}
+
 glm::vec2 position(0,0);
 float rotate = -90.f;
-b32 mx = false;
-b32 my = false;
 
 void
 cb_render(InputState istate, float dt)
@@ -259,39 +436,46 @@ cb_render(InputState istate, float dt)
     
     if (istate.move_right)
     {
-        position.x += 0.2f * dt;
+        position.x += 150.f * dt;
     }
     else if (istate.move_left)
     {
-        position.x -= 0.2f * dt;
+        position.x -= 150.f * dt;
     }
     if (istate.move_up)
     {
-        position.y -= 0.2f * dt;
+        position.y -= 150.f * dt;
     }
     else if (istate.move_down)
     {
-        position.y += 0.2f * dt;
+        position.y += 150.f * dt;
     }
     
-    if (istate.spacebar_pressed)
-        mx = false;
-    else mx = true;
-    if (istate.m_pressed)
-        my = false;
-    else my = true;
-    
-    glm::vec2 size(64,64);
-    //rotate += dt * 0.1f;
-    
-    for(int i = 0; i < 16; ++i )
+    persist b32 loaded = false;
+    if (istate.spacebar_pressed && !loaded)
     {
-        for(int j = 0; j < 14; ++j )
+        load_test_level(g_palette, &g_palette_size);
+        loaded = true;
+    }
+    glm::vec2 size(64,64);
+    
+    for(int i = 0; i < 15; ++i )
+    {
+        for(int j = 0; j < 12; ++j )
         {
+            PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
+            if (type == PENTRY_EMPTY_SPACE) continue;
+            
+            u32 id;
+            if (type == PENTRY_BLOCK_UNBREAKABLE) id = 3;
+            if (type == PENTRY_BLOCK_BREAKABLE) id = 4;
+            
             gl_slow_tilemap_draw(
                 &g_tilemap_texture,
                 {i * 64, j * 64},
-                {64, 64});
+                {64, 64},
+                0.f,
+                id);
             
         }
     }
@@ -304,44 +488,35 @@ cb_render(InputState istate, float dt)
         0,0,
         64,64};
     
-    
-    player_box.min_x += position.x;
-    player_box.min_y += position.y;
-    player_box.max_x += player_box.min_x;
-    player_box.max_y += player_box.min_y;
+#if 0    
+    AABox player_tranformd = player_box.translate({(i32)position.x, (i32)position.y});
     
     enemy_box.min_x += 100;
     enemy_box.min_y += 100;
     enemy_box.max_x += enemy_box.min_x;
     enemy_box.max_y += enemy_box.min_y;
     
-    i32 tilemap_item = 1;
-    
     ivec2 pen;
-    b32 diff = intersect(&player_box, &enemy_box, &pen);
+    b32 diff = intersect(&player_tranformd, &enemy_box, &pen);
     if (diff)
     {
         position -= glm::vec2{pen.x, pen.y};
+        position.x = ftrunc(position.x);
+        position.y = ftrunc(position.y);
     }
+    
+#endif
+    player_box = player_box.translate({(i32)position.x, (i32)position.y});
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
-        position, size,rotate, tilemap_item, mx, my);
-    
+        position, size,rotate, 1, true);
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
         {player_box.min_x, player_box.min_y},
         {player_box.max_x - player_box.min_x, player_box.max_y - player_box.min_y},
         0,0 + 1 * 16 );
-    
-    gl_slow_tilemap_draw(
-        &g_tilemap_texture,
-        {enemy_box.min_x, enemy_box.min_y},
-        {enemy_box.max_x - enemy_box.min_x, enemy_box.max_y - enemy_box.min_y},
-        0,0 + 1 * 16 );
-    
-    
     
 }
 

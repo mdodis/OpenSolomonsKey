@@ -178,6 +178,8 @@ b32 mirrory)
     // ORIGIN on TOP-LEFT
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     
+    model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
+    
     model = glm::translate(model, glm::vec3(0.5f * size.x, .5*size.y, 0.0f));
     model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::translate(model, glm::vec3(-0.5f * size.x,-.5*size.y, 0.0f));

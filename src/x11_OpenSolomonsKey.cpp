@@ -342,7 +342,8 @@ int main(int argc, char *argv[])
         
         clock_gettime(CLOCK_MONOTONIC, &now);
         delta_timespec = timespec_diff(last, now);
-        float delta = delta_timespec.tv_nsec / 1000000.f;
+        float delta = (double)delta_timespec.tv_nsec / 1000000000.0;
+        
         assert(delta > 0);
         // Render code here
         cb_render(g_input_state, delta);
