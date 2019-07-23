@@ -174,6 +174,11 @@ int       nShowCmd)
         }
         
         ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
+        ISTATE_KEYDOWN_ACTION(VK_RIGHT, move_right);
+        ISTATE_KEYDOWN_ACTION(VK_LEFT, move_left);
+        ISTATE_KEYDOWN_ACTION(VK_UP, move_up);
+        ISTATE_KEYDOWN_ACTION(VK_DOWN, move_down);
+        ISTATE_KEYDOWN_ACTION('M', m_pressed);
         
         
         QueryPerformanceCounter(&perf_now);
@@ -181,7 +186,7 @@ int       nShowCmd)
         float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
         assert(delta >= 0);
         
-        cb_render(g_input_state,delta);
+        cb_render(g_input_state,delta / 1000.f);
         perf_last = perf_now;
         SwapBuffers(g_dc); 
     }
