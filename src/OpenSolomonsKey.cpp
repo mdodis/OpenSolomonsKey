@@ -343,7 +343,7 @@ u64* out_size)
                     
                     *out_size = palette_size;
                     
-                    printf("%ld\n", palette_size);
+                    printf("%ld\n", (int)palette_size);
                     
                 }
                 else if (string_cmp_indentifier(c, ENUM_TO_STR(PENTRY_EMPTY_SPACE), &stride))
@@ -381,7 +381,7 @@ u64* out_size)
                     
                     c = string_trim(c);
                     c = string_parse_uint(c, &layer_num);
-                    printf("%d\n", layer_num);
+                    printf("%d\n",(int) layer_num);
                     c = string_trim(c);
                     
                     for(u32 j = 0; j < 12; ++j)
@@ -394,7 +394,7 @@ u64* out_size)
                             
                             g_tilemap[i][j] = idx;
                             
-                            printf("%d ", idx);
+                            printf("%d ", (int)idx);
                         }
                         puts("");
                     }
