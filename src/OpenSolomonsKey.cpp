@@ -8,39 +8,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "osk_math.h"
+
 #include "gl_funcs.h"
 #include "gl_graphics.h"
 
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 #define ENUM_TO_STR(x) #x
 
-
 u32 g_quad_vao;
 
 global GLShader g_shd_2d;
 GLTilemapTexture g_tilemap_texture;
 
-//Tilemap        g_tilemap;
-
 glm::mat4 g_projection;
-
-inline i32 ftrunc(float n) { return (i32)(n); }
-
-inline i32 iclamp(i32 a, i32 b, i32 x)
-{
-    if (x < a) return a;
-    if (x > b) return b;
-    return x;
-}
-
-inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
-{
-    return ivec2
-    {
-        iclamp(a.x, b.x, x.x),
-        iclamp(a.y, b.y, x.y)
-    };
-}
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
@@ -170,13 +151,6 @@ cb_init()
     return;
 }
 
-#include <math.h>
-int highestPowerof2(int n)
-{
-    int p = (int)log2(n);
-    return (int)pow(2, p);
-}
-
 void
 cb_resize()
 {
@@ -185,7 +159,7 @@ cb_resize()
         &g_view_width, &g_view_height);
     
 #ifdef OSK_ROUND_TO_POW_2
-    g_tile_scale = highestPowerof2((u64)g_tile_scale);
+    g_tile_scale = highest_pow2((u64)g_tile_scale);
     
     g_view_width  = g_tile_scale * 16;
     g_view_height = (i32)((double)(g_view_width) * HEIGHT_2_WIDTH_SCALE);
@@ -208,64 +182,6 @@ cb_resize()
     
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
-#include <float.h>
-
-internal b32
-intersect(
-const AABox* const a,
-const AABox* const b,
-ivec2* const opt_pen = 0)
-{
-    AABox result;
-    result.min_y = a->min_y - b->max_y;
-    result.max_y = a->max_y - b->min_y;
-    
-    result.min_x = a->min_x - b->max_x;
-    result.max_x = a->max_x - b->min_x;
-    
-    
-    if (result.min_x <= 0 &&
-        result.max_x >= 0 &&
-        result.min_y <= 0 &&
-        result.max_y >= 0)
-    {
-        ivec2 penetration = {0,0};
-        float min = FLT_MAX;
-        
-        if (glm::abs(result.min_x) < min)
-        {
-            min = glm::abs(result.min_x);
-            penetration = {result.min_x, 0};
-        }
-        
-        if (glm::abs(result.max_x) < min)
-        {
-            min = glm::abs(result.max_x);
-            penetration = {result.max_x, 0};
-        }
-        
-        if (glm::abs(result.min_y) < min)
-        {
-            min = glm::abs(result.min_y);
-            penetration = {0, result.min_y};
-        }
-        
-        if (glm::abs(result.max_y) < min)
-        {
-            min = glm::abs(result.max_y);
-            penetration = {0, result.max_y};
-        }
-        
-        if (opt_pen) *opt_pen = penetration;
-        
-        return true;
-    }
-    
-    if (opt_pen) *opt_pen = {0,0};
-    
-    return false;
-}
-
 
 internal b32
 string_cmp_indentifier(
@@ -452,7 +368,7 @@ map_position_to_tile(ivec2 position)
     return ivec2{position.x / 64, position.y / 64};
 }
 
-glm::vec2 position(0,0);
+global ivec2 position;
 glm::vec2 size(64,64);
 float rotate = -90.f;
 
@@ -529,7 +445,7 @@ cb_render(InputState istate, float dt)
         }
     }
     
-    ivec2 start_tile = player_tile + ivec2{-1,-1};
+    ivec2 start_tile = player_tile - 1;
     start_tile = iclamp({0,0}, {14,11}, start_tile);
     
     for (i32 j = 0; j < 3; ++j)
@@ -556,7 +472,7 @@ cb_render(InputState istate, float dt)
             b32 collided = intersect(&player_trans, &collision, &diff);
             if (collided)
             {
-                position -= glm::vec2{diff.x, diff.y};
+                position = position - diff;
                 position.x = ftrunc(position.x);
                 position.y = ftrunc(position.y);
             }
@@ -575,7 +491,7 @@ cb_render(InputState istate, float dt)
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
-        position, size,rotate, 1, true);
+        {(float)position.x, (float)position.y}, size,rotate, 1, true);
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,

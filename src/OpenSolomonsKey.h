@@ -44,9 +44,6 @@ global InputState g_input_state;
 #define W_2_H 1.1428571428571428
 #define HEIGHT_2_WIDTH_SCALE 0.875
 
-#define HORIZ_SCREEN_PAD (g_tile_scale / 2.0)
-#define VERTC_SCREEN_PAD (g_tile_scale)
-
 #if   defined(OSK_PLATFORM_X11)
 
 b32 x11_get_key_state(i32 key);
@@ -59,50 +56,10 @@ b32 win32_get_key_state(i32 key);
 
 #endif
 
+
 extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
-
-union ivec2
-{
-    struct
-    {
-        i32 x, y;
-    };
-    struct
-    {
-        i32 w, h;
-    };
-    i32 e[2];
-    
-    ivec2 operator+(const ivec2& other)
-    {
-        return {x + other.x, y + other.y};
-    }
-};
-
-/*
-Box in sprite space (i.e 64 over 64)
-*/
-struct AABox
-{
-    i32 min_x = 0;
-    i32 min_y = 0;
-    i32 max_x = 64;
-    i32 max_y = 64;
-    
-    AABox translate(ivec2 position)
-    {
-        return AABox
-        {
-            min_x + position.x,
-            min_y + position.y,
-            min_x + position.x + max_x,
-            min_y + position.y + max_y
-        };
-    }
-    
-};
 
 enum PaletteEntryType
 {

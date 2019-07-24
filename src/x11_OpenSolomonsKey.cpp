@@ -32,6 +32,40 @@ TODO(mdodis):
 #include "OpenSolomonsKey.h"
 #include "gl_funcs.h"
 
+timespec timespec_diff(timespec start, timespec end)
+{
+    timespec temp;
+    if ((end.tv_nsec - start.tv_nsec) < 0) {
+        temp.tv_sec = end.tv_sec - start.tv_sec - 1;
+        temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
+    } else {
+        temp.tv_sec = end.tv_sec - start.tv_sec;
+        temp.tv_nsec = end.tv_nsec - start.tv_nsec;
+    }
+    return temp;
+}
+
+struct Timer
+{
+    struct timespec last;
+    
+    void create()
+    {
+        clock_gettime(CLOCK_MONOTONIC, &last);
+    }
+    
+    float get_elapsed_secs()
+    {
+        struct timespec now;
+        struct timespec delta_timespec;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        delta_timespec = timespec_diff(this->last, now);
+        float delta = (double)delta_timespec.tv_nsec / 1000000000.0;
+        
+        last = now;
+        return delta;
+    }
+};
 
 u32 g_wind_width;
 u32 g_wind_height;
@@ -278,19 +312,6 @@ x11_kill()
     XCloseDisplay(dpy);
 }
 
-timespec timespec_diff(timespec start, timespec end)
-{
-    timespec temp;
-    if ((end.tv_nsec - start.tv_nsec) < 0) {
-        temp.tv_sec = end.tv_sec - start.tv_sec - 1;
-        temp.tv_nsec = 1000000000 + end.tv_nsec - start.tv_nsec;
-    } else {
-        temp.tv_sec = end.tv_sec - start.tv_sec;
-        temp.tv_nsec = end.tv_nsec - start.tv_nsec;
-    }
-    return temp;
-}
-
 internal char _x11_internal_keys[32];
 
 b32 x11_get_key_state(i32 key)
@@ -310,8 +331,8 @@ int main(int argc, char *argv[])
     
     cb_init();
     
-    struct timespec last, now, delta_timespec;
-    clock_gettime(CLOCK_MONOTONIC, &last);
+    Timer timer;
+    timer.create();
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
@@ -340,18 +361,13 @@ int main(int argc, char *argv[])
         ISTATE_KEYDOWN_ACTION(XK_Down, move_down);
         ISTATE_KEYDOWN_ACTION(XK_M, m_pressed);
         
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        delta_timespec = timespec_diff(last, now);
-        float delta = (double)delta_timespec.tv_nsec / 1000000000.0;
-        
+        float delta = timer.get_elapsed_secs();
         assert(delta > 0);
         // Render code here
         cb_render(g_input_state, delta);
         
-        last = now;
         glXSwapBuffers(dpy, win);
     }
 }
-
 
 #include "OpenSolomonsKey.cpp"
