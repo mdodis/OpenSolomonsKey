@@ -74,6 +74,11 @@ union ivec2
         i32 w, h;
     };
     i32 e[2];
+    
+    ivec2 operator+(const ivec2& other)
+    {
+        return {x + other.x, y + other.y};
+    }
 };
 
 /*

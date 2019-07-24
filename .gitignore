@@ -33,3 +33,4 @@
 *.png
 build
 sprites
+.gdb_history

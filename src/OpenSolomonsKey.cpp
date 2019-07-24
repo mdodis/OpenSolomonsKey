@@ -14,6 +14,7 @@
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 #define ENUM_TO_STR(x) #x
 
+
 u32 g_quad_vao;
 
 global GLShader g_shd_2d;
@@ -24,6 +25,22 @@ GLTilemapTexture g_tilemap_texture;
 glm::mat4 g_projection;
 
 inline i32 ftrunc(float n) { return (i32)(n); }
+
+inline i32 iclamp(i32 a, i32 b, i32 x)
+{
+    if (x < a) return a;
+    if (x > b) return b;
+    return x;
+}
+
+inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
+{
+    return ivec2
+    {
+        iclamp(a.x, b.x, x.x),
+        iclamp(a.y, b.y, x.y)
+    };
+}
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
@@ -350,6 +367,11 @@ u64* out_size)
                 {
                     puts("PENTRY_EMPTY_SPACE");
                     c += stride;
+                    if (counter != 0)
+                    {
+                        puts("ERR:PENTRY_EMPTY_SPACE must exist as first element");
+                        exit(-1);
+                    }
                     
                     palette[counter].type = PENTRY_EMPTY_SPACE;
                     
@@ -422,33 +444,44 @@ u64* out_size)
         }
         
     }
-    //exit(-1);
+}
+
+inline ivec2 
+map_position_to_tile(ivec2 position)
+{
+    return ivec2{position.x / 64, position.y / 64};
 }
 
 glm::vec2 position(0,0);
+glm::vec2 size(64,64);
 float rotate = -90.f;
 
 void
 cb_render(InputState istate, float dt)
 {
+    AABox player_box = {
+        5,0,
+        45,64};
+    
+    
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
     if (istate.move_right)
     {
-        position.x += 150.f * dt;
+        position.x += 200.f * dt;
     }
-    else if (istate.move_left)
+    if (istate.move_left)
     {
-        position.x -= 150.f * dt;
+        position.x -= 200.f * dt;
     }
     if (istate.move_up)
     {
-        position.y -= 150.f * dt;
+        position.y -= 200.f * dt;
     }
-    else if (istate.move_down)
+    if (istate.move_down)
     {
-        position.y += 150.f * dt;
+        position.y += 200.f * dt;
     }
     
     persist b32 loaded = false;
@@ -457,18 +490,23 @@ cb_render(InputState istate, float dt)
         load_test_level(g_palette, &g_palette_size);
         loaded = true;
     }
-    glm::vec2 size(64,64);
+    
+    
+    ivec2 ipos = {(i32)position.x + 32, (i32)position.y + 32};
+    ivec2 player_tile = map_position_to_tile(ipos);
     
     for(int i = 0; i < 15; ++i )
     {
         for(int j = 0; j < 12; ++j )
         {
-            PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
-            if (type == PENTRY_EMPTY_SPACE) continue;
-            
             u32 id;
+            PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
+            
+            if (type == PENTRY_EMPTY_SPACE) id = -1;
+            
             if (type == PENTRY_BLOCK_UNBREAKABLE) id = 3;
             if (type == PENTRY_BLOCK_BREAKABLE) id = 4;
+            
             
             gl_slow_tilemap_draw(
                 &g_tilemap_texture,
@@ -477,35 +515,62 @@ cb_render(InputState istate, float dt)
                 0.f,
                 id);
             
+            if (i == player_tile.x && j == player_tile.y)
+            {
+                
+                gl_slow_tilemap_draw(
+                    &g_tilemap_texture,
+                    {i * 64, j * 64},
+                    {64, 64},
+                    0.f,
+                    5);
+                
+            }
         }
     }
     
-    AABox player_box = {
-        5,0,
-        45,64};
+    ivec2 start_tile = player_tile + ivec2{-1,-1};
+    start_tile = iclamp({0,0}, {14,11}, start_tile);
     
-    AABox enemy_box = {
-        0,0,
-        64,64};
-    
-#if 0    
-    AABox player_tranformd = player_box.translate({(i32)position.x, (i32)position.y});
-    
-    enemy_box.min_x += 100;
-    enemy_box.min_y += 100;
-    enemy_box.max_x += enemy_box.min_x;
-    enemy_box.max_y += enemy_box.min_y;
-    
-    ivec2 pen;
-    b32 diff = intersect(&player_tranformd, &enemy_box, &pen);
-    if (diff)
+    for (i32 j = 0; j < 3; ++j)
     {
-        position -= glm::vec2{pen.x, pen.y};
-        position.x = ftrunc(position.x);
-        position.y = ftrunc(position.y);
+        for (i32 i = 0; i < 3; ++i)
+        {
+            if (i == 1 && j == 1) continue;
+            
+            if (g_tilemap[start_tile.x + i][start_tile.y + j] == PENTRY_EMPTY_SPACE) continue;
+            
+            ivec2 tile_coords =
+            {
+                (start_tile.x + i) * 64,
+                (start_tile.y + j) * 64
+            };
+            
+            AABox collision, player_trans;
+            collision = collision.translate(tile_coords);
+            
+            player_trans = player_box.translate(
+            {ftrunc(position.x), ftrunc(position.y)});
+            
+            ivec2 diff;
+            b32 collided = intersect(&player_trans, &collision, &diff);
+            if (collided)
+            {
+                position -= glm::vec2{diff.x, diff.y};
+                position.x = ftrunc(position.x);
+                position.y = ftrunc(position.y);
+            }
+            
+            gl_slow_tilemap_draw(
+                &g_tilemap_texture,
+                {tile_coords.x, tile_coords.y},
+                {64, 64},
+                0.f,
+                5);
+        }
     }
     
-#endif
+    
     player_box = player_box.translate({(i32)position.x, (i32)position.y});
     
     gl_slow_tilemap_draw(

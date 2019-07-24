@@ -162,7 +162,7 @@ i32 tm_index,
 b32 mirrorx,
 b32 mirrory)
 {
-    
+    if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
     glBindVertexArray(g_quad_vao);
     glUseProgram(g_shd_2d.id);
