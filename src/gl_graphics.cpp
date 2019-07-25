@@ -30,7 +30,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n",infoLog);
         assert(0);
-    };
+    }
     
     // shader Program
     this->id= glCreateProgram();
@@ -94,6 +94,8 @@ i32 tilemap_cols)
 {
     u32 tilemap_id;
     
+    assert(tilemap_rows == tilemap_cols);
+    
     glGenTextures(1, &tilemap_id);
     glBindTexture(GL_TEXTURE_2D_ARRAY, tilemap_id);
     
@@ -106,15 +108,17 @@ i32 tilemap_cols)
     
     i32 tile_width = width / tilemap_cols;
     i32 tile_height = height / tilemap_rows;
+    i32 tiles = tilemap_rows * tilemap_cols;
     
     glTexStorage3D(
         GL_TEXTURE_2D_ARRAY,
         1, GL_RGBA8,
         tile_width, tile_height,
-        tilemap_rows * tilemap_cols);
+        tiles);
     
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   width);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, height);
+    
     
     for (i32 x = 0; x < tilemap_cols; x++)
     {
@@ -140,13 +144,15 @@ i32 tilemap_cols)
                 GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 data + (x * tile_height * width + y * tile_width) * 4);
+            
         }
     }
-    
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   0);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
     
     assert(glGetError() == GL_NO_ERROR);
+    //printf("err: %d", glGetError());
+    //exit(-1);
     
     return GLTilemapTexture{tilemap_id, width, height, tilemap_rows, tilemap_cols};
 }

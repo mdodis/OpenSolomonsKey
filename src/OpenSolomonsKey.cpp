@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define OSK_MATH_IMPL
 #include "osk_math.h"
 
 #include "gl_funcs.h"
@@ -105,13 +106,20 @@ cb_init()
     
     g_shd_2d.create(g_2d_vs, g_2d_fs);
     
-    
     int w, h, n;
-    u8* data = load_image_as_rgba_pixels("Phoebus.png", &w, &h, &n);
+    u8* data = load_image_as_rgba_pixels("test_tilemap.png", &w, &h, &n);
     assert(data);
+    printf("%d %d %d\n", w, h, n);
     
     glActiveTexture(GL_TEXTURE0);
-    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 16, 16);
+    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 6, 6);
+    
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR)
+    {
+        printf("err: %d\n", err);
+        exit(-1);
+    }
     
     GLuint sampler_loc = glGetUniformLocation(g_shd_2d.id, "sampler");
     glUniform1i(sampler_loc, 0);
@@ -140,12 +148,6 @@ cb_init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
-        printf("Glerr: %d\n", err);
-        exit(-10);
-    }
     
     assert(glGetError() == GL_NO_ERROR);
     return;
@@ -371,6 +373,8 @@ map_position_to_tile(ivec2 position)
 global ivec2 position;
 glm::vec2 size(64,64);
 float rotate = -90.f;
+b32 dir = false;
+
 
 void
 cb_render(InputState istate, float dt)
@@ -386,10 +390,12 @@ cb_render(InputState istate, float dt)
     if (istate.move_right)
     {
         position.x += 200.f * dt;
+        dir = true;
     }
     if (istate.move_left)
     {
         position.x -= 200.f * dt;
+        dir = false;
     }
     if (istate.move_up)
     {
@@ -418,11 +424,10 @@ cb_render(InputState istate, float dt)
             u32 id;
             PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
             
-            if (type == PENTRY_EMPTY_SPACE) id = -1;
+            if (type == PENTRY_EMPTY_SPACE) continue;
             
-            if (type == PENTRY_BLOCK_UNBREAKABLE) id = 3;
-            if (type == PENTRY_BLOCK_BREAKABLE) id = 4;
-            
+            if (type == PENTRY_BLOCK_UNBREAKABLE) id = 2;
+            if (type == PENTRY_BLOCK_BREAKABLE) id = 1;
             
             gl_slow_tilemap_draw(
                 &g_tilemap_texture,
@@ -431,22 +436,12 @@ cb_render(InputState istate, float dt)
                 0.f,
                 id);
             
-            if (i == player_tile.x && j == player_tile.y)
-            {
-                
-                gl_slow_tilemap_draw(
-                    &g_tilemap_texture,
-                    {i * 64, j * 64},
-                    {64, 64},
-                    0.f,
-                    5);
-                
-            }
         }
     }
     
     ivec2 start_tile = player_tile - 1;
     start_tile = iclamp({0,0}, {14,11}, start_tile);
+    
     
     for (i32 j = 0; j < 3; ++j)
     {
@@ -482,7 +477,7 @@ cb_render(InputState istate, float dt)
                 {tile_coords.x, tile_coords.y},
                 {64, 64},
                 0.f,
-                5);
+                30);
         }
     }
     
@@ -491,13 +486,13 @@ cb_render(InputState istate, float dt)
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
-        {(float)position.x, (float)position.y}, size,rotate, 1, true);
+        {(float)position.x, (float)position.y}, size,0, 3, dir, false);
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
         {player_box.min_x, player_box.min_y},
         {player_box.max_x - player_box.min_x, player_box.max_y - player_box.min_y},
-        0,0 + 1 * 16 );
+        0,6 * 5 + 1 );
     
 }
 

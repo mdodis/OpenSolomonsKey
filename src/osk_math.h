@@ -42,43 +42,35 @@ union ivec2
     }
 };
 
-union fvec2
+/*
+Box in sprite space (i.e 64 over 64)
+*/
+struct AABox
 {
-    struct
-    {
-        float x, y;
-    };
-    struct
-    {
-        float w, h;
-    };
-    float e[2];
+    i32 min_x = 0;
+    i32 min_y = 0;
+    i32 max_x = 64;
+    i32 max_y = 64;
     
-    fvec2 operator+(const fvec2& other)
-    {
-        return {x + other.x, y + other.y};
-    }
-    
-    fvec2 operator-(const fvec2& other)
-    {
-        return {x - other.x, y - other.y};
-    }
-    
-    fvec2 operator+(float other)
-    {
-        return {x + other, y + other};
-    }
-    
-    fvec2 operator-(float other)
-    {
-        return {x - other, y - other};
-    }
-    
-    fvec2 operator*(float other)
-    {
-        return {x * other, y * other};
-    }
+    AABox translate(ivec2 position);
 };
+
+internal b32
+intersect(
+const AABox* const a,
+const AABox* const b,
+ivec2* const opt_pen);
+
+
+inline i32 ftrunc(float n);
+inline i32 iclamp(i32 a, i32 b, i32 x);
+
+inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x);
+inline int highest_pow2(int n);
+
+#endif //!OSK_MATH_H
+
+#ifdef OSK_MATH_IMPL
 
 inline i32 ftrunc(float n) { return (i32)(n); }
 
@@ -104,34 +96,23 @@ inline int highest_pow2(int n)
     return (int)pow(2, p);
 }
 
-/*
-Box in sprite space (i.e 64 over 64)
-*/
-struct AABox
+AABox AABox::translate(ivec2 position)
 {
-    i32 min_x = 0;
-    i32 min_y = 0;
-    i32 max_x = 64;
-    i32 max_y = 64;
-    
-    AABox translate(ivec2 position)
+    return AABox
     {
-        return AABox
-        {
-            min_x + position.x,
-            min_y + position.y,
-            min_x + position.x + max_x,
-            min_y + position.y + max_y
-        };
-    }
-    
-};
+        min_x + position.x,
+        min_y + position.y,
+        min_x + position.x + max_x,
+        min_y + position.y + max_y
+    };
+}
+
 
 internal b32
 intersect(
 const AABox* const a,
 const AABox* const b,
-ivec2* const opt_pen = 0)
+ivec2* const opt_pen)
 {
     AABox result;
     result.min_y = a->min_y - b->max_y;
@@ -183,5 +164,4 @@ ivec2* const opt_pen = 0)
     return false;
 }
 
-
-#endif //!OSK_MATH_H
+#endif

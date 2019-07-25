@@ -25,7 +25,6 @@ typedef struct
     GLTilemapTexture const* texture;
 } Tilemap;
 
-
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
 u8* data,
