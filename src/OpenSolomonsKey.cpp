@@ -14,15 +14,19 @@
 #include "gl_funcs.h"
 #include "gl_graphics.h"
 
+#include "drawing.cpp"
+#include "resources.h"
+
+
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 #define ENUM_TO_STR(x) #x
 
-u32 g_quad_vao;
+global u32 g_quad_vao;
 
 global GLShader g_shd_2d;
-GLTilemapTexture g_tilemap_texture;
+global GLTilemapTexture g_tilemap_texture;
 
-glm::mat4 g_projection;
+global glm::mat4 g_projection;
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
@@ -95,6 +99,10 @@ i32* out_n)
     return data;
 }
 
+
+AnimatedSprite player;
+
+
 void
 cb_init()
 {
@@ -112,7 +120,7 @@ cb_init()
     printf("%d %d %d\n", w, h, n);
     
     glActiveTexture(GL_TEXTURE0);
-    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 6, 6);
+    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 6, 5);
     
     GLenum err = glGetError();
     if (err != GL_NO_ERROR)
@@ -150,6 +158,8 @@ cb_init()
     
     
     assert(glGetError() == GL_NO_ERROR);
+    
+    player.tilemap = &g_tilemap_texture;
     return;
 }
 
@@ -364,17 +374,15 @@ u64* out_size)
     }
 }
 
-inline ivec2 
-map_position_to_tile(ivec2 position)
+u32 current_frame = 0;
+Timer test_anim_timer;
+Animation test_anim = 
 {
-    return ivec2{position.x / 64, position.y / 64};
-}
-
-global ivec2 position;
-glm::vec2 size(64,64);
-float rotate = -90.f;
-b32 dir = false;
-
+    0.8f,
+    {0, 1},
+    5,
+    .loop = false
+};
 
 void
 cb_render(InputState istate, float dt)
@@ -389,21 +397,19 @@ cb_render(InputState istate, float dt)
     
     if (istate.move_right)
     {
-        position.x += 200.f * dt;
-        dir = true;
+        player.position.x += 200.f * dt;
     }
     if (istate.move_left)
     {
-        position.x -= 200.f * dt;
-        dir = false;
+        player.position.x -= 200.f * dt;
     }
     if (istate.move_up)
     {
-        position.y -= 200.f * dt;
+        player.position.y -= 200.f * dt;
     }
     if (istate.move_down)
     {
-        position.y += 200.f * dt;
+        player.position.y += 200.f * dt;
     }
     
     persist b32 loaded = false;
@@ -414,7 +420,7 @@ cb_render(InputState istate, float dt)
     }
     
     
-    ivec2 ipos = {(i32)position.x + 32, (i32)position.y + 32};
+    ivec2 ipos = {(i32)player.position.x + 32, (i32)player.position.y + 32};
     ivec2 player_tile = map_position_to_tile(ipos);
     
     for(int i = 0; i < 15; ++i )
@@ -442,7 +448,6 @@ cb_render(InputState istate, float dt)
     ivec2 start_tile = player_tile - 1;
     start_tile = iclamp({0,0}, {14,11}, start_tile);
     
-    
     for (i32 j = 0; j < 3; ++j)
     {
         for (i32 i = 0; i < 3; ++i)
@@ -461,15 +466,15 @@ cb_render(InputState istate, float dt)
             collision = collision.translate(tile_coords);
             
             player_trans = player_box.translate(
-            {ftrunc(position.x), ftrunc(position.y)});
+            {ftrunc(player.position.x), ftrunc(player.position.y)});
             
             ivec2 diff;
             b32 collided = intersect(&player_trans, &collision, &diff);
             if (collided)
             {
-                position = position - diff;
-                position.x = ftrunc(position.x);
-                position.y = ftrunc(position.y);
+                player.position = player.position - diff;
+                player.position.x = ftrunc(player.position.x);
+                player.position.y = ftrunc(player.position.y);
             }
             
             gl_slow_tilemap_draw(
@@ -477,23 +482,33 @@ cb_render(InputState istate, float dt)
                 {tile_coords.x, tile_coords.y},
                 {64, 64},
                 0.f,
-                30);
+                5 * 5);
         }
     }
     
+    player_box = player_box.translate({(i32)player.position.x, (i32)player.position.y});
     
-    player_box = player_box.translate({(i32)position.x, (i32)position.y});
+    float elapsed = test_anim_timer.get_elapsed_secs();
+    if (elapsed > test_anim.duration)
+    {
+        if (current_frame < test_anim.size)
+            current_frame++;
+        else if (current_frame >= test_anim.size && test_anim.loop)
+            current_frame = 0;
+        
+        test_anim_timer.reset();
+    }
     
-    gl_slow_tilemap_draw(
-        &g_tilemap_texture,
-        {(float)position.x, (float)position.y}, size,0, 3, dir, false);
     
     gl_slow_tilemap_draw(
         &g_tilemap_texture,
         {player_box.min_x, player_box.min_y},
         {player_box.max_x - player_box.min_x, player_box.max_y - player_box.min_y},
-        0,6 * 5 + 1 );
+        0,5 * 5 + 1 );
     
+    i32 frame_to_render = test_anim.start.y * player.tilemap->cols
+        + test_anim.start.x + current_frame;
+    draw_sprite(&player, frame_to_render);
 }
 
 #include "gl_graphics.cpp"

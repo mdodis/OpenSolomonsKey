@@ -8,7 +8,7 @@
 typedef struct
 {
     u32 id = 0;
-    
+
     void apply();
     void create(const char* const vsrc, const char* const fsrc);
 } GLShader;
@@ -19,11 +19,6 @@ typedef struct
     i32 width, height;
     i32 rows, cols;
 }  GLTilemapTexture;
-
-typedef struct
-{
-    GLTilemapTexture const* texture;
-} Tilemap;
 
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
@@ -45,8 +40,8 @@ b32 mirrory = false);
 
 const char* const g_2d_vs =
 R"EOS(
-#version 330 core
-layout (location = 0) in vec4 vertex; // <vec2 position, vec2 texCoords>
+#version 330
+layout (location = 0) in vec4 vertex;
 
 out vec2 TexCoords;
 
@@ -62,7 +57,7 @@ void main()
 )EOS";
 const char* const g_2d_fs =
 R"EOS(
-#version 330 core
+#version 330
 in vec2 TexCoords;
 out vec4 color;
 
@@ -70,37 +65,11 @@ uniform sampler2DArray sampler;
 uniform int layer = 0;
 
 void main()
-{    
+{
       color =  texture(sampler, vec3(TexCoords,layer));
       //color = vec4(0.0, 1.0, 0.0, 1.0);
     }
-    
-)EOS";
-///////////////////////////////////////////////////////////
-const char* const g_debug_line_vs =
-R"EOS(
-#version 330 core
-layout (location = 0) in vec2 vertex; // <vec2 position>
 
-uniform mat4 model;
-uniform mat4 projection;
-
-void main()
-{
-    gl_Position = projection * model * vec4(vertex, 0.0, 1.0);
-}
-
-)EOS";
-const char* const g_debug_line_fs =
-R"EOS(
-#version 330 core
-out vec4 color;
-
-void main()
-{    
-      color = vec4(1.0, 0.0, 0.0, 1.0);
-    }
-    
 )EOS";
 
 #endif //! GL_GRAPHICS_H

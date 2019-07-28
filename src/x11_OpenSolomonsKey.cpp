@@ -49,21 +49,20 @@ struct Timer
 {
     struct timespec last;
     
-    void create()
-    {
-        clock_gettime(CLOCK_MONOTONIC, &last);
-    }
-    
-    float get_elapsed_secs()
+    double get_elapsed_secs()
     {
         struct timespec now;
         struct timespec delta_timespec;
         clock_gettime(CLOCK_MONOTONIC, &now);
         delta_timespec = timespec_diff(this->last, now);
-        float delta = (double)delta_timespec.tv_nsec / 1000000000.0;
-        
-        last = now;
+        double delta = (double)delta_timespec.tv_nsec /(double) 1000000000.0;
+        //return delta_timespec.tv_sec;
         return delta;
+    }
+    
+    void reset()
+    {
+        clock_gettime(CLOCK_MONOTONIC, &last);
     }
 };
 
@@ -76,23 +75,6 @@ double       g_tile_scale;
 
 Display                 *dpy;
 Window                  root;
-GLint                   att[] =
-{
-    GLX_X_RENDERABLE    , True,
-    GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
-    GLX_RENDER_TYPE     , GLX_RGBA_BIT,
-    GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
-    GLX_RED_SIZE        , 8,
-    GLX_GREEN_SIZE      , 8,
-    GLX_BLUE_SIZE       , 8,
-    GLX_ALPHA_SIZE      , 8,
-    GLX_DEPTH_SIZE      , 24,
-    GLX_STENCIL_SIZE    , 8,
-    GLX_DOUBLEBUFFER    , True,
-    //GLX_SAMPLE_BUFFERS  , 1,
-    //GLX_SAMPLES         , 4,
-    None
-};
 XVisualInfo             *vi;
 Colormap                cmap;
 XSetWindowAttributes    swa;
@@ -146,6 +128,24 @@ Oh dear god...
 internal void
 x11_init()
 {
+    
+    GLint                   att[] =
+    {
+        GLX_X_RENDERABLE    , True,
+        GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
+        GLX_RENDER_TYPE     , GLX_RGBA_BIT,
+        GLX_X_VISUAL_TYPE   , GLX_TRUE_COLOR,
+        GLX_RED_SIZE        , 8,
+        GLX_GREEN_SIZE      , 8,
+        GLX_BLUE_SIZE       , 8,
+        GLX_ALPHA_SIZE      , 8,
+        GLX_DEPTH_SIZE      , 24,
+        GLX_STENCIL_SIZE    , 8,
+        GLX_DOUBLEBUFFER    , True,
+        //GLX_SAMPLE_BUFFERS  , 1,
+        //GLX_SAMPLES         , 4,
+        None
+    };
     int glx_major, glx_minor;
     
     dpy = XOpenDisplay(NULL);
@@ -241,7 +241,7 @@ x11_init()
         int context_attribs[] =
         {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 3,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 0,
             GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             None
         };
@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
     cb_init();
     
     Timer timer;
-    timer.create();
+    timer.reset();
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
@@ -362,7 +362,8 @@ int main(int argc, char *argv[])
         ISTATE_KEYDOWN_ACTION(XK_M, m_pressed);
         
         float delta = timer.get_elapsed_secs();
-        assert(delta > 0);
+        timer.reset();
+        //assert(delta > 0);
         // Render code here
         cb_render(g_input_state, delta);
         

@@ -16,7 +16,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
-        assert(0);
+        exit(0);
     };
     
     // fragment Shader
@@ -43,7 +43,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     {
         glGetProgramInfoLog(this->id, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n",infoLog);
-        assert(0);
+        exit(0);
     }
     glUseProgram(this->id);
     // delete the shaders as they're linked into our program now and no longer necessery
@@ -94,7 +94,7 @@ i32 tilemap_cols)
 {
     u32 tilemap_id;
     
-    assert(tilemap_rows == tilemap_cols);
+    //assert(tilemap_rows == tilemap_cols);
     
     glGenTextures(1, &tilemap_id);
     glBindTexture(GL_TEXTURE_2D_ARRAY, tilemap_id);
@@ -119,10 +119,12 @@ i32 tilemap_cols)
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   width);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, height);
     
+    u8* c = data;
     
-    for (i32 x = 0; x < tilemap_cols; x++)
+    i32 count = 0;
+    for (i32 y = 0; y < tilemap_rows; y++)
     {
-        for (i32 y = 0; y < tilemap_rows; y++)
+        for (i32 x = 0; x < tilemap_cols; x++)
         {
             // target (GL_TEXTURE_2D_ARRAY)
             // miplevels 0 for just single image
@@ -136,6 +138,8 @@ i32 tilemap_cols)
             // iformat (GL_UNSIGNED_BYTE)
             // pixels + (x * tile_height * width + y * tile_width) * components
             // http://docs.gl/gl4/glTexSubImage3D
+            
+#if 0
             glTexSubImage3D(
                 GL_TEXTURE_2D_ARRAY,
                 0, 0, 0,
@@ -144,9 +148,28 @@ i32 tilemap_cols)
                 GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 data + (x * tile_height * width + y * tile_width) * 4);
-            
+#else
+            glTexSubImage3D(
+                GL_TEXTURE_2D_ARRAY,
+                0, 0, 0,
+                //count,
+                y * tilemap_cols + x,
+                tile_width, tile_height, 1,
+                GL_RGBA,
+                GL_UNSIGNED_BYTE,
+                data + (y * tile_width * width + x * tile_width) * 4);
+#endif
+            GLenum err = glGetError();
+            if (err != GL_NO_ERROR)
+            {
+                printf("\tglerr: %d\n", err);
+                exit(0);
+            }
+            count++;
         }
     }
+    
+    printf("cnt: %d\n", count);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   0);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
     

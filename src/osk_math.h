@@ -96,6 +96,12 @@ inline int highest_pow2(int n)
     return (int)pow(2, p);
 }
 
+inline ivec2 
+map_position_to_tile(ivec2 position)
+{
+    return ivec2{position.x / 64, position.y / 64};
+}
+
 AABox AABox::translate(ivec2 position)
 {
     return AABox

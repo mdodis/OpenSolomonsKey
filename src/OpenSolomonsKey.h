@@ -17,7 +17,7 @@ typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
 
-typedef i32      b32;
+typedef size_t   b32;
 
 extern u32    g_wind_width;
 extern u32    g_wind_height;
