@@ -5,20 +5,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-typedef struct
+struct GLShader
 {
     u32 id = 0;
-
+    
     void apply();
     void create(const char* const vsrc, const char* const fsrc);
-} GLShader;
+};
 
-typedef struct
+struct GLTilemapTexture
 {
     u32 texture_id;
     i32 width, height;
     i32 rows, cols;
-}  GLTilemapTexture;
+};
 
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
@@ -69,7 +69,7 @@ void main()
       color =  texture(sampler, vec3(TexCoords,layer));
       //color = vec4(0.0, 1.0, 0.0, 1.0);
     }
-
+    
 )EOS";
 
 #endif //! GL_GRAPHICS_H

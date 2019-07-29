@@ -24,7 +24,6 @@
 global u32 g_quad_vao;
 
 global GLShader g_shd_2d;
-global GLTilemapTexture g_tilemap_texture;
 
 global glm::mat4 g_projection;
 
@@ -102,6 +101,35 @@ i32* out_n)
 
 AnimatedSprite player;
 
+internal void load_tilemap_textures()
+{
+    i32 width, height, bpp;
+    u8* data;
+    
+    assert(TM_COUNT > 0);
+    
+    for (u32 i = 0 ;i < TM_COUNT; ++i)
+    {
+        data = load_image_as_rgba_pixels(
+            RES_TILEMAPS[i].name,
+            &width, &height, &bpp);
+        assert(data);
+        
+        g_tilemap_textures[i] = gl_load_rgba_tilemap(
+            data,
+            width, height,
+            RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
+        
+    }
+    
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR)
+    {
+        printf("err: %d\n", err);
+        exit(-1);
+    }
+    
+}
 
 void
 cb_init()
@@ -114,20 +142,9 @@ cb_init()
     
     g_shd_2d.create(g_2d_vs, g_2d_fs);
     
-    int w, h, n;
-    u8* data = load_image_as_rgba_pixels("test_tilemap.png", &w, &h, &n);
-    assert(data);
-    printf("%d %d %d\n", w, h, n);
     
-    glActiveTexture(GL_TEXTURE0);
-    g_tilemap_texture = gl_load_rgba_tilemap(data, w, h, 6, 5);
-    
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
-        printf("err: %d\n", err);
-        exit(-1);
-    }
+    //glActiveTexture(GL_TEXTURE0);
+    load_tilemap_textures();
     
     GLuint sampler_loc = glGetUniformLocation(g_shd_2d.id, "sampler");
     glUniform1i(sampler_loc, 0);
@@ -159,7 +176,7 @@ cb_init()
     
     assert(glGetError() == GL_NO_ERROR);
     
-    player.tilemap = &g_tilemap_texture;
+    player.tilemap = &GET_TILEMAP_TEXTURE(TM_TEST);
     return;
 }
 
@@ -431,12 +448,11 @@ cb_render(InputState istate, float dt)
             PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
             
             if (type == PENTRY_EMPTY_SPACE) continue;
-            
             if (type == PENTRY_BLOCK_UNBREAKABLE) id = 2;
             if (type == PENTRY_BLOCK_BREAKABLE) id = 1;
             
             gl_slow_tilemap_draw(
-                &g_tilemap_texture,
+                &GET_TILEMAP_TEXTURE(TM_TEST),
                 {i * 64, j * 64},
                 {64, 64},
                 0.f,
@@ -478,7 +494,7 @@ cb_render(InputState istate, float dt)
             }
             
             gl_slow_tilemap_draw(
-                &g_tilemap_texture,
+                &GET_TILEMAP_TEXTURE(TM_TEST),
                 {tile_coords.x, tile_coords.y},
                 {64, 64},
                 0.f,
@@ -501,7 +517,7 @@ cb_render(InputState istate, float dt)
     
     
     gl_slow_tilemap_draw(
-        &g_tilemap_texture,
+        &GET_TILEMAP_TEXTURE(TM_TEST),
         {player_box.min_x, player_box.min_y},
         {player_box.max_x - player_box.min_x, player_box.max_y - player_box.min_y},
         0,5 * 5 + 1 );
