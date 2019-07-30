@@ -28,7 +28,6 @@ extern u32    g_view_height;
 extern double g_tile_scale;  // base scale for everything
 double        g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
-
 typedef struct
 {
     b32 move_right;

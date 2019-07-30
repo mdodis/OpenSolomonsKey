@@ -15,7 +15,6 @@
 #include "gl_graphics.h"
 
 #include "drawing.cpp"
-#include "resources.h"
 
 
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
@@ -101,10 +100,16 @@ i32* out_n)
 
 AnimatedSprite player;
 
+#include "resources.h"
 internal void load_tilemap_textures()
 {
     i32 width, height, bpp;
     u8* data;
+    
+    const RESTilemap RES_TILEMAPS[TM_COUNT] = 
+    {
+        ALL_TILEMAPS
+    };
     
     assert(TM_COUNT > 0);
     
@@ -395,10 +400,10 @@ u32 current_frame = 0;
 Timer test_anim_timer;
 Animation test_anim = 
 {
-    0.8f,
+    0.5f,
     {0, 1},
     5,
-    .loop = false
+    .loop = true
 };
 
 void

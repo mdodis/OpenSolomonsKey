@@ -7,18 +7,18 @@ struct RESTilemap
     i32 rows, cols;
 };
 
-enum E_TILEMAPS
-{
-    TM_TEST,
-    TM_COUNT
-};
+#define DEF_TILEMAP(name, path, rows, cols) name,
+
+#define ALL_TILEMAPS \
+/*          NAME     PATH IN FOLDER     rows cols*/ \
+DEF_TILEMAP(TM_TEST, "test_tilemap.png",6   ,5   )
+
+////////////////////////////////
+enum E_TILEMAPS { ALL_TILEMAPS TM_COUNT };
+
+#undef DEF_TILEMAP
+#define DEF_TILEMAP(name, path, rows, cols) [name] = {path, rows, cols},
 
 #define GET_TILEMAP_TEXTURE(i) g_tilemap_textures[i]
 global GLTilemapTexture g_tilemap_textures[TM_COUNT];
-global const RESTilemap RES_TILEMAPS[TM_COUNT] = 
-{
-    [TM_TEST] = {"test_tilemap.png", .rows = 6, .cols = 5}
-};
-
-
 #endif //!OSK_RES_H
