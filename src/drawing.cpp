@@ -7,19 +7,24 @@ struct Animation
     b32 loop = true;
 };
 
-// AnimatedSprite: load sprite from tilemap and 
 struct AnimatedSprite
 {
     GLTilemapTexture const * tilemap = 0;
     ivec2 size = {64, 64};
     ivec2 position = {0,0};
     float rotation = 0.f;
+    AABox collision_box = {0,0,64,64};
     ivec2 mirror = {false, false};
     
+    AABox get_transformed_AABox() const
+    {
+        return this->collision_box.translate(this->position);
+    }
 };
 
+
 internal void
-draw_sprite(AnimatedSprite const * sprite, i32 frame)
+AnimatedSprite_draw(AnimatedSprite const * sprite, i32 frame)
 {
     assert(sprite->tilemap);
     

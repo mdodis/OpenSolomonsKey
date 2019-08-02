@@ -26,6 +26,18 @@ union ivec2
         return {x - other.x, y - other.y};
     }
     
+    ivec2 operator+=(const ivec2& other)
+    {
+        *this = *this + other;
+        return *this;
+    }
+    
+    ivec2 operator-=(const ivec2& other)
+    {
+        *this = *this - other;
+        return *this;
+    }
+    
     ivec2 operator+(i32 other)
     {
         return {x + other, y + other};
@@ -52,16 +64,17 @@ struct AABox
     i32 max_x = 64;
     i32 max_y = 64;
     
-    AABox translate(ivec2 position);
+    AABox translate(ivec2 position) const;
 };
 
 internal b32
-intersect(
+aabb_intersect(
 const AABox* const a,
 const AABox* const b,
 ivec2* const opt_pen);
 
 
+inline u64 lengthsq(const ivec2* const v);
 inline i32 ftrunc(float n);
 inline i32 iclamp(i32 a, i32 b, i32 x);
 
@@ -71,6 +84,11 @@ inline int highest_pow2(int n);
 #endif //!OSK_MATH_H
 
 #ifdef OSK_MATH_IMPL
+
+inline u64 lengthsq(const ivec2& v)
+{
+    return v.x * v.x + v.y * v.y;
+}
 
 inline i32 ftrunc(float n) { return (i32)(n); }
 
@@ -102,7 +120,7 @@ map_position_to_tile(ivec2 position)
     return ivec2{position.x / 64, position.y / 64};
 }
 
-AABox AABox::translate(ivec2 position)
+AABox AABox::translate(ivec2 position) const
 {
     return AABox
     {
@@ -113,9 +131,14 @@ AABox AABox::translate(ivec2 position)
     };
 }
 
+/*
+// NOTE(miked): Lookup -
+https://gamedev.stackexchange.com/questions/17502/how-to-deal-with-corner-collisions-in-2d
 
+to fix bad collision on big movement steps
+*/
 internal b32
-intersect(
+aabb_intersect(
 const AABox* const a,
 const AABox* const b,
 ivec2* const opt_pen)
@@ -134,7 +157,20 @@ ivec2* const opt_pen)
         result.max_y >= 0)
     {
         ivec2 penetration = {0,0};
-        float min = FLT_MAX;
+        i32 min = INT_MAX;
+        
+        /*NOTE(miked): prefer Y axis over X on collision*/
+        if (glm::abs(result.min_y) < min)
+        {
+            min = glm::abs(result.min_y);
+            penetration = {0, result.min_y};
+        }
+        
+        if (glm::abs(result.max_y) < min)
+        {
+            min = glm::abs(result.max_y);
+            penetration = {0, result.max_y};
+        }
         
         if (glm::abs(result.min_x) < min)
         {
@@ -146,18 +182,6 @@ ivec2* const opt_pen)
         {
             min = glm::abs(result.max_x);
             penetration = {result.max_x, 0};
-        }
-        
-        if (glm::abs(result.min_y) < min)
-        {
-            min = glm::abs(result.min_y);
-            penetration = {0, result.min_y};
-        }
-        
-        if (glm::abs(result.max_y) < min)
-        {
-            min = glm::abs(result.max_y);
-            penetration = {0, result.max_y};
         }
         
         if (opt_pen) *opt_pen = penetration;

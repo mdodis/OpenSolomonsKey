@@ -16,14 +16,11 @@
 
 #include "drawing.cpp"
 
-
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 #define ENUM_TO_STR(x) #x
 
 global u32 g_quad_vao;
-
 global GLShader g_shd_2d;
-
 global glm::mat4 g_projection;
 
 /* Calculate aspect ratio from current window dimensions.
@@ -98,43 +95,7 @@ i32* out_n)
 }
 
 
-AnimatedSprite player;
-
-#include "resources.h"
-internal void load_tilemap_textures()
-{
-    i32 width, height, bpp;
-    u8* data;
-    
-    const RESTilemap RES_TILEMAPS[TM_COUNT] = 
-    {
-        ALL_TILEMAPS
-    };
-    
-    assert(TM_COUNT > 0);
-    
-    for (u32 i = 0 ;i < TM_COUNT; ++i)
-    {
-        data = load_image_as_rgba_pixels(
-            RES_TILEMAPS[i].name,
-            &width, &height, &bpp);
-        assert(data);
-        
-        g_tilemap_textures[i] = gl_load_rgba_tilemap(
-            data,
-            width, height,
-            RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
-        
-    }
-    
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
-        printf("err: %d\n", err);
-        exit(-1);
-    }
-    
-}
+#include "resources.cpp"
 
 void
 cb_init()
@@ -181,7 +142,7 @@ cb_init()
     
     assert(glGetError() == GL_NO_ERROR);
     
-    player.tilemap = &GET_TILEMAP_TEXTURE(TM_TEST);
+    
     return;
 }
 
@@ -371,7 +332,6 @@ u64* out_size)
                         puts("");
                     }
                     
-                    
                 }
                 else
                 {
@@ -398,47 +358,59 @@ u64* out_size)
 
 u32 current_frame = 0;
 Timer test_anim_timer;
-Animation test_anim = 
-{
-    0.5f,
-    {0, 1},
-    5,
-    .loop = true
+
+global AnimatedSprite player = {
+    .collision_box = {0,0,64,64}
 };
 
+global AnimatedSprite enemy = {
+    .position = {100, 100},
+    .collision_box = {5,5,40,40},
+};
+
+global u32 current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle);
+global b32 is_on_air = true;
+
+#define GRAVITY 300
+#define JUMP_STRENGTH 200
+// TODO(miked): Add acceleration and velocity for better jump
 void
 cb_render(InputState istate, float dt)
 {
-    AABox player_box = {
-        5,0,
-        45,64};
-    
+    player.tilemap = &GET_TILEMAP_TEXTURE(test);
+    enemy.tilemap = &GET_TILEMAP_TEXTURE(test);
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+    ivec2 before = player.position;
+    
     
     if (istate.move_right)
     {
-        player.position.x += 200.f * dt;
+        player.position.x += 300.f * dt;
     }
-    if (istate.move_left)
+    else if (istate.move_left)
     {
-        player.position.x -= 200.f * dt;
+        player.position.x -= 300.f * dt;
     }
-    if (istate.move_up)
+    if (istate.move_up && !is_on_air)
     {
-        player.position.y -= 200.f * dt;
-    }
-    if (istate.move_down)
-    {
-        player.position.y += 200.f * dt;
+        player.position.y -= JUMP_STRENGTH;
+        is_on_air = true;
     }
     
+    player.position.y += dt * GRAVITY;
+    
+    
     persist b32 loaded = false;
-    if (istate.spacebar_pressed && !loaded)
+    if (!loaded)
     {
         load_test_level(g_palette, &g_palette_size);
         loaded = true;
+        
+        current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
+        current_frame = 0;
+        test_anim_timer.reset();
     }
     
     
@@ -457,7 +429,7 @@ cb_render(InputState istate, float dt)
             if (type == PENTRY_BLOCK_BREAKABLE) id = 1;
             
             gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(TM_TEST),
+                &GET_TILEMAP_TEXTURE(test),
                 {i * 64, j * 64},
                 {64, 64},
                 0.f,
@@ -468,7 +440,6 @@ cb_render(InputState istate, float dt)
     
     ivec2 start_tile = player_tile - 1;
     start_tile = iclamp({0,0}, {14,11}, start_tile);
-    
     for (i32 j = 0; j < 3; ++j)
     {
         for (i32 i = 0; i < 3; ++i)
@@ -483,23 +454,26 @@ cb_render(InputState istate, float dt)
                 (start_tile.y + j) * 64
             };
             
-            AABox collision, player_trans;
+            AABox collision = {0,0,64,64};
+            AABox player_trans;
             collision = collision.translate(tile_coords);
             
-            player_trans = player_box.translate(
-            {ftrunc(player.position.x), ftrunc(player.position.y)});
+            player_trans = player.get_transformed_AABox();
             
             ivec2 diff;
-            b32 collided = intersect(&player_trans, &collision, &diff);
+            b32 collided = aabb_intersect(&player_trans, &collision, &diff);
             if (collided)
             {
-                player.position = player.position - diff;
-                player.position.x = ftrunc(player.position.x);
-                player.position.y = ftrunc(player.position.y);
+                player.position = player.position - (diff);
+                
+                if (diff.y <= 0 && is_on_air)
+                {
+                    is_on_air = false;
+                }
             }
             
             gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(TM_TEST),
+                &GET_TILEMAP_TEXTURE(test),
                 {tile_coords.x, tile_coords.y},
                 {64, 64},
                 0.f,
@@ -507,29 +481,51 @@ cb_render(InputState istate, float dt)
         }
     }
     
-    player_box = player_box.translate({(i32)player.position.x, (i32)player.position.y});
+    if (before.y < player.position.y)
+    {
+        is_on_air = true;
+    }
     
     float elapsed = test_anim_timer.get_elapsed_secs();
-    if (elapsed > test_anim.duration)
+    Animation* anim_ref = &GET_ANIM_BY_HANDLE(test_player, current_animation); 
+    
+    if (elapsed > anim_ref->duration)
     {
-        if (current_frame < test_anim.size)
+        if (current_frame < anim_ref->size)
             current_frame++;
-        else if (current_frame >= test_anim.size && test_anim.loop)
+        else if (current_frame >= anim_ref->size && anim_ref->loop)
             current_frame = 0;
         
         test_anim_timer.reset();
     }
     
     
+    AABox box = player.get_transformed_AABox();
     gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(TM_TEST),
-        {player_box.min_x, player_box.min_y},
-        {player_box.max_x - player_box.min_x, player_box.max_y - player_box.min_y},
+        &GET_TILEMAP_TEXTURE(test),
+        {box.min_x, box.min_y},
+        {box.max_x - box.min_x, box.max_y - box.min_y},
         0,5 * 5 + 1 );
     
-    i32 frame_to_render = test_anim.start.y * player.tilemap->cols
-        + test_anim.start.x + current_frame;
-    draw_sprite(&player, frame_to_render);
+    box = enemy.get_transformed_AABox();
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {box.min_x, box.min_y},
+        {box.max_x - box.min_x, box.max_y - box.min_y},
+        0,5 * 5 + 1 );
+    
+    if (!is_on_air)
+    {
+        gl_slow_tilemap_draw(
+            &GET_TILEMAP_TEXTURE(test),
+            {0, 0},
+            {30, 30},
+            0,5 * 2 + 4 );
+    }
+    
+    i32 frame_to_render = anim_ref->start.y * player.tilemap->cols
+        + anim_ref->start.x + current_frame;
+    AnimatedSprite_draw(&player, frame_to_render);
 }
 
 #include "gl_graphics.cpp"
