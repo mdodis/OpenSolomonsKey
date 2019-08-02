@@ -52,6 +52,7 @@ union ivec2
     {
         return {x * other, y * other};
     }
+    
 };
 
 /*

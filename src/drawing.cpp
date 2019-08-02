@@ -15,6 +15,7 @@ struct AnimatedSprite
     float rotation = 0.f;
     AABox collision_box = {0,0,64,64};
     ivec2 mirror = {false, false};
+    ivec2 velocity = {0,0};
     
     AABox get_transformed_AABox() const
     {

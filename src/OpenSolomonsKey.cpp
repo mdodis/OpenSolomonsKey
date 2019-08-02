@@ -359,6 +359,9 @@ u64* out_size)
 u32 current_frame = 0;
 Timer test_anim_timer;
 
+#define GRAVITY 350
+#define JUMP_STRENGTH 550
+
 global AnimatedSprite player = {
     .collision_box = {0,0,64,64}
 };
@@ -366,14 +369,16 @@ global AnimatedSprite player = {
 global AnimatedSprite enemy = {
     .position = {100, 100},
     .collision_box = {5,5,40,40},
+    .velocity = {0, GRAVITY}
 };
 
 global u32 current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle);
 global b32 is_on_air = true;
 
-#define GRAVITY 300
-#define JUMP_STRENGTH 200
-// TODO(miked): Add acceleration and velocity for better jump
+/*
+ TODO(miked): stop moving up if hit block
+ TODO(miked): sideways floating
+*/
 void
 cb_render(InputState istate, float dt)
 {
@@ -387,27 +392,34 @@ cb_render(InputState istate, float dt)
     
     if (istate.move_right)
     {
-        player.position.x += 300.f * dt;
+        player.velocity.x = 300.f;
     }
     else if (istate.move_left)
     {
-        player.position.x -= 300.f * dt;
+        player.velocity.x = -300.f;
     }
+    else
+        player.velocity.x = 0;
+    
     if (istate.move_up && !is_on_air)
     {
-        player.position.y -= JUMP_STRENGTH;
+        puts("JUMP!");
+        player.velocity.y -= JUMP_STRENGTH;
         is_on_air = true;
     }
     
-    player.position.y += dt * GRAVITY;
+    player.position.x += player.velocity.x * dt;
+    player.position.y += player.velocity.y * dt;
     
+    player.velocity.y += GRAVITY * dt;
+    if (player.velocity.y > GRAVITY) player.velocity.y = GRAVITY;
     
     persist b32 loaded = false;
     if (!loaded)
     {
         load_test_level(g_palette, &g_palette_size);
         loaded = true;
-        
+        player.velocity.y = GRAVITY;
         current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
         current_frame = 0;
         test_anim_timer.reset();
@@ -466,12 +478,14 @@ cb_render(InputState istate, float dt)
             {
                 player.position = player.position - (diff);
                 
-                if (diff.y <= 0 && is_on_air)
+                if (diff.y <= 0 &&
+                    is_on_air)
                 {
-                    is_on_air = false;
+                    is_on_air = false; 
                 }
+                
             }
-            
+            printf("%d %d\n", diff.x, diff.y);
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
                 {tile_coords.x, tile_coords.y},
@@ -481,7 +495,7 @@ cb_render(InputState istate, float dt)
         }
     }
     
-    if (before.y < player.position.y)
+    if (before.y != player.position.y)
     {
         is_on_air = true;
     }
