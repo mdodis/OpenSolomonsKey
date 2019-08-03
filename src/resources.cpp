@@ -3,30 +3,15 @@
 
 
 #define ALL_TILEMAPS \
-/*          NAME     PATH IN FOLDER     rows cols*/                           \
-DEF_TILEMAP(test, "test_tilemap.png",6   ,5   )                      
-
-#define ALL_CHARACTERS                                                        \
-/*            Name,        Tilemap, Animation Count */                        \
-DEF_CHARACTER(test_player, TM_TEST, 2,                                        \
-/*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_player, Idle,    .5f,      {0,0}, 4,      true)   \
-DEF_ANIM(test_player, Idle2,   .5f,      {0,1}, 4,      true)   \
-)                                                               \
-DEF_CHARACTER(test_enemy, TM_TEST,  1,                                        \
-/*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_enemy,  Idle,    .5f,      {0,2}, 4,      true)   \
-)                                                               \
-
+/*          NAME     PATH IN FOLDER  rows cols*/                              \
+DEF_TILEMAP(test, "test_tilemap.png",6,   5    )                              \
 
 struct RESTilemap
 {
     const char* const name;
     i32 rows, cols;
 };
-
 #define DEF_TILEMAP(name, path, rows, cols) TILEMAP_##name,
-
 
 ////////////////////////////////
 enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
@@ -41,8 +26,21 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 ////////////////////////////////
 ////////////////////////////////
 
+#define ALL_CHARACTERS                                                        \
+/*            Name,        Tilemap, Animation Count */                        \
+DEF_CHARACTER(test_player, test,    2,                                        \
+/*       Character,   Name     Duration, Start, Frames, Loop*/  \
+DEF_ANIM(test_player, Idle,    .5f,      {0,0}, 4,      true)   \
+DEF_ANIM(test_player, Idle2,   .5f,      {0,1}, 4,      true)   \
+)                                                               \
+DEF_CHARACTER(test_enemy, test,     1,                                        \
+/*       Character,   Name     Duration, Start, Frames, Loop*/  \
+DEF_ANIM(test_enemy,  Idle,    .5f,      {0,2}, 4,      true)   \
+)                                                               \
+
+
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
-#define DEF_CHARACTER(name, tilemap, anim_count, ...) enum{ \
+#define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{ \
     __VA_ARGS__ CHARACTER_##name##_animcount\
 }; \
 
@@ -52,7 +50,8 @@ ALL_CHARACTERS
 #undef DEF_ANIM
 #undef DEF_CHARACTER
 
-#define DEF_ANIM(character, name, ...) [CHARACTER_##character##_anim_##name] = {__VA_ARGS__},
+//#define DEF_ANIM(character, name, ...) [CHARACTER_##character##_anim_##name] = {__VA_ARGS__},
+#define DEF_ANIM(character, name, ...) {__VA_ARGS__},
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) \
 global Animation CHARACTER_##name##_anims[anim_count] = { \
         __VA_ARGS__ \

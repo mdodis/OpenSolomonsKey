@@ -36,3 +36,8 @@ Adding to that, in order to not have our calculations messed up because of weird
 Right now (Wed 24 Jul 2019), collision is a simple minkowski diff (aabb)
 with the penetration vector, maybe if a problem should arise in the
 future, I'll add some more checks (swept collision).
+
+## Notes:
+
+* Jump: 2 + 1/3 blocks, goes inside the last block, but without colliding
+* Cast on air: retains position

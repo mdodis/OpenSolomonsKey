@@ -77,6 +77,7 @@ ivec2* const opt_pen);
 
 inline u64 lengthsq(const ivec2* const v);
 inline i32 ftrunc(float n);
+inline i32 iabs(i32 n);
 inline i32 iclamp(i32 a, i32 b, i32 x);
 
 inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x);
@@ -92,6 +93,14 @@ inline u64 lengthsq(const ivec2& v)
 }
 
 inline i32 ftrunc(float n) { return (i32)(n); }
+
+inline i32 iabs(i32 n) 
+{
+    if (n < 0)
+        return -n;
+    else
+        return n;
+}
 
 inline i32 iclamp(i32 a, i32 b, i32 x)
 {

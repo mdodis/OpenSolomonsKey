@@ -139,10 +139,7 @@ cb_init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     
-    
     assert(glGetError() == GL_NO_ERROR);
-    
-    
     return;
 }
 
@@ -359,8 +356,9 @@ u64* out_size)
 u32 current_frame = 0;
 Timer test_anim_timer;
 
-#define GRAVITY 350
-#define JUMP_STRENGTH 550
+#define GRAVITY 500
+#define MAX_YSPEED 350
+#define JUMP_STRENGTH 300
 
 global AnimatedSprite player = {
     .collision_box = {0,0,64,64}
@@ -375,10 +373,6 @@ global AnimatedSprite enemy = {
 global u32 current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle);
 global b32 is_on_air = true;
 
-/*
- TODO(miked): stop moving up if hit block
- TODO(miked): sideways floating
-*/
 void
 cb_render(InputState istate, float dt)
 {
@@ -404,15 +398,15 @@ cb_render(InputState istate, float dt)
     if (istate.move_up && !is_on_air)
     {
         puts("JUMP!");
-        player.velocity.y -= JUMP_STRENGTH;
-        is_on_air = true;
+        player.velocity.y = -JUMP_STRENGTH;
     }
     
     player.position.x += player.velocity.x * dt;
     player.position.y += player.velocity.y * dt;
     
     player.velocity.y += GRAVITY * dt;
-    if (player.velocity.y > GRAVITY) player.velocity.y = GRAVITY;
+    
+    player.velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player.velocity.y);
     
     persist b32 loaded = false;
     if (!loaded)
@@ -420,7 +414,7 @@ cb_render(InputState istate, float dt)
         load_test_level(g_palette, &g_palette_size);
         loaded = true;
         player.velocity.y = GRAVITY;
-        current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
+        //current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
         current_frame = 0;
         test_anim_timer.reset();
     }
@@ -428,6 +422,8 @@ cb_render(InputState istate, float dt)
     
     ivec2 ipos = {(i32)player.position.x + 32, (i32)player.position.y + 32};
     ivec2 player_tile = map_position_to_tile(ipos);
+    
+    is_on_air = true;
     
     for(int i = 0; i < 15; ++i )
     {
@@ -478,14 +474,19 @@ cb_render(InputState istate, float dt)
             {
                 player.position = player.position - (diff);
                 
-                if (diff.y <= 0 &&
-                    is_on_air)
+                if (j == 2 &&
+                    iabs(diff.y) > 0)
                 {
-                    is_on_air = false; 
+                    is_on_air = false;
+                    player.velocity.y == 0;
                 }
-                
+                else if (j == 0 && 
+                         player.velocity.y < 0)
+                {
+                    player.velocity.y = -player.velocity.y;
+                }
             }
-            printf("%d %d\n", diff.x, diff.y);
+            
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
                 {tile_coords.x, tile_coords.y},
@@ -495,10 +496,6 @@ cb_render(InputState istate, float dt)
         }
     }
     
-    if (before.y != player.position.y)
-    {
-        is_on_air = true;
-    }
     
     float elapsed = test_anim_timer.get_elapsed_secs();
     Animation* anim_ref = &GET_ANIM_BY_HANDLE(test_player, current_animation); 
@@ -512,7 +509,6 @@ cb_render(InputState istate, float dt)
         
         test_anim_timer.reset();
     }
-    
     
     AABox box = player.get_transformed_AABox();
     gl_slow_tilemap_draw(
