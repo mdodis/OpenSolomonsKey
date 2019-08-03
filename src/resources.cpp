@@ -17,7 +17,8 @@ struct RESTilemap
 enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
 
 #undef DEF_TILEMAP
-#define DEF_TILEMAP(name, path, rows, cols) [TILEMAP_##name] = {path, rows, cols},
+// #define DEF_TILEMAP(name, path, rows, cols) [TILEMAP_##name] = {path, rows, cols},
+#define DEF_TILEMAP(name, path, rows, cols) {path, rows, cols},
 
 #define GET_TILEMAP_TEXTURE(name) g_tilemap_textures[TILEMAP_##name]
 global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];

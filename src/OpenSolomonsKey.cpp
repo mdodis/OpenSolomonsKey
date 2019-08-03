@@ -478,7 +478,7 @@ cb_render(InputState istate, float dt)
                     iabs(diff.y) > 0)
                 {
                     is_on_air = false;
-                    player.velocity.y == 0;
+                    // player.velocity.y == 0;
                 }
                 else if (j == 0 && 
                          player.velocity.y < 0)

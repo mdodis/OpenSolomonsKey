@@ -12,7 +12,41 @@
 
 #include "OpenSolomonsKey.h"
 
+// If you reaaally want an class name Win32, here it is!
 #define OSK_CLASS_NAME "OSK Class"
+
+LARGE_INTEGER perf_last, perf_now = {};
+global LARGE_INTEGER perf_freq;
+
+// NOTE(miked): Win32's DefWindowProc function takes the liberty of
+// blocking the whole thread whilst moving the window (via the title bar),
+// so we us these two bools to check for that, and NOT update.
+// Done using WM_ENTERSIZEMOVE / WM_EXITSIZEMOVE
+global b32 is_currently_moving_or_resizing = false;
+global b32 was_previously_moving_or_resizing = false;
+
+struct Timer
+{
+    LARGE_INTEGER time_last;
+
+    double get_elapsed_secs(b32 should_reset = false)
+    {
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        i64 time_elapsed = now.QuadPart - time_last.QuadPart;
+        float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
+        assert(delta >= 0);
+        
+        if (should_reset) time_last = now;
+
+        return (delta / 1000.f);
+    }
+
+    void reset()
+    {
+        QueryPerformanceCounter(&time_last);
+    }
+};
 
 global WNDCLASSA g_wc;
 global HWND     g_wind;
@@ -24,6 +58,37 @@ u32 g_wind_height;
 u32 g_view_width;
 u32 g_view_height;
 double g_tile_scale;
+
+internal void
+call_render_function()
+{
+        ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
+        ISTATE_KEYDOWN_ACTION(VK_RIGHT, move_right);
+        ISTATE_KEYDOWN_ACTION(VK_LEFT, move_left);
+        ISTATE_KEYDOWN_ACTION(VK_UP, move_up);
+        ISTATE_KEYDOWN_ACTION(VK_DOWN, move_down);
+        ISTATE_KEYDOWN_ACTION('M', m_pressed);
+        
+
+        QueryPerformanceCounter(&perf_now);
+        i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
+        float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
+        assert(delta >= 0);
+        
+        
+        if (was_previously_moving_or_resizing &&
+            !is_currently_moving_or_resizing)
+        {
+            delta = 0.f;
+            was_previously_moving_or_resizing = false;
+        }
+        cb_render(g_input_state,delta / 1000.f);
+        perf_last = perf_now;
+
+
+        SwapBuffers(g_dc); 
+}
+
 
 internal LRESULT CALLBACK
 win32_windproc(
@@ -61,6 +126,21 @@ _In_ LPARAM lparam)
             PostMessage(hwnd, WM_PAINT, 0, 0);
         } break;
         
+
+        // NOTE(miked): For the blocking of moving a window bug, does not
+        // happen on X11
+        case WM_ENTERSIZEMOVE:
+        {
+            was_previously_moving_or_resizing = is_currently_moving_or_resizing;
+            is_currently_moving_or_resizing = true;
+        } break;
+        case WM_EXITSIZEMOVE:
+        {
+            was_previously_moving_or_resizing = is_currently_moving_or_resizing;
+            is_currently_moving_or_resizing = false;
+        } break;
+
+
         default:
         {
             result = DefWindowProc(hwnd, msg, wparam, lparam);
@@ -147,9 +227,7 @@ LPSTR     lpCmdLine,
 int       nShowCmd)
 {
     MSG message;
-    LARGE_INTEGER perf_last, perf_now = {};
-    LARGE_INTEGER perf_freq;
-    
+
     win32_init(hInstance);
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -164,7 +242,6 @@ int       nShowCmd)
     
     QueryPerformanceFrequency(&perf_freq);
     QueryPerformanceCounter(&perf_last);
-    
     while (g_running)
     {
         while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE))
@@ -172,23 +249,8 @@ int       nShowCmd)
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
+        call_render_function();
         
-        ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
-        ISTATE_KEYDOWN_ACTION(VK_RIGHT, move_right);
-        ISTATE_KEYDOWN_ACTION(VK_LEFT, move_left);
-        ISTATE_KEYDOWN_ACTION(VK_UP, move_up);
-        ISTATE_KEYDOWN_ACTION(VK_DOWN, move_down);
-        ISTATE_KEYDOWN_ACTION('M', m_pressed);
-        
-        
-        QueryPerformanceCounter(&perf_now);
-        i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
-        float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
-        assert(delta >= 0);
-        
-        cb_render(g_input_state,delta / 1000.f);
-        perf_last = perf_now;
-        SwapBuffers(g_dc); 
     }
     
     return 0;
