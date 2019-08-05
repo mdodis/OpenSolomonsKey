@@ -31,7 +31,7 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 /*            Name,        Tilemap, Animation Count */                        \
 DEF_CHARACTER(test_player, test,    2,                                        \
 /*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_player, Idle,    .5f,      {0,0}, 4,      true)   \
+DEF_ANIM(test_player, Idle,    .5f,      {3,0}, 0,      false)   \
 DEF_ANIM(test_player, Idle2,   .5f,      {0,1}, 4,      true)   \
 )                                                               \
 DEF_CHARACTER(test_enemy, test,     1,                                        \

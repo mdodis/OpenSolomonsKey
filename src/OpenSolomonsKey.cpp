@@ -356,18 +356,18 @@ u64* out_size)
 u32 current_frame = 0;
 Timer test_anim_timer;
 
-#define GRAVITY 500
-#define MAX_YSPEED 350
-#define JUMP_STRENGTH 300
+#define GRAVITY 900
+#define MAX_YSPEED 450
+#define JUMP_STRENGTH 350
 
 global AnimatedSprite player = {
-    .collision_box = {0,0,64,64}
+    .collision_box = {5,0,45,64}
 };
 
 global AnimatedSprite enemy = {
     .position = {100, 100},
     .collision_box = {5,5,40,40},
-    .velocity = {0, GRAVITY}
+    .velocity = {0, 0}
 };
 
 global u32 current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle);
@@ -383,37 +383,36 @@ cb_render(InputState istate, float dt)
     glClear(GL_COLOR_BUFFER_BIT);
     ivec2 before = player.position;
     
-    
     if (istate.move_right)
     {
-        player.velocity.x = 300.f;
+        player.velocity.x = 250.f;
     }
     else if (istate.move_left)
     {
-        player.velocity.x = -300.f;
+        player.velocity.x = -250.f;
     }
     else
         player.velocity.x = 0;
     
     if (istate.move_up && !is_on_air)
     {
-        puts("JUMP!");
         player.velocity.y = -JUMP_STRENGTH;
+        is_on_air = true;
     }
     
-    player.position.x += player.velocity.x * dt;
-    player.position.y += player.velocity.y * dt;
     
     player.velocity.y += GRAVITY * dt;
     
     player.velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player.velocity.y);
+    player.position.x += player.velocity.x * dt;
+    player.position.y += player.velocity.y * dt;
     
     persist b32 loaded = false;
     if (!loaded)
     {
         load_test_level(g_palette, &g_palette_size);
         loaded = true;
-        player.velocity.y = GRAVITY;
+        player.velocity.y = 0;
         //current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
         current_frame = 0;
         test_anim_timer.reset();
@@ -423,7 +422,6 @@ cb_render(InputState istate, float dt)
     ivec2 ipos = {(i32)player.position.x + 32, (i32)player.position.y + 32};
     ivec2 player_tile = map_position_to_tile(ipos);
     
-    is_on_air = true;
     
     for(int i = 0; i < 15; ++i )
     {
@@ -446,8 +444,12 @@ cb_render(InputState istate, float dt)
         }
     }
     
+    //
+    // Collision detection around 3x3 grid
+    //
     ivec2 start_tile = player_tile - 1;
     start_tile = iclamp({0,0}, {14,11}, start_tile);
+    b32 collided_on_bottom = false;
     for (i32 j = 0; j < 3; ++j)
     {
         for (i32 i = 0; i < 3; ++i)
@@ -463,10 +465,8 @@ cb_render(InputState istate, float dt)
             };
             
             AABox collision = {0,0,64,64};
-            AABox player_trans;
             collision = collision.translate(tile_coords);
-            
-            player_trans = player.get_transformed_AABox();
+            AABox player_trans = player.get_transformed_AABox();
             
             ivec2 diff;
             b32 collided = aabb_intersect(&player_trans, &collision, &diff);
@@ -474,17 +474,44 @@ cb_render(InputState istate, float dt)
             {
                 player.position = player.position - (diff);
                 
+                if (player.velocity.y < 0 &&
+                    iabs(diff.y) < 5)
+                {
+                    player.position.y += diff.y;
+                    continue;
+                }
+                
+                if (j == 2) collided_on_bottom = true;
+                
                 if (j == 2 &&
                     iabs(diff.y) > 0)
                 {
                     is_on_air = false;
-                    // player.velocity.y == 0;
+                    player.velocity.y = 0;
+                    puts("GRND");
                 }
-                else if (j == 0 && 
-                         player.velocity.y < 0)
+                
+                if (player.velocity.y < 0 && 
+                    is_on_air &&
+                    (player_trans.min_x < collision.max_x && 
+                     diff.x >= 0))
                 {
                     player.velocity.y = -player.velocity.y;
+                    printf("%d %d %d %d %d\n",
+                           player_trans.min_x,
+                           collision.max_x,
+                           collision.max_y,
+                           player_trans.min_y, diff.y);
+                    
+                    is_on_air = true;
                 }
+                
+                if (i == 0 && j == 2 &&
+                    iabs(diff.x) > 0)
+                {
+                    player.position.x += diff.x;
+                }
+                
             }
             
             gl_slow_tilemap_draw(
@@ -496,6 +523,10 @@ cb_render(InputState istate, float dt)
         }
     }
     
+    if (!collided_on_bottom && player.velocity.y != 0)
+    {
+        is_on_air = true;
+    }
     
     float elapsed = test_anim_timer.get_elapsed_secs();
     Animation* anim_ref = &GET_ANIM_BY_HANDLE(test_player, current_animation); 

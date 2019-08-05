@@ -156,7 +156,6 @@ ivec2* const opt_pen)
     AABox result;
     result.min_y = a->min_y - b->max_y;
     result.max_y = a->max_y - b->min_y;
-    
     result.min_x = a->min_x - b->max_x;
     result.max_x = a->max_x - b->min_x;
     
@@ -168,19 +167,7 @@ ivec2* const opt_pen)
     {
         ivec2 penetration = {0,0};
         i32 min = INT_MAX;
-        
         /*NOTE(miked): prefer Y axis over X on collision*/
-        if (glm::abs(result.min_y) < min)
-        {
-            min = glm::abs(result.min_y);
-            penetration = {0, result.min_y};
-        }
-        
-        if (glm::abs(result.max_y) < min)
-        {
-            min = glm::abs(result.max_y);
-            penetration = {0, result.max_y};
-        }
         
         if (glm::abs(result.min_x) < min)
         {
@@ -194,6 +181,18 @@ ivec2* const opt_pen)
             penetration = {result.max_x, 0};
         }
         
+        if (glm::abs(result.min_y) < min)
+        {
+            min = glm::abs(result.min_y);
+            penetration = {0, result.min_y};
+        }
+        
+        if (glm::abs(result.max_y) < min)
+        {
+            min = glm::abs(result.max_y);
+            penetration = {0, result.max_y};
+        }
+        
         if (opt_pen) *opt_pen = penetration;
         
         return true;
@@ -204,4 +203,13 @@ ivec2* const opt_pen)
     return false;
 }
 
+inline i32 idot(ivec2 a, ivec2 b)
+{
+    return a.x * b.x + a.y * b.y;
+}
+
+inline float ilength(ivec2 a)
+{
+    return sqrt(a.x * a.x + a.y * a.y);
+}
 #endif
