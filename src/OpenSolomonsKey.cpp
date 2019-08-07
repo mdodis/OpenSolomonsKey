@@ -376,7 +376,7 @@ global b32 is_on_air = true;
 void
 cb_render(InputState istate, float dt)
 {
-    player.tilemap = &GET_TILEMAP_TEXTURE(test);
+    player.tilemap = &GET_CHAR_TILEMAP(test_player);
     enemy.tilemap = &GET_TILEMAP_TEXTURE(test);
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
