@@ -19,13 +19,13 @@ typedef int64_t  i64;
 
 typedef size_t   b32;
 
-extern u32    g_wind_width;
-extern u32    g_wind_height;
+u32    g_wind_width;
+u32    g_wind_height;
 
-extern u32    g_view_width;
-extern u32    g_view_height;
+u32    g_view_width;
+u32    g_view_height;
 
-extern double g_tile_scale;  // base scale for everything
+double g_tile_scale;  // base scale for everything
 double        g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
 typedef struct
@@ -36,6 +36,7 @@ typedef struct
     b32 move_down;
     b32 spacebar_pressed;
     b32 m_pressed;
+    b32 q_pressed;
 } InputState;
 
 global InputState g_input_state;
@@ -60,12 +61,24 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
 
+/*NOTE: Define _all_ entry types here!*/
+#define ALL_ENTRIES                  \
+DEF_ENTRY(PENTRY_EMPTY_SPACE)        \
+DEF_ENTRY(PENTRY_BLOCK_BREAKABLE)    \
+DEF_ENTRY(PENTRY_BLOCK_UNBREAKABLE)  \
+DEF_ENTRY(PENTRY_PLAYER_SPAWN)       \
+
+#define DEF_ENTRY(name) name,
 enum PaletteEntryType
 {
-    PENTRY_EMPTY_SPACE,        /*params: -*/
-    PENTRY_BLOCK_BREAKABLE,    /*params: tilemapidx, tileidx*/
-    PENTRY_BLOCK_UNBREAKABLE,  /*params: tilemapidx, tileidx*/
-    PENTRY_UNKNOWN
+    ALL_ENTRIES PENTRY_UNKNOWN
+};
+#undef DEF_ENTRY
+#define DEF_ENTRY(name) #name,
+
+global const char* g_all_entries[PENTRY_UNKNOWN] = 
+{
+    ALL_ENTRIES
 };
 
 struct PaletteEntry
@@ -73,5 +86,10 @@ struct PaletteEntry
     PaletteEntryType type;
     i32 params[2];
 };
+
+#define DEFAULT_AUDIO_SAMPLERATE 48000
+#define DEFAULT_AUDIO_CHANNELS   2
+global u32 g_audio_samplerate = DEFAULT_AUDIO_SAMPLERATE;
+
 
 #endif //! OSK_HH

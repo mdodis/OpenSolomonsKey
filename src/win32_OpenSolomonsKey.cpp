@@ -28,7 +28,7 @@ global b32 was_previously_moving_or_resizing = false;
 struct Timer
 {
     LARGE_INTEGER time_last;
-
+    
     double get_elapsed_secs(b32 should_reset = false)
     {
         LARGE_INTEGER now;
@@ -38,10 +38,10 @@ struct Timer
         assert(delta >= 0);
         
         if (should_reset) time_last = now;
-
+        
         return (delta / 1000.f);
     }
-
+    
     void reset()
     {
         QueryPerformanceCounter(&time_last);
@@ -53,40 +53,34 @@ global HWND     g_wind;
 global HDC      g_dc;
 global bool     g_running = true;
 
-u32 g_wind_width;
-u32 g_wind_height;
-u32 g_view_width;
-u32 g_view_height;
-double g_tile_scale;
-
 internal void
 call_render_function()
 {
-        ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
-        ISTATE_KEYDOWN_ACTION(VK_RIGHT, move_right);
-        ISTATE_KEYDOWN_ACTION(VK_LEFT, move_left);
-        ISTATE_KEYDOWN_ACTION(VK_UP, move_up);
-        ISTATE_KEYDOWN_ACTION(VK_DOWN, move_down);
-        ISTATE_KEYDOWN_ACTION('M', m_pressed);
-        
-
-        QueryPerformanceCounter(&perf_now);
-        i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
-        float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
-        assert(delta >= 0);
-        
-        
-        if (was_previously_moving_or_resizing &&
-            !is_currently_moving_or_resizing)
-        {
-            delta = 0.f;
-            was_previously_moving_or_resizing = false;
-        }
-        cb_render(g_input_state,delta / 1000.f);
-        perf_last = perf_now;
-
-
-        SwapBuffers(g_dc); 
+    ISTATE_KEYDOWN_ACTION(VK_SPACE, spacebar_pressed);
+    ISTATE_KEYDOWN_ACTION(VK_RIGHT, move_right);
+    ISTATE_KEYDOWN_ACTION(VK_LEFT, move_left);
+    ISTATE_KEYDOWN_ACTION(VK_UP, move_up);
+    ISTATE_KEYDOWN_ACTION(VK_DOWN, move_down);
+    ISTATE_KEYDOWN_ACTION('M', m_pressed);
+    
+    
+    QueryPerformanceCounter(&perf_now);
+    i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
+    float delta = (time_elapsed * 1000) / perf_freq.QuadPart;
+    assert(delta >= 0);
+    
+    
+    if (was_previously_moving_or_resizing &&
+        !is_currently_moving_or_resizing)
+    {
+        delta = 0.f;
+        was_previously_moving_or_resizing = false;
+    }
+    cb_render(g_input_state,delta / 1000.f);
+    perf_last = perf_now;
+    
+    
+    SwapBuffers(g_dc); 
 }
 
 
@@ -126,7 +120,7 @@ _In_ LPARAM lparam)
             PostMessage(hwnd, WM_PAINT, 0, 0);
         } break;
         
-
+        
         // NOTE(miked): For the blocking of moving a window bug, does not
         // happen on X11
         case WM_ENTERSIZEMOVE:
@@ -139,8 +133,8 @@ _In_ LPARAM lparam)
             was_previously_moving_or_resizing = is_currently_moving_or_resizing;
             is_currently_moving_or_resizing = false;
         } break;
-
-
+        
+        
         default:
         {
             result = DefWindowProc(hwnd, msg, wparam, lparam);
@@ -227,7 +221,7 @@ LPSTR     lpCmdLine,
 int       nShowCmd)
 {
     MSG message;
-
+    
     win32_init(hInstance);
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)

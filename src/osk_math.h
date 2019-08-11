@@ -69,7 +69,7 @@ struct AABox
 };
 
 internal b32
-aabb_intersect(
+aabb_minkowski(
 const AABox* const a,
 const AABox* const b,
 ivec2* const opt_pen);
@@ -141,14 +141,28 @@ AABox AABox::translate(ivec2 position) const
     };
 }
 
-/*
-// NOTE(miked): Lookup -
-https://gamedev.stackexchange.com/questions/17502/how-to-deal-with-corner-collisions-in-2d
+internal b32
+intersect(const AABox* const a, const AABox* const b)
+{
+    AABox result;
+    result.min_y = a->min_y - b->max_y;
+    result.max_y = a->max_y - b->min_y;
+    result.min_x = a->min_x - b->max_x;
+    result.max_x = a->max_x - b->min_x;
+    
+    return (result.min_x <= 0 &&
+            result.max_x >= 0 &&
+            result.min_y <= 0 &&
+            result.max_y >= 0
+            );
+}
 
-to fix bad collision on big movement steps
+/*
+NOTE/TODO(miked): Think about making a version of this with
+swept collision?
 */
 internal b32
-aabb_intersect(
+aabb_minkowski(
 const AABox* const a,
 const AABox* const b,
 ivec2* const opt_pen)

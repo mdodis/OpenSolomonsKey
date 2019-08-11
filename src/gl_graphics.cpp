@@ -207,6 +207,9 @@ b32 mirrory)
     // ORIGIN on TOP-LEFT
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     
+    // NOTE(miked): translate half width inwards, and full width outwards
+    // to keep space for the textures on the sides, should probably color them
+    // as well
     model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
     
     model = glm::translate(model, glm::vec3(0.5f * size.x, .5*size.y, 0.0f));

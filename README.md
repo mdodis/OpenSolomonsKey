@@ -12,8 +12,9 @@ If you are on Windows you can check out a completed port on
 [GMS2 by immortalx](https://immortalx74.itch.io/solomonskeyremake).
 
 ## TODO:
-- [ ] Use actual game assets
-- [ ] Sprite animation
+
+- [X] Sprite animation
+- [X] Use actual game assets
 - [X] Tilemap / Sprite collision
     - [X] bounding box drawing (for debugging)
     - [X] minkowski aabb (dont forget the penetration vector)

@@ -1,6 +1,6 @@
-/*
-x11_OpenSolomonsKey.cpp
-Windoing for the platform layer
+/* x11_OpenSolomonsKey.cpp
+
+This is the initial Xlib + Alsa layer for OpenSolomonsKey.
 
 Tilesize: 64x64 (px)
 Left+Right: 32 + 32 (so an extra tile_x)
@@ -10,8 +10,6 @@ Total_PlayArea: 960x768
 AspectRatio: 0.875 (height/width, height = width * 0.875)
 
 15x12 play area
-
-TODO(mdodis):
 */
 
 #define OSK_PLATFORM_X11
@@ -28,7 +26,6 @@ TODO(mdodis):
 
 #include <GL/gl.h>
 #include <GL/glx.h>
-#include <GL/glu.h>
 #include "OpenSolomonsKey.h"
 #include "gl_funcs.h"
 
@@ -65,13 +62,6 @@ struct Timer
         clock_gettime(CLOCK_MONOTONIC, &last);
     }
 };
-
-u32 g_wind_width;
-u32 g_wind_height;
-u32 g_view_width;
-u32 g_view_height;
-double       g_tile_scale;
-
 
 Display                 *dpy;
 Window                  root;
@@ -326,9 +316,7 @@ b32 x11_get_key_state(i32 key)
 int main(int argc, char *argv[])
 {
     x11_init();
-    
     gl_load();
-    
     cb_init();
     
     Timer timer;
@@ -353,6 +341,7 @@ int main(int argc, char *argv[])
             }
         }
         
+        
         XQueryKeymap(dpy, _x11_internal_keys);
         ISTATE_KEYDOWN_ACTION(XK_space, spacebar_pressed);
         ISTATE_KEYDOWN_ACTION(XK_Right, move_right);
@@ -360,12 +349,14 @@ int main(int argc, char *argv[])
         ISTATE_KEYDOWN_ACTION(XK_Up, move_up);
         ISTATE_KEYDOWN_ACTION(XK_Down, move_down);
         ISTATE_KEYDOWN_ACTION(XK_M, m_pressed);
+        ISTATE_KEYDOWN_ACTION(XK_Q, q_pressed);
         
         float delta = timer.get_elapsed_secs();
         timer.reset();
         //assert(delta > 0);
         // Render code here
         cb_render(g_input_state, delta);
+        
         
         glXSwapBuffers(dpy, win);
     }

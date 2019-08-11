@@ -7,9 +7,9 @@ the extra required information. All of the rendering is done through
 tilemaps.
 */
 #define ALL_TILEMAPS \
-/*          NAME     PATH IN FOLDER  rows cols*/                              \
-DEF_TILEMAP(test, "test_tilemap.png",6,   5    )                              \
-DEF_TILEMAP(dana, "test_packing/joined/dana_run.png", 1, 6)                   \
+/*          NAME     PATH IN FOLDER                     rows cols*/\
+DEF_TILEMAP(test    ,"test_tilemap.png"                ,6    ,5   )\
+DEF_TILEMAP(dana    ,"res/joined/dana_run.png",1    ,6   )\
 
 
 struct RESTilemap
@@ -36,10 +36,10 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                        \
 /*            Name,        Tilemap, Animation Count */                        \
-DEF_CHARACTER(test_player, test,    2,                                        \
+DEF_CHARACTER(test_player, dana,    2,                                        \
 /*       Character,   Name     Duration, Start, Frames, Loop*/  \
 DEF_ANIM(test_player, Idle,    .1f,      {0,0}, 4,      true)   \
-DEF_ANIM(test_player, Idle2,   .5f,      {0,0}, 4,      true)   \
+DEF_ANIM(test_player, Run ,    .1f,      {0,0}, 4,      true)   \
 )                                                               \
 DEF_CHARACTER(test_enemy, test,     1,                                        \
 /*       Character,   Name     Duration, Start, Frames, Loop*/  \
@@ -82,7 +82,6 @@ global u64 CHARACTER_TO_TILEMAP[CHARACTER_COUNT] =
 #undef DEF_ANIM
 #undef DEF_CHARACTER
 
-//#define DEF_ANIM(character, name, ...) [CHARACTER_##character##_anim_##name] = {__VA_ARGS__},
 #define DEF_ANIM(character, name, ...) {__VA_ARGS__},
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) \
 global Animation CHARACTER_##name##_anims[anim_count] = { \
@@ -94,10 +93,15 @@ ALL_CHARACTERS
 #undef DEF_ANIM
 #undef DEF_CHARACTER
 
-#define GET_CHAR_ANIM_HANDLE(character, name) CHARACTER_##character##_anim_##name
+// Use this with a variable of type ux to hold current animation
 #define GET_ANIM_BY_HANDLE(character, hnd) CHARACTER_##character##_anims[hnd]
+#define GET_CHAR_ANIM_COUNT(character) CHARACTER_##character##_animcount
+#define GET_CHAR_ANIM_HANDLE(character, name) CHARACTER_##character##_anim_##name
 #define GET_CHAR_ANIM(character, name) CHARACTER_##character##_anims[CHARACTER_##character##_anim_##name]
 #define GET_CHAR_TILEMAP(character) g_tilemap_textures[CHARACTER_TO_TILEMAP[ CHARACTER_##character ]]
+
+#define GET_CHAR_ANIMSET(character) CHARACTER_##character##_anims
+#define GET_CHAR_ANIMENUM(character, name) CHARACTER_##character##_anim_##name
 
 internal void load_tilemap_textures()
 {
