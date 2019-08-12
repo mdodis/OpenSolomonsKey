@@ -29,66 +29,11 @@ AUDIO:
 
 #include "sprites.cpp"
 #include "levels.cpp"
+#include "audio.cpp"
 
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
 global glm::mat4 g_projection;
-
-const u32 wave_period = DEFAULT_AUDIO_SAMPLERATE / 440;
-u32 wave_counter = wave_period;
-PaStream *stream;
-
-
-static int patestCallback(
-const void *inputBuffer, void *outputBuffer,
-unsigned long framesPerBuffer,
-const PaStreamCallbackTimeInfo* timeInfo,
-PaStreamCallbackFlags statusFlags,
-void *userData )
-{
-    /* Cast data passed through stream to our structure. */
-    i16 *out = (i16*)outputBuffer;
-    unsigned int i;
-    (void) inputBuffer; /* Prevent unused variable warning. */
-    
-    for( i=0; i<framesPerBuffer; i++ )
-    {
-        if (!wave_counter) wave_counter = wave_period;
-        
-        i16 sample = wave_counter > (wave_period / 2) ? 400 : -400;
-        //*out++ = sample;
-        *out++ = 0;
-        wave_counter--;
-    }
-    return 0;
-}
-
-internal void
-audio_init()
-{
-    PaError err;
-    err = Pa_Initialize();
-    assert(err == paNoError);
-    
-    err = Pa_OpenDefaultStream(
-        &stream,
-        0,          /* no input channels */
-        1,          /* stereo output */
-        paInt16,  /* 32 bit floating point output */
-        DEFAULT_AUDIO_SAMPLERATE,
-        paFramesPerBufferUnspecified,        /* frames per buffer, i.e. the number
-        of sample frames that PortAudio will
-        request from the callback. Many apps
-        may want to use
-        paFramesPerBufferUnspecified, which
-        tells PortAudio to pick the best,
-        possibly changing, buffer size.*/
-        patestCallback, /* this is your callback function */
-        0);
-    assert(err == paNoError);
-    err = Pa_StartStream( stream );
-    assert(err == paNoError);
-}
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
@@ -261,6 +206,7 @@ global b32 is_on_air = true;
 void
 cb_render(InputState istate, float dt)
 {
+    
     player.tilemap = &GET_CHAR_TILEMAP(test_player);
     enemy.tilemap = &GET_TILEMAP_TEXTURE(test);
     
@@ -429,6 +375,8 @@ cb_render(InputState istate, float dt)
     }
     
     AnimatedSprite_draw_anim(&player);
+    
+    audio_update();
     
 }
 

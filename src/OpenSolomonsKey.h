@@ -87,9 +87,4 @@ struct PaletteEntry
     i32 params[2];
 };
 
-#define DEFAULT_AUDIO_SAMPLERATE 48000
-#define DEFAULT_AUDIO_CHANNELS   2
-global u32 g_audio_samplerate = DEFAULT_AUDIO_SAMPLERATE;
-
-
 #endif //! OSK_HH

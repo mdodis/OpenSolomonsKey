@@ -35,3 +35,4 @@ build
 sprites
 .gdb_history
 .vscode
+*.wav

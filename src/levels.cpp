@@ -27,10 +27,7 @@ u64* out_size)
 internal const char*
 string_trim(const char* c)
 {
-    while(
-        *c == ' ' ||
-        *c == '\n')
-        c++;
+    while(*c == ' ' || *c == '\n') c++;
     return c;
 }
 

@@ -31,7 +31,12 @@ struct AnimatedSprite
 internal void 
 AnimatedSprite_update_animation(AnimatedSprite *const sprite, float dt)
 {
-    Animation* anim_ref = &sprite->animation_set[sprite->current_animation];
+    Animation* anim_ref;
+    
+    anim_ref = &sprite->animation_set[sprite->current_animation];
+    if (anim_ref->size == 0)
+        return;
+    
     sprite->time_accumulator += dt;
     
     if (sprite->time_accumulator >= anim_ref->duration)

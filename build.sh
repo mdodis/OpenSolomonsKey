@@ -3,7 +3,14 @@
 TIMEFORMAT=%R
 
 code="$PWD/src/"
-opts="-g -ggdb -lGL -lGLU -lX11 -lportaudio -lpthread -O0 -no-pie -I$code/../"
+opts="-lGL -lGLU -lX11 -lpthread -no-pie -I$code/../"
+opt_debug="-g -ggdb -O0"
+opt_release="-O3"
 cd build > /dev/null
-time g++ $opts $code/x11_OpenSolomonsKey.cpp -o solomons_key
+
+# Debug
+time g++ $opts $opt_debug $code/x11_OpenSolomonsKey.cpp -lasound -ljack /home/miked/Desktop/portaudio/lib/.libs/libportaudio.a -o solomons_key
+
+# Release
+# time g++ $opts $opt_release $code/x11_OpenSolomonsKey.cpp -lasound -ljack /home/miked/Desktop/portaudio/lib/.libs/libportaudio.a -o solomons_key
 cd $code > /dev/null
