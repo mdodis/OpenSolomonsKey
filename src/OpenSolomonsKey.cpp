@@ -111,6 +111,8 @@ cb_init()
 {
     audio_init();
     
+    test_sound = Wave_load_from_file("bloop.wav");
+    
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -71,13 +71,35 @@ parse_pallete_entry(const char* c, PaletteEntryType* out_entry)
     return c + stride;
 }
 
+internal char*
+platform_load_entire_file(const char* path)
+{
+    u64 size;
+    char* data;
+    FILE* f = fopen(path, "rb");
+    if (!f) exit(-1);
+    
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    data = (char*)malloc(size + 1);
+    assert(data);
+    fread(data, size, 1, f);
+    data[size] = 0;
+    fclose(f);
+    
+    return data;
+}
+
 internal void load_test_level(
 PaletteEntry palette[64],
 u64* out_size)
 { 
-    char* level;
+    char* level = platform_load_entire_file("test_level_2.oskmap");
+#if 0
     u64 size;
-    FILE* f = fopen("test_level_2.oskmap", "rb");
+    FILE* f = fopen("test_level_2.oskmap" , "rb");
     if (!f) exit(-1);
     
     fseek(f, 0, SEEK_END);
@@ -89,6 +111,7 @@ u64* out_size)
     fread(level, size, 1, f);
     level[size] = 0;
     fclose(f);
+#endif
     
     const char* c = level;
     
