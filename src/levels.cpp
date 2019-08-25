@@ -1,4 +1,18 @@
 
+#define TILEMAP_ROWS 12
+#define TILEMAP_COLS 15
+struct
+{
+    u64 tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    PaletteEntry palette[64] = {};
+    u64 palette_size = 0;
+    Sprite* spritelist = 0;
+    i32 spritelist_size = 0;
+    i32 spritelist_cap = 0;
+    
+} g_scene;
+
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 
 internal b32
@@ -46,10 +60,6 @@ string_parse_uint(const char* c, u64* out_i)
     return c;
 }
 
-global PaletteEntry g_palette[64];
-global u64 g_tilemap[15][12];
-global u64 g_palette_size;
-
 internal const char*
 parse_pallete_entry(const char* c, PaletteEntryType* out_entry)
 {
@@ -77,7 +87,7 @@ platform_load_entire_file(const char* path)
     u64 size;
     char* data;
     FILE* f = fopen(path, "rb");
-    if (!f) exit(-1);
+    if (!f) return 0;
     
     fseek(f, 0, SEEK_END);
     size = ftell(f);
@@ -97,21 +107,7 @@ PaletteEntry palette[64],
 u64* out_size)
 { 
     char* level = platform_load_entire_file("test_level_2.oskmap");
-#if 0
-    u64 size;
-    FILE* f = fopen("test_level_2.oskmap" , "rb");
-    if (!f) exit(-1);
-    
-    fseek(f, 0, SEEK_END);
-    size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    level = (char*)malloc(size + 1);
-    assert(level);
-    fread(level, size, 1, f);
-    level[size] = 0;
-    fclose(f);
-#endif
+    fail_unless(level, "Level could not be loaded");
     
     const char* c = level;
     
@@ -173,7 +169,7 @@ u64* out_size)
                             c = string_trim(c);
                             c = string_parse_uint(c, &idx);
                             
-                            g_tilemap[i][j] = idx;
+                            g_scene.tilemap[i][j] = idx;
                             
                             printf("%d ", (int)idx);
                         }
@@ -202,4 +198,25 @@ u64* out_size)
         }
         
     }
+}
+
+internal void scene_init(const char* level_path)
+{
+    load_test_level(g_scene.palette, &g_scene.palette_size);
+}
+
+internal void 
+scene_sprite_add(Sprite* sprite)
+{
+    fail_unless(sprite, "Passing null sprite to scene_add");
+    if (!g_scene.spritelist)
+    {
+        g_scene.spritelist = (Sprite*)malloc(10 * sizeof(Sprite));
+        g_scene.spritelist_size = 0;
+        g_scene.spritelist_cap = 10;
+        fail_unless(g_scene.spritelist, "");
+    }
+    fail_unless((g_scene.spritelist_size - 1) < g_scene.spritelist_cap, "");
+    
+    g_scene.spritelist[g_scene.spritelist_size++] = *sprite;
 }

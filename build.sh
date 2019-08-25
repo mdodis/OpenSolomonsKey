@@ -3,7 +3,7 @@
 TIMEFORMAT=%R
 
 code="$PWD/src/"
-opts="-lGL -lGLU -lX11 -lpthread -no-pie -I$code/../"
+opts="-lGL -lGLU -lX11 -lpthread -no-pie -Wno-write-strings -I$code/../"
 opt_debug="-g -ggdb -O0"
 opt_release="-O3"
 cd build > /dev/null

@@ -313,6 +313,26 @@ b32 x11_get_key_state(i32 key)
     
 }
 
+internal void 
+x11_update_all_keys()
+{
+    XQueryKeymap(dpy, _x11_internal_keys);
+    
+#define KEYDOWN(name, keysym, ...) g_input_state.name = x11_get_key_state(keysym);
+#define KEYPRESS(name, keysym, ...) { \
+        b32 now = x11_get_key_state(keysym); \
+        g_input_state.name[1] = (now && !g_input_state.name[0]); \
+        g_input_state.name[0] = g_input_state.name[1] || now; \
+        \
+    } \
+    
+    KEYMAP
+    
+#undef KEYDOWN
+#undef KEYPRESS
+}
+
+
 int main(int argc, char *argv[])
 {
     x11_init();
@@ -321,6 +341,9 @@ int main(int argc, char *argv[])
     
     Timer timer;
     timer.reset();
+    b32 m_final = false;
+    b32 m_prev = false;
+    
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
@@ -334,22 +357,10 @@ int main(int argc, char *argv[])
                     cb_resize();
                 } break;
                 
-                case KeyPress:
-                {
-                    
-                } break;
             }
         }
         
-        
-        XQueryKeymap(dpy, _x11_internal_keys);
-        ISTATE_KEYDOWN_ACTION(XK_space, spacebar_pressed);
-        ISTATE_KEYDOWN_ACTION(XK_Right, move_right);
-        ISTATE_KEYDOWN_ACTION(XK_Left, move_left);
-        ISTATE_KEYDOWN_ACTION(XK_Up, move_up);
-        ISTATE_KEYDOWN_ACTION(XK_Down, move_down);
-        ISTATE_KEYDOWN_ACTION(XK_M, m_pressed);
-        ISTATE_KEYDOWN_ACTION(XK_Q, q_pressed);
+        x11_update_all_keys();
         
         float delta = timer.get_elapsed_secs();
         timer.reset();

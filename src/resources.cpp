@@ -1,15 +1,17 @@
 #if !defined(OSK_RES_H)
 #define OSK_RES_H
 
+////////////////////////////////
+////////////////////////////////
 /* Tilemaps
 Define all of the tilemaps by associating them with a name, and pass
 the extra required information. All of the rendering is done through
 tilemaps.
 */
 #define ALL_TILEMAPS \
-/*          NAME     PATH IN FOLDER                     rows cols*/\
-DEF_TILEMAP(test    ,"test_tilemap.png"                ,6    ,5   )\
-DEF_TILEMAP(dana    ,"res/joined/dana_run.png",1    ,6   )\
+/*          NAME     PATH IN FOLDER                                rows cols*/\
+DEF_TILEMAP(test    ,"test_tilemap.png"                           ,6    ,5   )\
+DEF_TILEMAP(dana    ,"res/joined/dana_run.png"                    ,1    ,6   )\
 
 
 struct RESTilemap
@@ -19,7 +21,6 @@ struct RESTilemap
 };
 #define DEF_TILEMAP(name, path, rows, cols) TILEMAP_##name,
 
-////////////////////////////////
 enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
 
 #undef DEF_TILEMAP
@@ -28,9 +29,13 @@ enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
 
 #define GET_TILEMAP_TEXTURE(name) g_tilemap_textures[TILEMAP_##name]
 global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
+////////////////////////////////
+////////////////////////////////
 
 
-/* Characters ~= AnimationSets/AnimationGroups
+////////////////////////////////
+////////////////////////////////
+/* ANIMATIONS
 You can group animations by "character", and the macro ugliness here
 should prevent name collisions, if you input different character names.
 */
@@ -102,6 +107,26 @@ ALL_CHARACTERS
 
 #define GET_CHAR_ANIMSET(character) CHARACTER_##character##_anims
 #define GET_CHAR_ANIMENUM(character, name) CHARACTER_##character##_anim_##name
+
+////////////////////////////////
+////////////////////////////////
+////////////////////////////////
+////////////////////////////////
+////////////////////////////////
+////////////////////////////////
+
+internal u8*
+load_image_as_rgba_pixels(
+const char* const name,
+i32* out_width,
+i32* out_height,
+i32* out_n)
+{
+    int i_w, i_h, i_n;
+    unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
+    
+    return data;
+}
 
 internal void load_tilemap_textures()
 {

@@ -38,6 +38,16 @@ Right now (Wed 24 Jul 2019), collision is a simple minkowski diff (aabb)
 with the penetration vector, maybe if a problem should arise in the
 future, I'll add some more checks (swept collision).
 
+### Configuration
+I've chosen to do cofiguration at compile time, meaning all the locations
+(relative) of the resources that cannot be embedded easily in the executable
+are predefined, as well as all the animations. To change an animation, you'd
+have to compile the whole thing again, but it shouldn't take long.
+
+I really don't want to have to deal with where config files should be put in
+either of the two currently supported platforms, so I've generated this ugly
+macro based method of doing configuration in input.h and resources.cpp.
+
 ## Notes:
 
 * Jump: 2 + 1/3 blocks, goes inside the last block, but without colliding

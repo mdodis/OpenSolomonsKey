@@ -1,4 +1,8 @@
-
+#include <string.h>
+/*
+NOTE: Using wave file format with 48000Hz sample-rate,
+2 channels, 16b/sample, anything other than that will break it
+*/
 #pragma pack(push, 1)
 struct WaveHeader
 {
@@ -29,6 +33,11 @@ struct WaveChunk
 };
 #pragma pack(pop)
 
+
+#define DEFAULT_AUDIO_SAMPLERATE 48000
+#define DEFAULT_AUDIO_CHANNELS 2
+#define FRAMES_PER_BUFFER 1024
+#define BUFFER_SIZE FRAMES_PER_BUFFER * DEFAULT_AUDIO_CHANNELS * 2
 
 #define RIFF_CODE(a,b,c,d) (u32)((a << 0) | (b << 8) | (c << 16) | (d << 24))
 
@@ -86,19 +95,21 @@ RiffIterator_size(RiffIterator iter)
 }
 
 
-struct Sound
+struct RESSound
 {
     u32 samplerate;
     u32 num_channels;
     u32 num_samples;
     void* data;
+    
 };
 
-internal Sound
+/* Loads a 16bit/sample, 48Khz, 2 channel audio file in interleaved format*/
+internal RESSound
 Wave_load_from_file(const char* file)
 {
     WaveHeader* header;
-    Sound result = {};
+    RESSound result = {};
     char* data = platform_load_entire_file(file);
     
     header = (WaveHeader*)data;
@@ -116,6 +127,8 @@ Wave_load_from_file(const char* file)
                 WaveFmt* fmt = (WaveFmt*)Wave_get_chunk(iter);
                 assert(fmt->format_tag == 1);
                 assert((fmt->block_align / fmt->nchannels) == 2);
+                assert(fmt->nchannels == DEFAULT_AUDIO_CHANNELS);
+                assert(fmt->samples_per_sec == DEFAULT_AUDIO_SAMPLERATE);
                 printf("Channels       : %d\n", fmt->nchannels);
                 printf("Samples        : %d\n", fmt->samples_per_sec);
                 printf("BPP            : %d\n", fmt->bits_per_sample);
@@ -139,16 +152,10 @@ Wave_load_from_file(const char* file)
     return result;
 }
 
-
-
-#define DEFAULT_AUDIO_SAMPLERATE 48000
-#define DEFAULT_AUDIO_CHANNELS 2
-#define FRAMES_PER_BUFFER 1024
-#define BUFFER_SIZE FRAMES_PER_BUFFER * DEFAULT_AUDIO_CHANNELS * 2
-
 global u32 g_audio_samplerate = DEFAULT_AUDIO_SAMPLERATE;
 PaStream *stream;
 i16* buffer[BUFFER_SIZE];
+float g_audio_master_volume = .1f;
 
 internal void
 audio_init()
@@ -190,20 +197,82 @@ u32 frames_to_write)
     i16* wav = (i16*)buffer;
     for (u32 i = 0; i < frames_to_write; i += 1)
     {
-        i16 sample = sinf(*time) * 800;
+        i16 sample = sinf(*time) * intensity;
         
         for (u32 j = 0; j < DEFAULT_AUDIO_CHANNELS; ++j)
-            *wav++ = sample;
+            *wav++ += sample;
         
         *time += 2.f * M_PI *  1.f / (float)wave_period;
     }
     
 }
 
-global Sound test_sound;
+struct Sound
+{
+    u64 counter = 0;
+    u64 max_counter = ~(0u);
+    b32 looping = false;
+    b32 playing = false;
+    const RESSound* resource = 0;
+};
+
+global struct
+{
+    
+#define AUDIO_MAX_SOUNDS 32
+    Sound all_sounds[AUDIO_MAX_SOUNDS];
+    i32 all_sounds_size = 0;
+} g_audio;
+
+internal void audio_play_sound(const RESSound* resound)
+{
+    warn_unless(
+        g_audio.all_sounds_size < AUDIO_MAX_SOUNDS, 
+        "Attempted to play more than AUDIO_MAX_SOUNDS");
+    if (g_audio.all_sounds_size > 0) return;
+    
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i)
+    {
+        if (g_audio.all_sounds[i].resource == resound) break;
+    }
+    
+    
+    Sound new_sound = {
+        .max_counter = resound->num_samples,
+        .looping = false, 
+        .resource = resound};
+    
+    g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
+}
+
+internal void audio_update_all_sounds()
+{
+    for (i32 i = 0; i < AUDIO_MAX_SOUNDS; ++i)
+    {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        
+        if (sound_ref->counter >= sound_ref->max_counter / 2)
+        {
+            sound_ref->counter = 0;
+            if (!sound_ref->looping)
+            {
+                sound_ref->resource = 0;
+                g_audio.all_sounds_size--;
+                // resize the sound array
+                i32 previous = i;
+                for (i32 j = i + 1; j < g_audio.all_sounds_size; j++)
+                {
+                    Sound sound_copy = g_audio.all_sounds[j];
+                    g_audio.all_sounds[previous] = sound_copy;
+                    previous++;
+                }
+            }
+        }
+    }
+}
 
 internal void 
-audio_update()
+audio_update(const InputState* const istate)
 {    
     // Update audio
     i64 frames_to_write = Pa_GetStreamWriteAvailable(stream);
@@ -213,30 +282,55 @@ audio_update()
         puts("audio error");
         exit(-11);
     }
+    memset(buffer, 0, frames_to_write * 2 * 2);
     
-    persist float time = 0.f;
-    //audio_generate_sine(440,&time,800, buffer, frames_to_write);
-    
-    
-    memset(buffer, 0, BUFFER_SIZE);
     i16* out = (i16*)buffer;
-    i16* data = (i16*)test_sound.data;
-    b32 noplay = false;
-    persist int counter = 0;
+    audio_update_all_sounds();
     
+    //printf("num sounds: %d\n", g_audio.all_sounds_size);
     for (u32 i = 0; i < frames_to_write; i += 1)
     {
-        if (counter >= test_sound.num_samples / 2)
+        i16 sample[DEFAULT_AUDIO_CHANNELS] = {};
+        
+        
+        for (i32 current_sound_idx = 0;
+             current_sound_idx < g_audio.all_sounds_size;
+             current_sound_idx++)
         {
-            counter = 0;
-            //*out++ = 0;
-            //*out++ = 0;
+            Sound* current_sound = g_audio.all_sounds + current_sound_idx;
+            
+            if (current_sound->counter >= current_sound->max_counter / 2)
+            {
+                break;
+            }
+            
+            i32 current_sample[DEFAULT_AUDIO_CHANNELS] = {
+                sample[0],
+                sample[1]};
+            
+            u64 new_sound_counter = current_sound->counter;
+            i32 sample16[DEFAULT_AUDIO_CHANNELS] = {};
+            
+            i16* data = (i16*)current_sound->resource->data;
+            sample16[0] = data[new_sound_counter++];
+            sample16[1] = data[new_sound_counter++];
+            
+            if ((current_sample[0] + sample16[0]) > SHRT_MAX ||
+                (current_sample[0] + sample16[0]) < SHRT_MIN ||
+                (current_sample[1] + sample16[1]) > SHRT_MAX ||
+                (current_sample[1] + sample16[1]) < SHRT_MIN )
+            {
+                break;
+            }
+            
+            sample[0] = current_sample[0] + sample16[0];
+            sample[1] = current_sample[1] + sample16[1];
+            current_sound->counter = new_sound_counter;
         }
         
         
-        *out++ = data[counter++];
-        *out++ = data[counter++];
-        
+        *out++ += sample[0];
+        *out++ += sample[1];
         
     }
     

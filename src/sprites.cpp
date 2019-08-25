@@ -7,7 +7,7 @@ struct Animation
     b32 loop = true;
 };
 
-struct AnimatedSprite
+struct Sprite
 {
     GLTilemapTexture const * tilemap = 0;
     ivec2 size = {64, 64};
@@ -29,7 +29,7 @@ struct AnimatedSprite
 };
 
 internal void 
-AnimatedSprite_update_animation(AnimatedSprite *const sprite, float dt)
+Sprite_update_animation(Sprite *const sprite, float dt)
 {
     Animation* anim_ref;
     
@@ -52,7 +52,7 @@ AnimatedSprite_update_animation(AnimatedSprite *const sprite, float dt)
 }
 
 internal void
-AnimatedSprite_draw(AnimatedSprite const * sprite, i32 frame)
+Sprite_draw(Sprite const * sprite, i32 frame)
 {
     assert(sprite->tilemap);
     
@@ -67,16 +67,26 @@ AnimatedSprite_draw(AnimatedSprite const * sprite, i32 frame)
 }
 
 internal void
-AnimatedSprite_draw_anim(AnimatedSprite const * sprite)
+Sprite_draw_anim(Sprite const * sprite)
 {
+    assert(sprite->tilemap);
     Animation* anim_ref = &sprite->animation_set[sprite->current_animation];
     i32 frame_to_render = anim_ref->start.y * sprite->tilemap->cols
         + anim_ref->start.x + sprite->current_frame;
-    AnimatedSprite_draw(sprite, frame_to_render);
+    //Sprite_draw(sprite, frame_to_render);
+    
+    gl_slow_tilemap_draw(
+        sprite->tilemap,
+        {(float)sprite->position.x, (float)sprite->position.y},
+        {(float)sprite->size.x, (float)sprite->size.y},
+        sprite->rotation,
+        frame_to_render,
+        sprite->mirror.x, sprite->mirror.y);
+    
 }
 
 internal void
-AnimatedSprite_set_anim(AnimatedSprite *const sprite, u32 new_anim)
+Sprite_set_anim(Sprite *const sprite, u32 new_anim)
 {
     sprite->time_accumulator = 0.f;
     sprite->current_frame = 0;

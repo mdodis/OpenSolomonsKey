@@ -1,12 +1,12 @@
 /*
 TODO:
- GAMEPLAY:
-   - player animation logic
-- better "scene graph" to query enemies for collisions
+   - "scene graph" to query enemies for collisions
+- player animation logic
 - continue level loading
-AUDIO:
-- Decode and play wav file
-- Play on event (keyboard press)
+- background music play/stop
+- continue the level format after doing the goblin enemy
+=========================================================
+ X Play on event (keyboard press)
 */
 
 #include <stdio.h>
@@ -23,10 +23,8 @@ AUDIO:
 
 #define OSK_MATH_IMPL
 #include "osk_math.h"
-
 #include "gl_funcs.h"
 #include "gl_graphics.h"
-
 #include "sprites.cpp"
 #include "levels.cpp"
 #include "audio.cpp"
@@ -91,21 +89,9 @@ u32* out_w, u32* out_h)
     return (int)vw * (0.0625);
 }
 
-internal u8*
-load_image_as_rgba_pixels(
-const char* const name,
-i32* out_width,
-i32* out_height,
-i32* out_n)
-{
-    int i_w, i_h, i_n;
-    unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
-    
-    return data;
-}
-
 #include "resources.cpp"
 
+RESSound test_sound;
 void
 cb_init()
 {
@@ -151,6 +137,10 @@ cb_init()
     glBindVertexArray(0);
     
     assert(glGetError() == GL_NO_ERROR);
+    
+    
+    scene_init("Hello ");
+    
     return;
 }
 
@@ -190,20 +180,21 @@ cb_resize()
 #define MAX_YSPEED 450
 #define JUMP_STRENGTH 350
 
-global AnimatedSprite player = {
+global Sprite player = {
     .collision_box = {5,0,45,64},
     .current_frame = 0,
     .current_animation = GET_CHAR_ANIMENUM(test_player, Run),
     .animation_set = GET_CHAR_ANIMSET(test_player),
 };
 
-global AnimatedSprite enemy = {
+global Sprite enemy = {
     .position = {100, 100},
     .collision_box = {5,5,40,40},
     .velocity = {0, 0}
 };
 
 global b32 is_on_air = true;
+
 
 void
 cb_render(InputState istate, float dt)
@@ -216,20 +207,21 @@ cb_render(InputState istate, float dt)
     glClear(GL_COLOR_BUFFER_BIT);
     ivec2 before = player.position;
     
-    if (istate.move_right)
+    if (GET_KEYDOWN(move_right))
     {
         player.velocity.x = 250.f;
     }
-    else if (istate.move_left)
+    else if (GET_KEYDOWN(move_left))
     {
         player.velocity.x = -250.f;
     }
     else
         player.velocity.x = 0;
     
-    if (istate.move_up && !is_on_air)
+    if (GET_KEYPRESS(move_up) && !is_on_air)
     {
         player.velocity.y = -JUMP_STRENGTH;
+        audio_play_sound(&test_sound);
         is_on_air = true;
     }
     
@@ -238,15 +230,6 @@ cb_render(InputState istate, float dt)
     player.velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player.velocity.y);
     player.position.x += player.velocity.x * dt;
     player.position.y += player.velocity.y * dt;
-    
-    persist b32 loaded = false;
-    if (!loaded)
-    {
-        load_test_level(g_palette, &g_palette_size);
-        loaded = true;
-        player.velocity.y = 0;
-        //current_animation = GET_CHAR_ANIM_HANDLE(test_player, Idle2);
-    }
     
     
     ivec2 ipos = {(i32)player.position.x + 32, (i32)player.position.y + 32};
@@ -258,7 +241,7 @@ cb_render(InputState istate, float dt)
         for(int j = 0; j < 12; ++j )
         {
             u32 id;
-            PaletteEntryType type = g_palette[g_tilemap[i][j]].type;
+            PaletteEntryType type = g_scene.palette[g_scene.tilemap[i][j]].type;
             
             if (type == PENTRY_EMPTY_SPACE) continue;
             if (type == PENTRY_BLOCK_UNBREAKABLE) id = 2;
@@ -286,7 +269,7 @@ cb_render(InputState istate, float dt)
         {
             if (i == 1 && j == 1) continue;
             
-            if (g_tilemap[start_tile.x + i][start_tile.y + j] == PENTRY_EMPTY_SPACE) continue;
+            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == PENTRY_EMPTY_SPACE) continue;
             
             ivec2 tile_coords =
             {
@@ -318,7 +301,7 @@ cb_render(InputState istate, float dt)
                 {
                     is_on_air = false;
                     player.velocity.y = 0;
-                    puts("GRND");
+                    //puts("GRND");
                 }
                 
                 if (player.velocity.y < 0 && 
@@ -358,7 +341,7 @@ cb_render(InputState istate, float dt)
         is_on_air = true;
     }
     
-    AnimatedSprite_update_animation(&player, dt);
+    Sprite_update_animation(&player, dt);
     
     AABox box = player.get_transformed_AABox();
     gl_slow_tilemap_draw(
@@ -376,9 +359,9 @@ cb_render(InputState istate, float dt)
             0,5 * 2 + 4 );
     }
     
-    AnimatedSprite_draw_anim(&player);
+    Sprite_draw_anim(&player);
     
-    audio_update();
+    audio_update(&istate);
     
 }
 

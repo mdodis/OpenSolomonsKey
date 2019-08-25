@@ -2,7 +2,31 @@
 #define OSK_HH
 #include <stdint.h>
 
+/* Compile Time options:
+OSK_ROUND_TO_POW_2
+ :: Rounds the viewport scale to the power of two closest to the
+:: current scale; Use this if tilemap has seams, although it 
+:: should be fixed by using texture arrays.
+OSK_EXCLUDE_MSG_EXPR
+:: excludes the stringified expression from messages
+*/
 //#define OSK_ROUND_TO_POW_2
+#define OSK_EXCLUDE_MSG_EXPR
+
+inline void _exit_with_message(char* message)
+{
+    puts(message);
+    fflush(stdout); // Will now print everything in the stdout buffer
+    exit(-1);
+}
+
+#ifdef OSK_EXCLUDE_MSG_EXPR
+#define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg)
+#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg)
+#else
+#define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg "\n\t" #expr)
+#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg "\n\t" #expr)
+#endif
 
 #define internal static
 #define global   static
@@ -16,46 +40,19 @@ typedef int8_t   i8;
 typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
-
 typedef size_t   b32;
 
 u32    g_wind_width;
 u32    g_wind_height;
-
 u32    g_view_width;
 u32    g_view_height;
-
 double g_tile_scale;  // base scale for everything
-double        g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
-
-typedef struct
-{
-    b32 move_right;
-    b32 move_left;
-    b32 move_up;
-    b32 move_down;
-    b32 spacebar_pressed;
-    b32 m_pressed;
-    b32 q_pressed;
-} InputState;
-
-global InputState g_input_state;
+double g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
 #define W_2_H 1.1428571428571428
 #define HEIGHT_2_WIDTH_SCALE 0.875
 
-#if   defined(OSK_PLATFORM_X11)
-
-b32 x11_get_key_state(i32 key);
-#define ISTATE_KEYDOWN_ACTION(k, a) g_input_state.a = x11_get_key_state(k)
-
-#elif defined(OSK_PLATFORM_WIN32)
-
-b32 win32_get_key_state(i32 key);
-#define ISTATE_KEYDOWN_ACTION(k, a) g_input_state.a = win32_get_key_state(k)
-
-#endif
-
+#include "input.h"
 
 extern void cb_init();
 extern void cb_resize();
