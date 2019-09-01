@@ -139,30 +139,22 @@ x11_init()
     int glx_major, glx_minor;
     
     dpy = XOpenDisplay(NULL);
-    if (dpy == NULL)
-    {
-        printf("\n\tcannot connect to X server\n\n");
-        exit(0);
-    }
+    fail_unless(dpy, "Cannot connect to X server");
     
     int screen = DefaultScreen(dpy);
     root = DefaultRootWindow(dpy);
     
-    if (!glXQueryVersion(dpy, &glx_major, &glx_minor) ||
-        ( (glx_major == 1) && (glx_minor < 3) )  || (glx_major < 1) )
-    {
-        printf("invalid glx version\n");
-        exit(20);
-    }
+    fail_unless(
+        glXQueryVersion(dpy, &glx_major, &glx_minor) && 
+        (glx_major != 1  || glx_minor >= 3) &&
+        (glx_major >= 1),
+        "Invalid GLX version");
     
     int elemc;
     GLXFBConfig *fbcfg = glXChooseFBConfig(dpy, screen, att, &elemc);
-    if (!fbcfg)
-    {
-        puts("Couldn't get FB configs\n");
-        exit(2);
-    }
-    else printf("Got %d FB configs\n", elemc);
+    
+    fail_unless(fbcfg, "Could not get FB configs");
+    inform("Got %d FB configs", elemc);
     
     // get visual info
     
@@ -177,8 +169,8 @@ x11_init()
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLE_BUFFERS, &samp_buf );
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLES       , &samples  );
             
-            printf( "  Matching fbconfig %d, visual ID 0x%2x: SAMPLE_BUFFERS = %d,"
-                   " SAMPLES = %d\n",
+            inform("Matching fbconfig %2d, visual ID 0x%03x: SAMPLE_BUFFERS = %d,"
+                   " samples = %d",
                    i, t_vi->visualid, samp_buf, samples );
             
             if ( best_fbc < 0 || samp_buf && samples > best_num_samp )
@@ -193,7 +185,7 @@ x11_init()
     XFree(fbcfg);
     
     vi = glXGetVisualFromFBConfig(dpy, bestFbc);
-    printf( "Chosen visual ID = 0x%x\n", vi->visualid );
+    inform("Chosen visual ID = 0x%x", vi->visualid );
     
     cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
     
@@ -222,8 +214,8 @@ x11_init()
     if ( !isExtensionSupported( glxExts, "GLX_ARB_create_context" ) ||
         !glXCreateContextAttribsARB )
     {
-        printf( "glXCreateContextAttribsARB() not found"
-               " ... using old-style GLX context\n" );
+        warn("%s", "glXCreateContextAttribsARB() not found"
+             " ... using old-style GLX context" );
         glc = glXCreateNewContext( dpy, bestFbc, GLX_RGBA_TYPE, 0, True );
     }
     else
@@ -236,14 +228,13 @@ x11_init()
             None
         };
         
-        printf( "Creating context\n" );
-        glc = glXCreateContextAttribsARB( dpy, bestFbc, 0,
-                                         True, context_attribs );
-        
+        inform("%s", "Creating context");
+        glc = glXCreateContextAttribsARB( dpy, bestFbc, 0, True, context_attribs );
         // Sync to ensure any errors generated are processed.
         XSync( dpy, False );
+        
         if ( !g_ctx_error && glc )
-            printf( "Created GL 3.0 context\n" );
+            inform("%s", "Created GL 3.0 context");
         else
         {
             // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
@@ -257,8 +248,8 @@ x11_init()
             
             g_ctx_error = false;
             
-            printf( "Failed to create GL 3.0 context"
-                   " ... using old-style GLX context\n" );
+            warn("%s", "Failed to create GL 3.0 context"
+                 " ... using old-style GLX context" );
             glc = glXCreateContextAttribsARB( dpy, bestFbc, 0,
                                              True, context_attribs );
         }
@@ -270,23 +261,19 @@ x11_init()
     // Restore the original error handler
     XSetErrorHandler( oldHandler );
     
-    if ( g_ctx_error || !glc )
-    {
-        printf( "Failed to create an OpenGL context\n" );
-        exit(1);
-    }
+    fail_unless(!g_ctx_error && glc, "Failed to create an OpenGL context");
     
     // Verifying that context is a direct context
     if ( ! glXIsDirect ( dpy, glc ) )
     {
-        printf( "Indirect GLX rendering context obtained\n" );
+        inform("%s", "Indirect GLX rendering context obtained");
     }
     else
     {
-        printf( "Direct GLX rendering context obtained\n" );
+        inform("%s", "Direct GLX rendering context obtained");
     }
     
-    printf( "Making context current\n" );
+    inform("%s", "Making context current");
     glXMakeCurrent( dpy, win, glc );
     
     // NOTE(miked): if this ever fails, switch to a windowing lib.

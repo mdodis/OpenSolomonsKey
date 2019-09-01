@@ -11,7 +11,7 @@ OSK_EXCLUDE_MSG_EXPR
 :: excludes the stringified expression from messages
 */
 //#define OSK_ROUND_TO_POW_2
-#define OSK_EXCLUDE_MSG_EXPR
+//#define OSK_EXCLUDE_MSG_EXPR
 
 inline void _exit_with_message(char* message)
 {
@@ -27,6 +27,9 @@ inline void _exit_with_message(char* message)
 #define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg "\n\t" #expr)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg "\n\t" #expr)
 #endif
+
+#define inform(fmt, ...) printf("[INFO   ] " fmt "\n", __VA_ARGS__)
+#define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
 
 #define internal static
 #define global   static
@@ -57,31 +60,5 @@ double g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, float dt);
-
-/*NOTE: Define _all_ entry types here!*/
-#define ALL_ENTRIES                  \
-DEF_ENTRY(PENTRY_EMPTY_SPACE)        \
-DEF_ENTRY(PENTRY_BLOCK_BREAKABLE)    \
-DEF_ENTRY(PENTRY_BLOCK_UNBREAKABLE)  \
-DEF_ENTRY(PENTRY_PLAYER_SPAWN)       \
-
-#define DEF_ENTRY(name) name,
-enum PaletteEntryType
-{
-    ALL_ENTRIES PENTRY_UNKNOWN
-};
-#undef DEF_ENTRY
-#define DEF_ENTRY(name) #name,
-
-global const char* g_all_entries[PENTRY_UNKNOWN] = 
-{
-    ALL_ENTRIES
-};
-
-struct PaletteEntry
-{
-    PaletteEntryType type;
-    i32 params[2];
-};
 
 #endif //! OSK_HH

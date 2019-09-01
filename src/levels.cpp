@@ -1,3 +1,30 @@
+/* NOTE(miked): 
+Attempting to switch to a non palleted level format.
+*/
+
+#define MAX_ENTITY_PARAMS 2
+union CustomParameter
+{
+    u64    as_u64;
+    double as_f64;
+};
+
+enum EntityBaseType
+{
+    eEmptySpace,
+    eBlockFrail,
+    eBlockSolid,
+    ePlayerSpawnPoint,
+    eGoblin,
+    
+    EntityBaseType_Count,
+};
+
+struct Entity
+{
+    EntityBaseType type;
+    CustomParameter params[MAX_ENTITY_PARAMS];
+};
 
 #define TILEMAP_ROWS 12
 #define TILEMAP_COLS 15
@@ -5,8 +32,6 @@ struct
 {
     u64 tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    PaletteEntry palette[64] = {};
-    u64 palette_size = 0;
     Sprite* spritelist = 0;
     i32 spritelist_size = 0;
     i32 spritelist_cap = 0;
@@ -15,34 +40,31 @@ struct
 
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 
-internal b32
-string_cmp_indentifier(
-const char* c,
-const char* str,
-u64* out_size)
-{
-    u64 size = 0;
-    
-    while (*c != ' ' && *c != '\n')
-    {
-        if (*c != *str)
-        {
-            if (*str == 0) break;
-            return false;
-        }
-        
-        size++;
-        c++; str++;
-    }
-    *out_size = size;
-    return true;
-}
-
 internal const char*
 string_trim(const char* c)
 {
     while(*c == ' ' || *c == '\n') c++;
     return c;
+}
+
+internal const char* string_nextline(const char* c)
+{
+    while (*c != '\n') c++;
+    return c + 1;
+}
+
+internal const char* string_parse(const char* c, const char* str)
+{
+    while (*str && *c && *c == *str)
+    {
+        c++;
+        str++;
+    }
+    
+    if (!(*str))
+        return c;
+    
+    return 0;
 }
 
 internal const char*
@@ -58,27 +80,6 @@ string_parse_uint(const char* c, u64* out_i)
     }
     *out_i = res;
     return c;
-}
-
-internal const char*
-parse_pallete_entry(const char* c, PaletteEntryType* out_entry)
-{
-    u64 stride = 0;
-    PaletteEntryType result = PENTRY_UNKNOWN;
-    
-    for(u32 i = 0; i < PENTRY_UNKNOWN; ++i)
-    {
-        const char* entry_name = g_all_entries[i];
-        if (string_cmp_indentifier(c, entry_name, &stride))
-        {
-            result = (PaletteEntryType)i;
-            break;
-        }
-        
-    }
-    
-    *out_entry = result;
-    return c + stride;
 }
 
 internal char*
@@ -102,92 +103,62 @@ platform_load_entire_file(const char* path)
     return data;
 }
 
-internal void load_test_level(
-PaletteEntry palette[64],
-u64* out_size)
-{ 
-    char* level = platform_load_entire_file("test_level_2.oskmap");
-    fail_unless(level, "Level could not be loaded");
+internal void level_load(char* data)
+{
+    const char* c = data;
+#define OSK_LEVEL_FMT_VERSION "V0.2"
+    fail_unless(string_parse(c, OSK_LEVEL_FMT_VERSION), "Version string does not match!");
     
-    const char* c = level;
+    c += 5;
+    puts("LOADING LEVEL...");
     
-    u64 palette_size, counter = 0;
+    u32 counter_x = 0;
+    u32 counter_y = 0;
     
-    while(*c != 0)
+    while (*c)
     {
         switch(*c)
         {
             case '#':
             {
-                c++;
-                u64 stride = 0;
-                // Check for entries
-                PaletteEntryType type;
-                const char* result = parse_pallete_entry(c, &type);
+                puts("comment");
+                c = string_nextline(c);
+                printf("%c\n", *c);
+            }break;
+            
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+            {
+                u64 res;
+                c = string_parse_uint(c, &res);
+                // TODO(miked): add custom parameters with commas!
                 
-                if (type != PENTRY_UNKNOWN)
-                {
-                    palette[counter].type = type;
-                    counter++;
-                    printf("%s\n", g_all_entries[type]);
-                    c = result;
-                    continue;
-                }
+                fail_unless(res < EntityBaseType_Count,
+                            "Entity index does not exist in version" 
+                            OSK_LEVEL_FMT_VERSION);
+                printf("%ld", res);
+                if (*c == ' ' ) printf("x ");
+                else if (*c == '\n') printf("n ");
                 
-                if (string_cmp_indentifier(c, "PALETTE", &stride))
+                if (counter_x >= TILEMAP_COLS)
                 {
-                    puts("PALETTE");
-                    c += stride;
-                    
-                    c = string_trim(c);
-                    c = string_parse_uint(c, &palette_size);
-                    
-                    *out_size = palette_size;
-                    
-                    printf("%ld\n", (int)palette_size);
-                }
-                else if (string_cmp_indentifier(c, "MAP", &stride))
-                {
-                    puts("MAP");
-                    c += stride;
-                    u64 layer_num;
-                    
-                    c = string_trim(c);
-                    c = string_parse_uint(c, &layer_num);
-                    printf("%d\n",(int) layer_num);
-                    if (layer_num == 1)
-                    {
-                        break;
-                    }
-                    c = string_trim(c);
-                    
-                    for(u32 j = 0; j < 12; ++j)
-                    {
-                        for(u32 i = 0; i < 15; ++i)
-                        {
-                            u64 idx;
-                            c = string_trim(c);
-                            c = string_parse_uint(c, &idx);
-                            
-                            g_scene.tilemap[i][j] = idx;
-                            
-                            printf("%d ", (int)idx);
-                        }
-                        puts("");
-                    }
-                    
-                }
-                else
-                {
-                    puts("UNKNOWN directive!");
-                    exit(6);
+                    counter_x = 0;
+                    printf("\t%d\n", counter_y);
+                    counter_y++;
                 }
                 
-                if (counter > palette_size)
-                {
-                    puts("ERR: palette_size smaller than the counter");
-                    exit(5);
-                }
+                g_scene.tilemap[counter_x][counter_y] = res;
+                
+                counter_x++;
+                
                 
             } break;
             
@@ -196,13 +167,18 @@ u64* out_size)
                 c++;
             } break;
         }
-        
     }
+    
 }
 
 internal void scene_init(const char* level_path)
 {
-    load_test_level(g_scene.palette, &g_scene.palette_size);
+    //load_test_level(g_scene.palette, &g_scene.palette_size);
+    char* lvl = platform_load_entire_file("lvl1.osk");
+    level_load(lvl);
+    free(lvl);
+    
+    //exit(0);
 }
 
 internal void 

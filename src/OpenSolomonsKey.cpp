@@ -7,6 +7,13 @@ TODO:
 - continue the level format after doing the goblin enemy
 =========================================================
  X Play on event (keyboard press)
+ 
+ NOTE:
+  use sox to convert audio into desired format:
+sox [input] -r 48k -c 2 -b 16 [output]
+-r 48k  :: 48000 sample rate
+-c 2    :: stereo (2 channels)
+-b 16   :: 16b / sample (can't explicitly say if it's signed or unsigned though...)
 */
 
 #include <stdio.h>
@@ -92,12 +99,15 @@ u32* out_w, u32* out_h)
 #include "resources.cpp"
 
 RESSound test_sound;
+RESSound bg_sound;
+
 void
 cb_init()
 {
     audio_init();
     
     test_sound = Wave_load_from_file("bloop.wav");
+    bg_sound = Wave_load_from_file("bgm1.wav");
     
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
@@ -187,12 +197,6 @@ global Sprite player = {
     .animation_set = GET_CHAR_ANIMSET(test_player),
 };
 
-global Sprite enemy = {
-    .position = {100, 100},
-    .collision_box = {5,5,40,40},
-    .velocity = {0, 0}
-};
-
 global b32 is_on_air = true;
 
 
@@ -201,7 +205,6 @@ cb_render(InputState istate, float dt)
 {
     
     player.tilemap = &GET_CHAR_TILEMAP(test_player);
-    enemy.tilemap = &GET_TILEMAP_TEXTURE(test);
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -225,6 +228,13 @@ cb_render(InputState istate, float dt)
         is_on_air = true;
     }
     
+    persist b32 initial = true;
+    if (initial)
+    {
+        initial = false;
+        audio_play_sound(&bg_sound);
+    }
+    
     player.velocity.y += GRAVITY * dt;
     
     player.velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player.velocity.y);
@@ -241,11 +251,11 @@ cb_render(InputState istate, float dt)
         for(int j = 0; j < 12; ++j )
         {
             u32 id;
-            PaletteEntryType type = g_scene.palette[g_scene.tilemap[i][j]].type;
+            EntityBaseType type = (EntityBaseType)g_scene.tilemap[i][j];
             
-            if (type == PENTRY_EMPTY_SPACE) continue;
-            if (type == PENTRY_BLOCK_UNBREAKABLE) id = 2;
-            if (type == PENTRY_BLOCK_BREAKABLE) id = 1;
+            if (type == eEmptySpace) continue;
+            if (type == eBlockSolid) id = 2;
+            if (type == eBlockFrail) id = 1;
             
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
@@ -269,7 +279,7 @@ cb_render(InputState istate, float dt)
         {
             if (i == 1 && j == 1) continue;
             
-            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == PENTRY_EMPTY_SPACE) continue;
+            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
             
             ivec2 tile_coords =
             {
