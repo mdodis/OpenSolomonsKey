@@ -11,7 +11,7 @@ tilemaps.
 #define ALL_TILEMAPS \
 /*          NAME     PATH IN FOLDER                                rows cols*/\
 DEF_TILEMAP(test    ,"test_tilemap.png"                           ,6    ,5   )\
-DEF_TILEMAP(dana    ,"res/joined/dana_run.png"                    ,1    ,6   )\
+DEF_TILEMAP(dana    ,"res/joined/dana_all.png"                    ,3    ,6   )\
 
 
 struct RESTilemap
@@ -39,21 +39,22 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 You can group animations by "character", and the macro ugliness here
 should prevent name collisions, if you input different character names.
 */
-#define ALL_CHARACTERS                                                        \
-/*            Name,        Tilemap, Animation Count */                        \
-DEF_CHARACTER(test_player, dana,    2,                                        \
-/*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_player, Idle,    .1f,      {0,0}, 4,      true)   \
-DEF_ANIM(test_player, Run ,    .1f,      {0,0}, 4,      true)   \
-)                                                               \
-DEF_CHARACTER(test_enemy, test,     1,                                        \
-/*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_enemy,  Idle,    .5f,      {0,0}, 4,      true)   \
-)                                                               \
+#define ALL_CHARACTERS                                                         \
+/*            Name,        Tilemap, Animation Count */                         \
+DEF_CHARACTER(test_player, dana,    3,                                         \
+/*       Character,   Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(test_player, Idle,    .1f,      {0,0}, 1,      false)   \
+DEF_ANIM(test_player, Run ,    .1f,      {0,1}, 5,      true )   \
+DEF_ANIM(test_player, Cast,    .5f,      {0,2}, 3,      false)   \
+)                                                                \
+DEF_CHARACTER(test_enemy, test,     1,                                         \
+/*       Character,   Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(test_enemy,  Idle,    .5f,      {0,0}, 4,      true)    \
+)                                                                \
 
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
-#define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{ \
+#define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \
     __VA_ARGS__ CHARACTER_##name##_animcount\
 }; \
 

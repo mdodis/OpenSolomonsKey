@@ -65,6 +65,7 @@ struct Sprite
     // on a per sprite basis?
     b32 is_on_air = false;
     
+    b32 animation_playing = false;
     i32 current_frame = 0;
     u32 current_animation = 0;
     float time_accumulator = 0.f;

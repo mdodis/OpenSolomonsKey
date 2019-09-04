@@ -53,6 +53,13 @@ union ivec2
         return {x * other, y * other};
     }
     
+    ivec2 operator*(float other)
+    {
+        i32 nx = (i32)( (float)x * other);
+        i32 ny = (i32)( (float)y * other);
+        return {nx, ny};
+    }
+    
 };
 
 /*
@@ -216,6 +223,7 @@ ivec2* const opt_pen)
     
     return false;
 }
+
 
 inline i32 idot(ivec2 a, ivec2 b)
 {

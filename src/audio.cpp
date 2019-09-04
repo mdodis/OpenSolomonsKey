@@ -299,7 +299,20 @@ audio_update(const InputState* const istate)
              current_sound_idx++)
         {
             Sound* current_sound = g_audio.all_sounds + current_sound_idx;
-            fail_unless(current_sound->resource, "");
+            //warn_unless(current_sound->resource, "");
+            
+            if (!(current_sound->resource))
+            {
+                continue;
+#if 0
+                // TODO(miked): fixme
+                fprintf(stderr, "no sound resource; idx %d sz %d\n",
+                        current_sound_idx, g_audio.all_sounds_size);
+                puts("exiting...");
+                fflush(stdout);
+                exit(-1);
+#endif
+            }
             
             u64 new_sound_counter = current_sound->counter;
             if (current_sound->counter >= current_sound->max_counter / 2)
@@ -342,6 +355,8 @@ audio_update(const InputState* const istate)
         frames_to_write);
     if ( err != paNoError )
     {
-        exit(-1);
+        puts("paError");
+        fflush(stdout);
+        //exit(-1);
     }
 }

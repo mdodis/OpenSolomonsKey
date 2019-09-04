@@ -1,12 +1,14 @@
 /*
 TODO:
-   - player animation logic
+- Block creation - destruction
+   - Sound resource system (one of us...)
 - continue level loading
 - background music play/stop
 - continue the level format after doing the goblin enemy
 =========================================================
  X Play on event (keyboard press)
- X"scene graph" to query enemies for collisions
+ X scene graph to query enemies for collisions
+   X player animation logic
  
   NOTE:
   use sox to convert audio into desired format:
@@ -231,16 +233,23 @@ cb_render(InputState istate, float dt)
     
     if (GET_KEYPRESS(m_pressed))
     {
-        persist i32 i = 0;
+        persist i32 i = -64;
+        persist i32 y = 0;
         i += 64;
+        if (i > 11 * 64)
+        {
+            i = 0;
+            y += 64;
+        }
         Sprite spr;
         spr.collision_box = {0,0,64,64};
         spr.current_frame = 0;
-        spr.position = {i,10};
+        spr.position = {i,y};
         spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
         spr.animation_set = GET_CHAR_ANIMSET(test_enemy);
         spr.tilemap = &GET_CHAR_TILEMAP(test_enemy);
         scene_sprite_add(&spr);
+        
     }
     
     persist b32 initial = true;
