@@ -1,14 +1,14 @@
 /*
 TODO:
-   - "scene graph" to query enemies for collisions
-- player animation logic
+   - player animation logic
 - continue level loading
 - background music play/stop
 - continue the level format after doing the goblin enemy
 =========================================================
  X Play on event (keyboard press)
+ X"scene graph" to query enemies for collisions
  
- NOTE:
+  NOTE:
   use sox to convert audio into desired format:
 sox [input] -r 48k -c 2 -b 16 [output]
 -r 48k  :: 48000 sample rate
@@ -28,13 +28,37 @@ sox [input] -r 48k -c 2 -b 16 [output]
 
 #include <portaudio.h>
 
+internal char*
+platform_load_entire_file(const char* path)
+{
+    u64 size;
+    char* data;
+    FILE* f = fopen(path, "rb");
+    if (!f) return 0;
+    
+    fseek(f, 0, SEEK_END);
+    size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    data = (char*)malloc(size + 1);
+    assert(data);
+    fread(data, size, 1, f);
+    data[size] = 0;
+    fclose(f);
+    
+    return data;
+}
+
+
 #define OSK_MATH_IMPL
 #include "osk_math.h"
 #include "gl_funcs.h"
+#include "objects.h"
 #include "gl_graphics.h"
+#include "resources.cpp"
+#include "audio.cpp"
 #include "sprites.cpp"
 #include "levels.cpp"
-#include "audio.cpp"
 
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
@@ -96,9 +120,7 @@ u32* out_w, u32* out_h)
     return (int)vw * (0.0625);
 }
 
-#include "resources.cpp"
 
-RESSound test_sound;
 RESSound bg_sound;
 
 void
@@ -151,6 +173,20 @@ cb_init()
     
     scene_init("Hello ");
     
+    Sprite player_sprite = {
+        .tilemap = &GET_CHAR_TILEMAP(test_player),
+        .collision_box = {5,0,45,64},
+        .current_frame = 0,
+        .current_animation = GET_CHAR_ANIMENUM(test_player, Run),
+        .animation_set = GET_CHAR_ANIMSET(test_player),
+        .entity = 
+        {
+            ePlayer,
+            {0,0}
+        }
+    };
+    scene_sprite_add(&player_sprite);
+    
     return;
 }
 
@@ -186,54 +222,21 @@ cb_resize()
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
-#define GRAVITY 900
-#define MAX_YSPEED 450
-#define JUMP_STRENGTH 350
-
-global Sprite player = {
-    .collision_box = {5,0,45,64},
-    .current_frame = 0,
-    .current_animation = GET_CHAR_ANIMENUM(test_player, Run),
-    .animation_set = GET_CHAR_ANIMSET(test_player),
-};
-
-global b32 is_on_air = true;
-
 void
 cb_render(InputState istate, float dt)
 {
     
-    player.tilemap = &GET_CHAR_TILEMAP(test_player);
-    Sprite_update_animation(&player, dt);
-    
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
-    ivec2 before = player.position;
-    
-    if (GET_KEYDOWN(move_right))
-    {
-        player.velocity.x = 250.f;
-    }
-    else if (GET_KEYDOWN(move_left))
-    {
-        player.velocity.x = -250.f;
-    }
-    else
-        player.velocity.x = 0;
-    
-    if (GET_KEYPRESS(move_up) && !is_on_air)
-    {
-        player.velocity.y = -JUMP_STRENGTH;
-        audio_play_sound(&test_sound);
-        is_on_air = true;
-    }
     
     if (GET_KEYPRESS(m_pressed))
     {
+        persist i32 i = 0;
+        i += 64;
         Sprite spr;
         spr.collision_box = {0,0,64,64};
         spr.current_frame = 0;
-        spr.position = {10,10};
+        spr.position = {i,10};
         spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
         spr.animation_set = GET_CHAR_ANIMSET(test_enemy);
         spr.tilemap = &GET_CHAR_TILEMAP(test_enemy);
@@ -247,139 +250,6 @@ cb_render(InputState istate, float dt)
         audio_play_sound(&bg_sound);
     }
     
-    player.velocity.y += GRAVITY * dt;
-    
-    player.velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player.velocity.y);
-    player.position.x += player.velocity.x * dt;
-    player.position.y += player.velocity.y * dt;
-    
-    
-    ivec2 ipos = {(i32)player.position.x + 32, (i32)player.position.y + 32};
-    ivec2 player_tile = map_position_to_tile(ipos);
-    
-    
-    for(int i = 0; i < 15; ++i )
-    {
-        for(int j = 0; j < 12; ++j )
-        {
-            u32 id;
-            EntityBaseType type = (EntityBaseType)g_scene.tilemap[i][j];
-            
-            if (type == eEmptySpace) continue;
-            if (type == eBlockSolid) id = 2;
-            if (type == eBlockFrail) id = 1;
-            
-            gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {i * 64, j * 64},
-                {64, 64},
-                0.f,
-                id);
-            
-        }
-    }
-    
-    //
-    // Collision detection around 3x3 grid
-    //
-    ivec2 start_tile = player_tile - 1;
-    start_tile = iclamp({0,0}, {14,11}, start_tile);
-    b32 collided_on_bottom = false;
-    for (i32 j = 0; j < 3; ++j)
-    {
-        for (i32 i = 0; i < 3; ++i)
-        {
-            if (i == 1 && j == 1) continue;
-            
-            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
-            
-            ivec2 tile_coords =
-            {
-                (start_tile.x + i) * 64,
-                (start_tile.y + j) * 64
-            };
-            
-            AABox collision = {0,0,64,64};
-            collision = collision.translate(tile_coords);
-            AABox player_trans = player.get_transformed_AABox();
-            
-            ivec2 diff;
-            b32 collided = aabb_minkowski(&player_trans, &collision, &diff);
-            if (collided)
-            {
-                player.position = player.position - (diff);
-                
-                if (player.velocity.y < 0 &&
-                    iabs(diff.y) < 5)
-                {
-                    player.position.y += diff.y;
-                    continue;
-                }
-                
-                if (j == 2) collided_on_bottom = true;
-                
-                if (j == 2 &&
-                    iabs(diff.y) > 0)
-                {
-                    is_on_air = false;
-                    player.velocity.y = 0;
-                    //puts("GRND");
-                }
-                
-                if (player.velocity.y < 0 && 
-                    is_on_air &&
-                    (player_trans.min_x < collision.max_x && 
-                     diff.x >= 0))
-                {
-                    player.velocity.y = -player.velocity.y;
-                    printf("%d %d %d %d %d\n",
-                           player_trans.min_x,
-                           collision.max_x,
-                           collision.max_y,
-                           player_trans.min_y, diff.y);
-                    
-                    is_on_air = true;
-                }
-                
-                if (i == 0 && j == 2 &&
-                    iabs(diff.x) > 0)
-                {
-                    player.position.x += diff.x;
-                }
-                
-            }
-            
-            gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {tile_coords.x, tile_coords.y},
-                {64, 64},
-                0.f,
-                5 * 5);
-        }
-    }
-    
-    if (!collided_on_bottom && player.velocity.y != 0)
-    {
-        is_on_air = true;
-    }
-    
-    AABox box = player.get_transformed_AABox();
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {box.min_x, box.min_y},
-        {box.max_x - box.min_x, box.max_y - box.min_y},
-        0,5 * 5 + 1 );
-    
-    if (!is_on_air)
-    {
-        gl_slow_tilemap_draw(
-            &GET_TILEMAP_TEXTURE(test),
-            {0, 0},
-            {30, 30},
-            0,5 * 2 + 4 );
-    }
-    
-    Sprite_draw_anim(&player);
     
     scene_update(&istate, dt);
     audio_update(&istate);

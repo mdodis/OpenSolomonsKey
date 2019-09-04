@@ -5,21 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct GLShader
-{
-    u32 id = 0;
-    
-    void apply();
-    void create(const char* const vsrc, const char* const fsrc);
-};
-
-struct GLTilemapTexture
-{
-    u32 texture_id;
-    i32 width, height;
-    i32 rows, cols;
-};
-
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
 u8* data,

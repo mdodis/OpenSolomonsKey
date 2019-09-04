@@ -46,27 +46,6 @@ string_parse_uint(const char* c, u64* out_i)
     return c;
 }
 
-internal char*
-platform_load_entire_file(const char* path)
-{
-    u64 size;
-    char* data;
-    FILE* f = fopen(path, "rb");
-    if (!f) return 0;
-    
-    fseek(f, 0, SEEK_END);
-    size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    data = (char*)malloc(size + 1);
-    assert(data);
-    fread(data, size, 1, f);
-    data[size] = 0;
-    fclose(f);
-    
-    return data;
-}
-
 
 internal void level_load(char* data)
 {
@@ -148,9 +127,35 @@ scene_sprite_add(Sprite* sprite)
     ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
 }
 
+internal void
+scene_draw_tilemap()
+{
+    for(int i = 0; i < 15; ++i )
+    {
+        for(int j = 0; j < 12; ++j )
+        {
+            u32 id;
+            EntityBaseType type = (EntityBaseType)g_scene.tilemap[i][j];
+            
+            if (type == eEmptySpace) continue;
+            if (type == eBlockSolid) id = 2;
+            if (type == eBlockFrail) id = 1;
+            
+            gl_slow_tilemap_draw(
+                &GET_TILEMAP_TEXTURE(test),
+                {i * 64, j * 64},
+                {64, 64},
+                0.f,
+                id);
+        }
+    }
+}
+
 internal void 
 scene_update(InputState* istate, float dt)
 {
+    scene_draw_tilemap();
+    
     List_Sprite l = g_scene.spritelist;
     
     for (int i = 0; i < l.sz; ++i)
@@ -162,7 +167,6 @@ scene_update(InputState* istate, float dt)
         {
             case ePlayer:
             {
-                // Player update
                 ePlayer_update(spref, istate, dt);
             }break;
             
@@ -170,9 +174,6 @@ scene_update(InputState* istate, float dt)
             default:
             break;
         }
-        
-        
-        
         
         Sprite_draw_anim(l.data + i);
     }
