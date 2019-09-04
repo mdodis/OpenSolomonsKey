@@ -12,6 +12,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     glCompileShader(vertex);
     // print compile errors if any
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    
     if(!success)
     {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
@@ -79,7 +80,7 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
         GL_UNSIGNED_BYTE,
         data);
     
-    assert(glGetError() == GL_NO_ERROR);
+    fail_unless(glGetError() == GL_NO_ERROR, "");
     
     return result;
 }
@@ -93,8 +94,6 @@ i32 tilemap_rows,
 i32 tilemap_cols)
 {
     u32 tilemap_id;
-    
-    //assert(tilemap_rows == tilemap_cols);
     
     glGenTextures(1, &tilemap_id);
     glBindTexture(GL_TEXTURE_2D_ARRAY, tilemap_id);
@@ -169,13 +168,11 @@ i32 tilemap_cols)
         }
     }
     
-    printf("cnt: %d\n", count);
+    //printf("cnt: %d\n", count);
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   0);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
     
-    assert(glGetError() == GL_NO_ERROR);
-    //printf("err: %d", glGetError());
-    //exit(-1);
+    fail_unless(glGetError() == GL_NO_ERROR, "");
     
     return GLTilemapTexture{tilemap_id, width, height, tilemap_rows, tilemap_cols};
 }

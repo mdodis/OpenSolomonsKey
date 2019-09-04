@@ -48,7 +48,7 @@ DEF_ANIM(test_player, Run ,    .1f,      {0,0}, 4,      true)   \
 )                                                               \
 DEF_CHARACTER(test_enemy, test,     1,                                        \
 /*       Character,   Name     Duration, Start, Frames, Loop*/  \
-DEF_ANIM(test_enemy,  Idle,    .5f,      {0,2}, 4,      true)   \
+DEF_ANIM(test_enemy,  Idle,    .5f,      {0,0}, 4,      true)   \
 )                                                               \
 
 

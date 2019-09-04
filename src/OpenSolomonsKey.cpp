@@ -199,12 +199,12 @@ global Sprite player = {
 
 global b32 is_on_air = true;
 
-
 void
 cb_render(InputState istate, float dt)
 {
     
     player.tilemap = &GET_CHAR_TILEMAP(test_player);
+    Sprite_update_animation(&player, dt);
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -226,6 +226,18 @@ cb_render(InputState istate, float dt)
         player.velocity.y = -JUMP_STRENGTH;
         audio_play_sound(&test_sound);
         is_on_air = true;
+    }
+    
+    if (GET_KEYPRESS(m_pressed))
+    {
+        Sprite spr;
+        spr.collision_box = {0,0,64,64};
+        spr.current_frame = 0;
+        spr.position = {10,10};
+        spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
+        spr.animation_set = GET_CHAR_ANIMSET(test_enemy);
+        spr.tilemap = &GET_CHAR_TILEMAP(test_enemy);
+        scene_sprite_add(&spr);
     }
     
     persist b32 initial = true;
@@ -351,8 +363,6 @@ cb_render(InputState istate, float dt)
         is_on_air = true;
     }
     
-    Sprite_update_animation(&player, dt);
-    
     AABox box = player.get_transformed_AABox();
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
@@ -371,6 +381,7 @@ cb_render(InputState istate, float dt)
     
     Sprite_draw_anim(&player);
     
+    scene_update(&istate, dt);
     audio_update(&istate);
     
 }

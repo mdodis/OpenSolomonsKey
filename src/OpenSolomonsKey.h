@@ -28,6 +28,12 @@ inline void _exit_with_message(char* message)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg "\n\t" #expr)
 #endif
 
+#ifdef NDEBUG
+#define assert(x)
+#else
+#define assert(x) if (!(x)) {fprintf(stderr, #x " failed at " __FILE__ "::" __LINE__); exit(0);}
+#endif 
+
 #define inform(fmt, ...) printf("[INFO   ] " fmt "\n", __VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
 

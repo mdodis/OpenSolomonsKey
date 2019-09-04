@@ -2,42 +2,6 @@
 Attempting to switch to a non palleted level format.
 */
 
-#define MAX_ENTITY_PARAMS 2
-union CustomParameter
-{
-    u64    as_u64;
-    double as_f64;
-};
-
-enum EntityBaseType
-{
-    eEmptySpace,
-    eBlockFrail,
-    eBlockSolid,
-    ePlayerSpawnPoint,
-    eGoblin,
-    
-    EntityBaseType_Count,
-};
-
-struct Entity
-{
-    EntityBaseType type;
-    CustomParameter params[MAX_ENTITY_PARAMS];
-};
-
-#define TILEMAP_ROWS 12
-#define TILEMAP_COLS 15
-struct
-{
-    u64 tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    Sprite* spritelist = 0;
-    i32 spritelist_size = 0;
-    i32 spritelist_cap = 0;
-    
-} g_scene;
-
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 
 internal const char*
@@ -103,6 +67,7 @@ platform_load_entire_file(const char* path)
     return data;
 }
 
+
 internal void level_load(char* data)
 {
     const char* c = data;
@@ -110,7 +75,7 @@ internal void level_load(char* data)
     fail_unless(string_parse(c, OSK_LEVEL_FMT_VERSION), "Version string does not match!");
     
     c += 5;
-    puts("LOADING LEVEL...");
+    inform("%s", "LOADING LEVEL...");
     
     u32 counter_x = 0;
     u32 counter_y = 0;
@@ -121,9 +86,7 @@ internal void level_load(char* data)
         {
             case '#':
             {
-                puts("comment");
                 c = string_nextline(c);
-                printf("%c\n", *c);
             }break;
             
             case '0':
@@ -144,14 +107,11 @@ internal void level_load(char* data)
                 fail_unless(res < EntityBaseType_Count,
                             "Entity index does not exist in version" 
                             OSK_LEVEL_FMT_VERSION);
-                printf("%ld", res);
-                if (*c == ' ' ) printf("x ");
-                else if (*c == '\n') printf("n ");
                 
                 if (counter_x >= TILEMAP_COLS)
                 {
                     counter_x = 0;
-                    printf("\t%d\n", counter_y);
+                    //printf("\t%d\n", counter_y);
                     counter_y++;
                 }
                 
@@ -185,14 +145,35 @@ internal void
 scene_sprite_add(Sprite* sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
-    if (!g_scene.spritelist)
-    {
-        g_scene.spritelist = (Sprite*)malloc(10 * sizeof(Sprite));
-        g_scene.spritelist_size = 0;
-        g_scene.spritelist_cap = 10;
-        fail_unless(g_scene.spritelist, "");
-    }
-    fail_unless((g_scene.spritelist_size - 1) < g_scene.spritelist_cap, "");
+    ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
+}
+
+internal void 
+scene_update(InputState* istate, float dt)
+{
+    List_Sprite l = g_scene.spritelist;
     
-    g_scene.spritelist[g_scene.spritelist_size++] = *sprite;
+    for (int i = 0; i < l.sz; ++i)
+    {
+        Sprite* spref = l.data + i;
+        Sprite_update_animation(spref, dt);
+        
+        switch(spref->entity.type)
+        {
+            case ePlayer:
+            {
+                // Player update
+                ePlayer_update(spref, istate, dt);
+            }break;
+            
+            
+            default:
+            break;
+        }
+        
+        
+        
+        
+        Sprite_draw_anim(l.data + i);
+    }
 }

@@ -18,7 +18,6 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 #include <stdlib.h>
 #include <string.h>
 
-#include <assert.h>
 #include <time.h>
 
 #include <X11/X.h>

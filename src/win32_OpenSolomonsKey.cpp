@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 
 #define WIN32_LEAN_AND_MEAN
