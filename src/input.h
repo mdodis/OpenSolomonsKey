@@ -10,6 +10,8 @@ KEYDOWN (move_left , XK_Left , VK_LEFT   ) \
 KEYDOWN (move_down , XK_Down , VK_DOWN   ) \
 KEYPRESS(move_up   , XK_Up   , VK_UP     ) \
 KEYPRESS(m_pressed , XK_M    , 'M'       ) \
+KEYPRESS(cast      , XK_C    , 'C'       ) \
+
 
 #define KEYDOWN(key, ...) b32 key = false;
 #define KEYPRESS(key, ...) b32 key[2] = {};

@@ -45,7 +45,7 @@ DEF_CHARACTER(test_player, dana,    3,                                         \
 /*       Character,   Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(test_player, Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(test_player, Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(test_player, Cast,    .5f,      {0,2}, 3,      false)   \
+DEF_ANIM(test_player, Cast,    .05f,      {0,2}, 3,      false)   \
 )                                                                \
 DEF_CHARACTER(test_enemy, test,     1,                                         \
 /*       Character,   Name     Duration, Start, Frames, Loop*/   \

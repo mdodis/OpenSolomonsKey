@@ -304,7 +304,7 @@ audio_update(const InputState* const istate)
             if (!(current_sound->resource))
             {
                 continue;
-#if 0
+#if 1
                 // TODO(miked): fixme
                 fprintf(stderr, "no sound resource; idx %d sz %d\n",
                         current_sound_idx, g_audio.all_sounds_size);

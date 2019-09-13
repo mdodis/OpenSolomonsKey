@@ -12,6 +12,16 @@ struct
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     List_Sprite spritelist = {};
     
+    u64 get_tile(ivec2 p)
+    {
+        return tilemap[p.x][p.y];
+    }
+    
+    void set_tile(ivec2 p, EntityBaseType t)
+    {
+        tilemap[p.x][p.y] = t;
+    }
+    
 } g_scene;
 
 internal void 
@@ -46,7 +56,7 @@ Sprite_update_animation(Sprite *const sprite, float dt)
     
 }
 
-#define Sprite_change_anim(spr, c, n)  _Sprite_change_anim(spr, GET_CHAR_ANIMENUM(c,n)) 
+#define Sprite_set_anim(spr, c, n)  _Sprite_change_anim(spr, GET_CHAR_ANIMENUM(c,n)) 
 internal void _Sprite_change_anim(Sprite* const spr, u32 anim_idx)
 {
     if (spr->current_animation != anim_idx)
@@ -94,17 +104,53 @@ Sprite_draw_anim(Sprite const * sprite)
 
 RESSound test_sound;
 
+
+global i32 player_last_yspeed;
+
+internal void
+ePlayer_cast(Sprite* player, float dt)
+{
+    // Get the upper left tile based on the center of the player sprite
+    ivec2 ipos = {(i32)player->position.x + 32, (i32)player->position.y + 32};
+    ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile(ipos));
+    
+    ivec2 target_tile = player_tile;
+    if (player->mirror.x)
+    {
+        if (player_tile.x >= 14) return;
+        target_tile.x += 1;
+    }
+    else
+    {
+        if (player_tile.x <= 0) return;
+        target_tile.x -= 1;
+    }
+    
+    // TODO(miked): Secrets in tiles and empty space!
+    EntityBaseType type = (EntityBaseType)g_scene.get_tile(target_tile);
+    if (type == eBlockFrail)
+    {
+        g_scene.set_tile(target_tile, eEmptySpace);
+    }
+    else if (type == eEmptySpace)
+    {
+        g_scene.set_tile(target_tile, eBlockFrail);
+    }
+    
+}
+
 // ePlayer
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
     const i32 GRAVITY = 900;
     const i32 MAX_YSPEED = 450;
-    const i32 JUMP_STRENGTH = 400;
+    const i32 JUMP_STRENGTH = 450;
+    const i32 XSPEED = 200;
     
     if (GET_KEYDOWN(move_right))
-        player->velocity.x =  250.f;
+        player->velocity.x =  XSPEED;
     else if (GET_KEYDOWN(move_left))
-        player->velocity.x = -250.f;
+        player->velocity.x = -XSPEED;
     else 
         player->velocity.x =  0;
     
@@ -118,13 +164,37 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     player->velocity.y += GRAVITY * dt;
     player->velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player->velocity.y);
     
+    // Casting basics
+    if (GET_KEYPRESS(cast))
+    {
+        if (player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
+        {
+            // save yspeed
+            player_last_yspeed = player->velocity.y;
+            // cast!
+            player->velocity.x = 0;
+            player->velocity.y = 0;
+            puts("cast!");
+            Sprite_set_anim(player, test_player, Cast);
+            
+            ePlayer_cast(player, dt);
+        }
+    }
+    
+    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast))
+    {
+        if (player->animation_playing)
+            return;
+        player->velocity.y = player_last_yspeed;
+    }
+    
     // NOTE(miked): This should teach me not to mix integers
     // and floats ever again:
 #if 1
     // This would cause less movement in Y. pos.x + vel.y * dt
     // will result in a float, which will then truncate to an int.
-    player->position.x += player->velocity.x * dt;
-    player->position.y += player->velocity.y * dt;
+    player->position.x += (i32)(player->velocity.x * dt);
+    player->position.y += (i32)(player->velocity.y * dt);
 #else
     // But this implied calculation would be int i = vel.x * dt; pos.x += i
     //etc... So it results in more movement in the y direction.
@@ -185,8 +255,11 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
                     player_trans.min_x < collision.max_x && 
                     diff.x >= 0)
                 {
-                    player->velocity.y = -player->velocity.y;
+                    player->velocity.y = -player->velocity.y * 0.737;
                     player->is_on_air = true;
+                    
+                    // TODO(miked): Check if the top block is Frail,
+                    // if so, remove it!
                 }
                 
             }
@@ -220,17 +293,18 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
             {30, 30},
             0,5 * 2 + 4 );
     }
+    
     ////////////////////////////////
     // Animation Logic
     if (iabs(player->velocity.x) > 0)
     {
-        Sprite_change_anim(player, test_player, Run);
+        Sprite_set_anim(player, test_player, Run);
         
         player->mirror.x = player->velocity.x > 0;
     }
     else
     {
-        Sprite_change_anim(player, test_player, Idle);
+        Sprite_set_anim(player, test_player, Idle);
     }
     
 }

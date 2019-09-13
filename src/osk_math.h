@@ -164,10 +164,6 @@ intersect(const AABox* const a, const AABox* const b)
             );
 }
 
-/*
-NOTE/TODO(miked): Think about making a version of this with
-swept collision?
-*/
 internal b32
 aabb_minkowski(
 const AABox* const a,

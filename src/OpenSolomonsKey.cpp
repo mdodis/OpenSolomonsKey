@@ -9,7 +9,7 @@ TODO:
  X Play on event (keyboard press)
  X scene graph to query enemies for collisions
    X player animation logic
- 
+   
   NOTE:
   use sox to convert audio into desired format:
 sox [input] -r 48k -c 2 -b 16 [output]
@@ -245,9 +245,11 @@ cb_render(InputState istate, float dt)
         spr.collision_box = {0,0,64,64};
         spr.current_frame = 0;
         spr.position = {i,y};
-        spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
+        //spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
         spr.animation_set = GET_CHAR_ANIMSET(test_enemy);
         spr.tilemap = &GET_CHAR_TILEMAP(test_enemy);
+        
+        Sprite_set_anim(&spr, test_enemy, Idle);
         scene_sprite_add(&spr);
         
     }
