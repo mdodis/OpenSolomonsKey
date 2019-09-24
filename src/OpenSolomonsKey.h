@@ -22,15 +22,15 @@ inline void _exit_with_message(char* message)
 
 #ifdef OSK_EXCLUDE_MSG_EXPR
 #define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg)
-#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg)
+#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg)
 #else
 #define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg "\n\t" #expr)
-#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR  ] " #msg "\n\t" #expr)
+#define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg "\n\t" #expr)
 #endif
 
 #include <assert.h>
 
-#define inform(fmt, ...) printf("[INFO   ] " fmt "\n", __VA_ARGS__)
+#define inform(fmt, ...) printf("[INFO] " fmt "\n", __VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
 
 #define internal static
@@ -61,7 +61,7 @@ double g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
 extern void cb_init();
 extern void cb_resize();
-extern void cb_render(InputState istate, u64 audio_sample_count, float dt);
+extern void cb_render(InputState istate, i64 audio_sample_count, float dt);
 
 
 internal char*
@@ -91,6 +91,7 @@ platform_load_entire_file(const char* path)
 #define AUDIO_CHANNELS 2
 #define AUDIO_BPS 16
 #define AUDIO_BYTESPERSAMPLE ((AUDIO_BPS / 8) * AUDIO_CHANNELS)
+#define AUDIO_FRAMES 1024
 #define AUDIO_BUFFER_SIZE (AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE)
 #define AUDIO_MAX_SOUNDS 32
 
@@ -117,7 +118,7 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-    float volume = 0.0;
+    float volume = 0.7;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;

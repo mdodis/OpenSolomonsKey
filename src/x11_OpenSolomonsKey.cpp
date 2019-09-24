@@ -28,6 +28,8 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 #include "OpenSolomonsKey.h"
 #include "gl_funcs.h"
 
+#include <portaudio.h>
+
 timespec timespec_diff(timespec start, timespec end)
 {
     timespec temp;
@@ -318,6 +320,59 @@ x11_update_all_keys()
 #undef KEYPRESS
 }
 
+global PaStream* portaudio_stream;
+internal void
+portaudio_init()
+{
+    PaError err;
+    err = Pa_Initialize();
+    fail_unless(err == paNoError, "failed to init portaudio");
+    
+    err = Pa_OpenDefaultStream(
+        &portaudio_stream,
+        0,          /* no input channels */
+        AUDIO_CHANNELS,
+        paInt16,  /* 32 bit floating point output */
+        AUDIO_SAMPLERATE,
+        AUDIO_FRAMES,        /* frames per buffer, i.e. the number
+        of sample frames that PortAudio will
+        request from the callback. Many apps
+        may want to use
+        paFramesPerBufferUnspecified, which
+        tells PortAudio to pick the best,
+        possibly changing, buffer size.*/
+        0, /* this is your callback function */
+        0);
+    
+    fail_unless(err == paNoError, "failed to open stream");
+    err = Pa_StartStream(portaudio_stream);
+    fail_unless(err == paNoError, "failed to start stream");
+}
+
+internal i64
+portaudio_get_samples_to_write()
+{
+    i64 result = Pa_GetStreamWriteAvailable(portaudio_stream);
+    
+    fail_unless(result >= 0, "");
+    
+    return result;
+}
+
+internal void
+portaudio_update_buffer(i64 frames_to_write)
+{
+    PaError err = Pa_WriteStream(
+        portaudio_stream,
+        g_audio.buffer,
+        frames_to_write);
+    
+    if (err != paNoError)
+    {
+        
+        fprintf(stderr, "Pa_WriteStream returned: %s", Pa_GetErrorText(err));
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -330,6 +385,7 @@ int main(int argc, char *argv[])
     b32 m_final = false;
     b32 m_prev = false;
     
+    portaudio_init();
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
@@ -350,10 +406,10 @@ int main(int argc, char *argv[])
         
         float delta = timer.get_elapsed_secs();
         timer.reset();
-        //assert(delta > 0);
+        i64 samples_to_write = portaudio_get_samples_to_write();
         // Render code here
-        cb_render(g_input_state, delta);
-        
+        cb_render(g_input_state, samples_to_write, delta);
+        portaudio_update_buffer(samples_to_write);
         
         glXSwapBuffers(dpy, win);
     }

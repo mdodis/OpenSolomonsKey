@@ -32,8 +32,8 @@ DEF_GLFUNC(void,     ENABLEVERTEXATTRIBARRAY,   EnableVertexAttribArray,    GLui
 DEF_GLFUNC(void,     DISABLEVERTEXATTRIBARRAY,  DisableVertexAttribArray,   GLuint index);
 DEF_GLFUNC(void,     VERTEXATTRIBPOINTER,       VertexAttribPointer,        GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const GLvoid * pointer);
 DEF_GLFUNC(void,     UNIFORMMATRIX4FV,          UniformMatrix4fv,           GLint location,GLsizei count,GLboolean transpose,const GLfloat * value);
-DEF_GLFUNC(void,     TEXSUBIMAGE3D,             TexSubImage3D,              GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,GLsizei height,GLsizei depth,GLenum format,GLenum type, const GLvoid* data);
-DEF_GLFUNC(void,     ACTIVETEXTURE,             ActiveTexture,              GLenum texture);
+//DEF_GLFUNC(void,     TEXSUBIMAGE3D,             TexSubImage3D,              GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,GLsizei height,GLsizei depth,GLenum format,GLenum type, const GLvoid* data);
+//DEF_GLFUNC(void,     ACTIVETEXTURE,             ActiveTexture,              GLenum texture);
 
 #define GL_LOAD_BLOCK \
 LOAD_GLFUNC(TexStorage3D,               TEXSTORAGE3D);\
@@ -60,8 +60,8 @@ LOAD_GLFUNC(EnableVertexAttribArray,    ENABLEVERTEXATTRIBARRAY); \
 LOAD_GLFUNC(DisableVertexAttribArray,   DISABLEVERTEXATTRIBARRAY);\
 LOAD_GLFUNC(VertexAttribPointer,        VERTEXATTRIBPOINTER); \
 LOAD_GLFUNC(UniformMatrix4fv,           UNIFORMMATRIX4FV); \
-LOAD_GLFUNC(TexSubImage3D,              TEXSUBIMAGE3D); \
-LOAD_GLFUNC(ActiveTexture,              ACTIVETEXTURE); \
+//LOAD_GLFUNC(TexSubImage3D,              TEXSUBIMAGE3D); \
+//LOAD_GLFUNC(ActiveTexture,              ACTIVETEXTURE); \
 
 
 #if defined(OSK_PLATFORM_X11)
