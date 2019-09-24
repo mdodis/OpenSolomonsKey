@@ -1,6 +1,11 @@
 #ifndef OSK_GL_FUNCS
 #define OSK_GL_FUNCS
 
+#if defined(OSK_PLATFORM_WIN32)
+typedef char GLchar;
+typedef GLsizei* GLsizeiptr;
+#endif
+
 #define DEF_GLFUNC(rett, pfnname, actual, ...) typedef rett(*PFNGL##pfnname)(__VA_ARGS__); internal PFNGL##pfnname gl##actual;
 
 DEF_GLFUNC(void,     TEXSTORAGE3D,              TexStorage3D,               GLenum target,GLsizei levels,GLenum internalformat,GLsizei width,GLsizei height,GLsizei depth);
@@ -27,6 +32,8 @@ DEF_GLFUNC(void,     ENABLEVERTEXATTRIBARRAY,   EnableVertexAttribArray,    GLui
 DEF_GLFUNC(void,     DISABLEVERTEXATTRIBARRAY,  DisableVertexAttribArray,   GLuint index);
 DEF_GLFUNC(void,     VERTEXATTRIBPOINTER,       VertexAttribPointer,        GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const GLvoid * pointer);
 DEF_GLFUNC(void,     UNIFORMMATRIX4FV,          UniformMatrix4fv,           GLint location,GLsizei count,GLboolean transpose,const GLfloat * value);
+DEF_GLFUNC(void,     TEXSUBIMAGE3D,             TexSubImage3D,              GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,GLsizei height,GLsizei depth,GLenum format,GLenum type, const GLvoid* data);
+DEF_GLFUNC(void,     ACTIVETEXTURE,             ActiveTexture,              GLenum texture);
 
 #define GL_LOAD_BLOCK \
 LOAD_GLFUNC(TexStorage3D,               TEXSTORAGE3D);\
@@ -53,6 +60,8 @@ LOAD_GLFUNC(EnableVertexAttribArray,    ENABLEVERTEXATTRIBARRAY); \
 LOAD_GLFUNC(DisableVertexAttribArray,   DISABLEVERTEXATTRIBARRAY);\
 LOAD_GLFUNC(VertexAttribPointer,        VERTEXATTRIBPOINTER); \
 LOAD_GLFUNC(UniformMatrix4fv,           UNIFORMMATRIX4FV); \
+LOAD_GLFUNC(TexSubImage3D,              TEXSUBIMAGE3D); \
+LOAD_GLFUNC(ActiveTexture,              ACTIVETEXTURE); \
 
 
 #if defined(OSK_PLATFORM_X11)
@@ -67,6 +76,26 @@ gl_load()
 
 #elif defined(OSK_PLATFORM_WIN32)
 
+void *gl_proc_address( const char *name)
+{
+    
+    void* p = wglGetProcAddress(name);
+    OutputDebugStringA(name);
+    fail_unless(p, "failed to get proc address for gl function!");
+    return p;
+}
+
+#define _oSTR(x) #x
+#define oSTR(x) _oSTR(x)
+
+#define LOAD_GLFUNC(actual,pfnname) gl##actual = (PFNGL##pfnname)gl_proc_address((const char*) oSTR(gl##actual))
+
+
+internal void
+gl_load()
+{
+    GL_LOAD_BLOCK
+}
 #else
 #error "No platform Opengl load proc defined in gl_funcs.h!"
 #endif
@@ -101,5 +130,8 @@ gl_load()
 #define GL_TEXTURE_MAX_LEVEL              0x813D
 #define GL_UNPACK_ROW_LENGTH              0x0CF2
 #define GL_UNPACK_IMAGE_HEIGHT            0x806E
+#define GL_TEXTURE0                       0x84C0
+#define GL_ARRAY_BUFFER                   0x8892
+#define GL_STATIC_DRAW                    0x88E4
 
 #endif //! OSK_GL_FUNCS

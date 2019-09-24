@@ -27,6 +27,10 @@ struct Animation
 #define TILEMAP_ROWS 12
 #define TILEMAP_COLS 15
 
+// Custom Parameters
+// eEmptySpace :: hidden item
+// eBlockFrail :: health, hidden item
+
 union CustomParameter
 {
     u64    as_u64;
@@ -51,28 +55,3 @@ struct Entity
     CustomParameter params[MAX_ENTITY_PARAMS];
 };
 
-
-struct Sprite
-{
-    GLTilemapTexture const * tilemap = 0;
-    ivec2 size = {64, 64};
-    ivec2 position = {0,0};
-    float rotation = 0.f;
-    AABox collision_box = {0,0,64,64};
-    ivec2 mirror = {false, false};
-    ivec2 velocity = {0,0};
-    b32 is_on_air = false;
-    
-    b32 animation_playing = false;
-    i32 current_frame = 0;
-    i32 current_animation = -1;
-    float time_accumulator = 0.f;
-    Animation* animation_set;
-    
-    Entity entity;
-    
-    AABox get_transformed_AABox() const
-    {
-        return this->collision_box.translate(this->position);
-    }
-};

@@ -161,7 +161,7 @@ scene_update(InputState* istate, float dt)
     for (int i = 0; i < l.sz; ++i)
     {
         Sprite* spref = l.data + i;
-        Sprite_update_animation(spref, dt);
+        spref->update_animation(dt);
         
         switch(spref->entity.type)
         {
@@ -175,6 +175,6 @@ scene_update(InputState* istate, float dt)
             break;
         }
         
-        Sprite_draw_anim(l.data + i);
+        draw(l.data + i);
     }
 }

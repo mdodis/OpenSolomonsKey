@@ -32,7 +32,6 @@ b32 x11_get_key_state(i32 key);
 #elif defined(OSK_PLATFORM_WIN32)
 
 b32 win32_get_key_state(i32 key);
-#define ISTATE_KEYDOWN_ACTION(k, a) g_input_state.a = win32_get_key_state(k)
 
 #else
 #error "No get key state function for compatible platform"

@@ -37,3 +37,7 @@ sprites
 .vscode
 *.wav
 *.ogg
+
+glm
+incl
+*pdb

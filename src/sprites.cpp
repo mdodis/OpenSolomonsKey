@@ -1,9 +1,78 @@
+
+struct Sprite
+{
+    GLTilemapTexture const * tilemap = 0;
+    ivec2 size = {64, 64};
+    ivec2 position = {0,0};
+    float rotation = 0.f;
+    AABox collision_box = {0,0,64,64};
+    ivec2 mirror = {false, false};
+    ivec2 velocity = {0,0};
+    b32 is_on_air = false;
+    
+    b32 animation_playing = false;
+    i32 current_frame = 0;
+    i32 current_animation = -1;
+    float time_accumulator = 0.f;
+    Animation* animation_set;
+    
+    Entity entity;
+    
+    inline AABox get_transformed_AABox() const
+    {
+        return this->collision_box.translate(this->position);
+    }
+    
+    void update_animation(float dt)
+    {
+        Animation* anim_ref;
+        
+        anim_ref = &this->animation_set[this->current_animation];
+        if (anim_ref->size == 0 || !this->animation_playing)
+            return;
+        
+        this->time_accumulator += dt;
+        if (this->time_accumulator >= anim_ref->duration)
+        {
+            this->current_frame++;
+            if (this->current_frame >= anim_ref->size )
+            {
+                
+                if (anim_ref->loop)
+                    this->current_frame = 0;
+                else
+                {
+                    this->animation_playing = false;
+                    this->current_frame--;
+                }
+            }
+            
+            this->time_accumulator = 0.f;
+        }
+        
+    }
+    
+#define SET_ANIMATION(spr, c, n) spr->set_animation_index(GET_CHAR_ANIMENUM(c, n))
+    void set_animation_index(u32 anim_idx)
+    {
+        if (this->current_animation != anim_idx)
+        {
+            this->animation_playing = true;
+            this->current_animation = anim_idx;
+            this->current_frame = 0;
+            this->time_accumulator = 0;
+        }
+        
+    }
+};
+
 // This is a simple array list I wrote for C99. I'll probably regret
 // using it, but life is all about living on the edge, and that means
 // having potential creeping bugs sneaking up you when you least want it.
 #define CA_TYPE Sprite
 #include "calist.h"
 #undef CA_TYPE
+
 
 struct
 {
@@ -24,74 +93,14 @@ struct
     
 } g_scene;
 
-internal void 
-Sprite_update_animation(Sprite *const sprite, float dt)
-{
-    assert(sprite);
-    
-    Animation* anim_ref;
-    
-    anim_ref = &sprite->animation_set[sprite->current_animation];
-    if (anim_ref->size == 0 || !sprite->animation_playing)
-        return;
-    
-    sprite->time_accumulator += dt;
-    if (sprite->time_accumulator >= anim_ref->duration)
-    {
-        sprite->current_frame++;
-        if (sprite->current_frame >= anim_ref->size )
-        {
-            
-            if (anim_ref->loop)
-                sprite->current_frame = 0;
-            else
-            {
-                sprite->animation_playing = false;
-                sprite->current_frame--;
-            }
-        }
-        
-        sprite->time_accumulator = 0.f;
-    }
-    
-}
-
-#define Sprite_set_anim(spr, c, n)  _Sprite_change_anim(spr, GET_CHAR_ANIMENUM(c,n)) 
-internal void _Sprite_change_anim(Sprite* const spr, u32 anim_idx)
-{
-    if (spr->current_animation != anim_idx)
-    {
-        spr->animation_playing = true;
-        spr->current_animation = anim_idx;
-        spr->current_frame = 0;
-        spr->time_accumulator = 0;
-    }
-    
-}
 
 internal void
-Sprite_draw(Sprite const * sprite, i32 frame)
-{
-    assert(sprite->tilemap);
-    
-    gl_slow_tilemap_draw(
-        sprite->tilemap,
-        {(float)sprite->position.x, (float)sprite->position.y},
-        {(float)sprite->size.x, (float)sprite->size.y},
-        sprite->rotation,
-        frame,
-        sprite->mirror.x, sprite->mirror.y);
-    
-}
-
-internal void
-Sprite_draw_anim(Sprite const * sprite)
+draw(Sprite const * sprite)
 {
     assert(sprite->tilemap);
     Animation* anim_ref = &sprite->animation_set[sprite->current_animation];
     i32 frame_to_render = anim_ref->start.y * sprite->tilemap->cols
         + anim_ref->start.x + sprite->current_frame;
-    //Sprite_draw(sprite, frame_to_render);
     
     gl_slow_tilemap_draw(
         sprite->tilemap,
@@ -102,8 +111,7 @@ Sprite_draw_anim(Sprite const * sprite)
         sprite->mirror.x, sprite->mirror.y);
 }
 
-RESSound test_sound;
-
+RESSound player_jump_sound;
 
 global i32 player_last_yspeed;
 
@@ -158,7 +166,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     {
         player->velocity.y = -JUMP_STRENGTH;
         player->is_on_air = true;
-        audio_play_sound(&test_sound);
+        audio_play_sound(&player_jump_sound);
     }
     
     player->velocity.y += GRAVITY * dt;
@@ -175,8 +183,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
             player->velocity.x = 0;
             player->velocity.y = 0;
             puts("cast!");
-            Sprite_set_anim(player, test_player, Cast);
-            
+            SET_ANIMATION(player, test_player, Cast);
             ePlayer_cast(player, dt);
         }
     }
@@ -258,8 +265,16 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
                     player->velocity.y = -player->velocity.y * 0.737;
                     player->is_on_air = true;
                     
-                    // TODO(miked): Check if the top block is Frail,
-                    // if so, remove it!
+                    // it has to be mostly above the player, in order to avoid
+                    // destroying blocks diagonally
+                    if ( i != 1 || j != 0) continue;
+                    
+                    ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
+                    if ((EntityBaseType)g_scene.get_tile(current_tile) == eBlockFrail)
+                    {
+                        g_scene.set_tile(current_tile, eEmptySpace);
+                    }
+                    
                 }
                 
             }
@@ -298,13 +313,13 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     // Animation Logic
     if (iabs(player->velocity.x) > 0)
     {
-        Sprite_set_anim(player, test_player, Run);
+        SET_ANIMATION(player, test_player, Run);
         
         player->mirror.x = player->velocity.x > 0;
     }
     else
     {
-        Sprite_set_anim(player, test_player, Idle);
+        SET_ANIMATION(player, test_player, Idle);
     }
     
 }

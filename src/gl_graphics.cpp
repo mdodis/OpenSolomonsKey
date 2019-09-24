@@ -158,12 +158,7 @@ i32 tilemap_cols)
                 GL_UNSIGNED_BYTE,
                 data + (y * tile_width * width + x * tile_width) * 4);
 #endif
-            GLenum err = glGetError();
-            if (err != GL_NO_ERROR)
-            {
-                printf("\tglerr: %d\n", err);
-                exit(0);
-            }
+            
             count++;
         }
     }

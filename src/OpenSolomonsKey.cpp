@@ -1,12 +1,13 @@
 /*
 TODO:
-- Block creation - destruction
-   - Sound resource system (one of us...)
+- eBlockFrail needs to have a default health parameter
+- eGoblin
 - continue level loading
+- Sound resource system (one of us...)
 - background music play/stop
-- continue the level format after doing the goblin enemy
 =========================================================
- X Play on event (keyboard press)
+  X Block creation - destruction
+   X Play on event (keyboard press)
  X scene graph to query enemies for collisions
    X player animation logic
    
@@ -19,37 +20,16 @@ sox [input] -r 48k -c 2 -b 16 [output]
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <GL/gl.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <cmath>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <portaudio.h>
-
-internal char*
-platform_load_entire_file(const char* path)
-{
-    u64 size;
-    char* data;
-    FILE* f = fopen(path, "rb");
-    if (!f) return 0;
-    
-    fseek(f, 0, SEEK_END);
-    size = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    
-    data = (char*)malloc(size + 1);
-    assert(data);
-    fread(data, size, 1, f);
-    data[size] = 0;
-    fclose(f);
-    
-    return data;
-}
 
 
 #define OSK_MATH_IMPL
@@ -128,10 +108,9 @@ RESSound bg_sound;
 void
 cb_init()
 {
-    audio_init();
-    
-    test_sound = Wave_load_from_file("bloop.wav");
+    player_jump_sound = Wave_load_from_file("bloop.wav");
     bg_sound = Wave_load_from_file("bgm1.wav");
+    
     
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
@@ -162,7 +141,7 @@ cb_init()
     glGenBuffers(1, &VBO);
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)sizeof(vertices), vertices, GL_STATIC_DRAW);
     
     glBindVertexArray(g_quad_vao);
     glEnableVertexAttribArray(0);
@@ -181,7 +160,7 @@ cb_init()
         .current_frame = 0,
         .current_animation = GET_CHAR_ANIMENUM(test_player, Run),
         .animation_set = GET_CHAR_ANIMSET(test_player),
-        .entity = 
+        .entity =
         {
             ePlayer,
             {0,0}
@@ -225,7 +204,7 @@ cb_resize()
 }
 
 void
-cb_render(InputState istate, float dt)
+cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
@@ -233,37 +212,18 @@ cb_render(InputState istate, float dt)
     
     if (GET_KEYPRESS(m_pressed))
     {
-        persist i32 i = -64;
-        persist i32 y = 0;
-        i += 64;
-        if (i > 11 * 64)
-        {
-            i = 0;
-            y += 64;
-        }
-        Sprite spr;
-        spr.collision_box = {0,0,64,64};
-        spr.current_frame = 0;
-        spr.position = {i,y};
-        //spr.current_animation = GET_CHAR_ANIMENUM(test_enemy, Idle);
-        spr.animation_set = GET_CHAR_ANIMSET(test_enemy);
-        spr.tilemap = &GET_CHAR_TILEMAP(test_enemy);
-        
-        Sprite_set_anim(&spr, test_enemy, Idle);
-        scene_sprite_add(&spr);
-        
+        audio_play_sound(&player_jump_sound);
     }
     
     persist b32 initial = true;
     if (initial)
     {
         initial = false;
-        audio_play_sound(&bg_sound);
+        audio_play_sound(&bg_sound, true);
     }
     
-    
     scene_update(&istate, dt);
-    audio_update(&istate);
+    audio_update(&istate, audio_sample_count);
     
 }
 

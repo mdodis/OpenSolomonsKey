@@ -1,4 +1,5 @@
 #include <string.h>
+
 /*
 NOTE: Using wave file format with 48000Hz sample-rate,
 2 channels, 16b/sample, anything other than that will break it
@@ -13,7 +14,7 @@ struct WaveHeader
 
 struct WaveFmt
 {
-#define WAVE_FORMAT_PCM 0x0001
+#define OSK_WAVE_FORMAT_PCM 0x0001
     u16 format_tag;
     u16 nchannels;
     u32 samples_per_sec;
@@ -33,12 +34,6 @@ struct WaveChunk
 };
 #pragma pack(pop)
 
-
-#define DEFAULT_AUDIO_SAMPLERATE 48000
-#define DEFAULT_AUDIO_CHANNELS 2
-#define FRAMES_PER_BUFFER 1024
-#define BUFFER_SIZE FRAMES_PER_BUFFER * DEFAULT_AUDIO_CHANNELS * 2
-
 #define RIFF_CODE(a,b,c,d) (u32)((a << 0) | (b << 8) | (c << 16) | (d << 24))
 
 enum WaveChunkType
@@ -48,7 +43,6 @@ enum WaveChunkType
     WAVEChunkData = RIFF_CODE('d','a','t','a'),
     WAVEChunkWave = RIFF_CODE('W','A','V','E'),
 };
-
 
 struct RiffIterator
 {
@@ -95,15 +89,6 @@ RiffIterator_size(RiffIterator iter)
 }
 
 
-struct RESSound
-{
-    u32 samplerate;
-    u32 num_channels;
-    u32 num_samples;
-    void* data;
-    
-};
-
 /* Loads a 16bit/sample, 48Khz, 2 channel audio file in interleaved format*/
 internal RESSound
 Wave_load_from_file(const char* file)
@@ -111,7 +96,7 @@ Wave_load_from_file(const char* file)
     WaveHeader* header;
     RESSound result = {};
     char* data = platform_load_entire_file(file);
-    
+    assert(data);
     header = (WaveHeader*)data;
     assert(header->id == WAVEChunkRiff && header->waveid == WAVEChunkWave);
     
@@ -127,8 +112,8 @@ Wave_load_from_file(const char* file)
                 WaveFmt* fmt = (WaveFmt*)Wave_get_chunk(iter);
                 assert(fmt->format_tag == 1);
                 assert((fmt->block_align / fmt->nchannels) == 2);
-                assert(fmt->nchannels == DEFAULT_AUDIO_CHANNELS);
-                assert(fmt->samples_per_sec == DEFAULT_AUDIO_SAMPLERATE);
+                assert(fmt->nchannels == AUDIO_CHANNELS);
+                assert(fmt->samples_per_sec == AUDIO_SAMPLERATE);
                 inform("Channels       : %d", fmt->nchannels);
                 inform("Samples        : %d", fmt->samples_per_sec);
                 inform("BPP            : %d", fmt->bits_per_sample);
@@ -152,86 +137,14 @@ Wave_load_from_file(const char* file)
     return result;
 }
 
-global u32 g_audio_samplerate = DEFAULT_AUDIO_SAMPLERATE;
-PaStream *stream;
-i16* buffer[BUFFER_SIZE];
-
-internal void
-audio_init()
-{
-    PaError err;
-    err = Pa_Initialize();
-    assert(err == paNoError);
-    
-    err = Pa_OpenDefaultStream(
-        &stream,
-        0,          /* no input channels */
-        DEFAULT_AUDIO_CHANNELS,
-        paInt16,  /* 32 bit floating point output */
-        DEFAULT_AUDIO_SAMPLERATE,
-        FRAMES_PER_BUFFER,        /* frames per buffer, i.e. the number
-        of sample frames that PortAudio will
-        request from the callback. Many apps
-        may want to use
-        paFramesPerBufferUnspecified, which
-        tells PortAudio to pick the best,
-        possibly changing, buffer size.*/
-        0, /* this is your callback function */
-        0);
-    assert(err == paNoError);
-    err = Pa_StartStream( stream );
-    assert(err == paNoError);
-}
-
-internal void
-audio_generate_sine(
-u32 tone,
-float* time,
-u32 intensity, 
-void* buffer, 
-u32 frames_to_write)
-{
-    u32 wave_period = DEFAULT_AUDIO_SAMPLERATE / 440;
-    
-    i16* wav = (i16*)buffer;
-    for (u32 i = 0; i < frames_to_write; i += 1)
-    {
-        i16 sample = sinf(*time) * intensity;
-        
-        for (u32 j = 0; j < DEFAULT_AUDIO_CHANNELS; ++j)
-            *wav++ += sample;
-        
-        *time += 2.f * M_PI *  1.f / (float)wave_period;
-    }
-    
-}
-
-struct Sound
-{
-    u64 counter = 0;
-    u64 max_counter = ~(0u);
-    b32 looping = false;
-    b32 playing = false;
-    const RESSound* resource = 0;
-};
-
-global struct
-{
-    
-#define AUDIO_MAX_SOUNDS 32
-    Sound all_sounds[AUDIO_MAX_SOUNDS];
-    i32 all_sounds_size = 0;
-    float volume = .2;
-} g_audio;
-
-internal void audio_play_sound(const RESSound* resound)
+internal void audio_play_sound(const RESSound* resound, b32 looping = false)
 {
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
     Sound new_sound = {
         .max_counter = resound->num_samples,
-        .looping = false, 
+        .looping = looping,
         .resource = resound};
     
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
@@ -239,6 +152,8 @@ internal void audio_play_sound(const RESSound* resound)
 
 internal void audio_update_all_sounds()
 {
+    if (g_audio.all_sounds_size == 0) return;
+    
     u32 cached_size = g_audio.all_sounds_size;
     for (i32 i = 0; i < cached_size; ++i)
     {
@@ -251,15 +166,11 @@ internal void audio_update_all_sounds()
             {
                 sound_ref->resource = 0;
                 g_audio.all_sounds_size--;
+                if (g_audio.all_sounds_size == 0) return;
                 
-                if (i == 0)
-                {
-                    g_audio.all_sounds_size = 0;
-                    return;
-                };
                 // resize the sound array
                 i32 previous = i;
-                for (i32 j = i + 1; j < g_audio.all_sounds_size; j++)
+                for (i32 j = i + 1; j < cached_size; j++)
                 {
                     Sound sound_copy = g_audio.all_sounds[j];
                     g_audio.all_sounds[previous] = sound_copy;
@@ -273,25 +184,19 @@ internal void audio_update_all_sounds()
     }
 }
 
-internal void 
-audio_update(const InputState* const istate)
-{    
-    // Update audio
-    i64 frames_to_write = Pa_GetStreamWriteAvailable(stream);
-    if (frames_to_write == 0 ) return;
-    else if (frames_to_write < 0)
-    {
-        puts("audio error");
-        exit(-11);
-    }
-    memset(buffer, 0, frames_to_write * 2 * 2);
+internal void
+audio_update(const InputState* const istate, u64 samples_to_write)
+{
     
-    i16* out = (i16*)buffer;
+    i16* out = (i16*)g_audio.buffer;
     audio_update_all_sounds();
+    //printf("sz %d\n",g_audio.all_sounds_size );
     
-    for (u32 i = 0; i < frames_to_write; i += 1)
+    memset(g_audio.buffer, 0, AUDIO_BUFFER_SIZE);
+    
+    for (u32 i = 0; i < samples_to_write; i += 1)
     {
-        i16 sample[DEFAULT_AUDIO_CHANNELS] = {};
+        i16 sample[AUDIO_CHANNELS] = {};
         
         
         for (i32 current_sound_idx = 0;
@@ -299,11 +204,10 @@ audio_update(const InputState* const istate)
              current_sound_idx++)
         {
             Sound* current_sound = g_audio.all_sounds + current_sound_idx;
-            //warn_unless(current_sound->resource, "");
+            warn_unless(current_sound->resource, "");
             
             if (!(current_sound->resource))
             {
-                continue;
 #if 1
                 // TODO(miked): fixme
                 fprintf(stderr, "no sound resource; idx %d sz %d\n",
@@ -312,6 +216,8 @@ audio_update(const InputState* const istate)
                 fflush(stdout);
                 exit(-1);
 #endif
+                continue;
+                
             }
             
             u64 new_sound_counter = current_sound->counter;
@@ -319,13 +225,13 @@ audio_update(const InputState* const istate)
                 continue;
             
             
-            i32 current_sample[DEFAULT_AUDIO_CHANNELS] = 
+            i32 current_sample[AUDIO_CHANNELS] =
             {
                 (i32)sample[0],
                 (i32)sample[1]
             };
             
-            i32 sample16[DEFAULT_AUDIO_CHANNELS] = {0, 0};
+            i32 sample16[AUDIO_CHANNELS] = {0, 0};
             
             i16* data = (i16*)current_sound->resource->data;
             sample16[0] = data[new_sound_counter++];
@@ -349,14 +255,4 @@ audio_update(const InputState* const istate)
         *out++ += sample[1] * g_audio.volume;
     }
     
-    PaError err = Pa_WriteStream(
-        stream,
-        buffer,
-        frames_to_write);
-    if ( err != paNoError )
-    {
-        puts("paError");
-        fflush(stdout);
-        //exit(-1);
-    }
 }

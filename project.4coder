@@ -13,7 +13,7 @@ blacklist_patterns = {
 ".*",
 };
 load_paths_base = {
- { ".", .relative = true, .recursive = true, },
+ { "./src", .relative = true, .recursive = true, },
 };
 load_paths = {
  { load_paths_base, .os = "win", },
