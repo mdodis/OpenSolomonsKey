@@ -185,11 +185,7 @@ internal void audio_update_all_sounds()
 }
 
 internal void
-<<<<<<< HEAD
-audio_update(const InputState* const istate, i64 samples_to_write)
-=======
 audio_update(const InputState* const istate, u64 samples_to_write)
->>>>>>> 371ed15eb2c9a56dc84199e5336d0795451b57d1
 {
     
     i16* out = (i16*)g_audio.buffer;
@@ -197,12 +193,6 @@ audio_update(const InputState* const istate, u64 samples_to_write)
     //printf("sz %d\n",g_audio.all_sounds_size );
     
     memset(g_audio.buffer, 0, AUDIO_BUFFER_SIZE);
-    
-<<<<<<< HEAD
-    memset(g_audio.buffer, 0, AUDIO_BUFFER_SIZE);
-    
-=======
->>>>>>> 371ed15eb2c9a56dc84199e5336d0795451b57d1
     for (u32 i = 0; i < samples_to_write; i += 1)
     {
         i16 sample[AUDIO_CHANNELS] = {};

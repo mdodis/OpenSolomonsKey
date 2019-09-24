@@ -61,11 +61,7 @@ double g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 
 extern void cb_init();
 extern void cb_resize();
-<<<<<<< HEAD
-extern void cb_render(InputState istate, i64 audio_sample_count, float dt);
-=======
 extern void cb_render(InputState istate, u64 audio_sample_count, float dt);
->>>>>>> 371ed15eb2c9a56dc84199e5336d0795451b57d1
 
 
 internal char*
@@ -95,10 +91,7 @@ platform_load_entire_file(const char* path)
 #define AUDIO_CHANNELS 2
 #define AUDIO_BPS 16
 #define AUDIO_BYTESPERSAMPLE ((AUDIO_BPS / 8) * AUDIO_CHANNELS)
-<<<<<<< HEAD
 #define AUDIO_FRAMES 1024
-=======
->>>>>>> 371ed15eb2c9a56dc84199e5336d0795451b57d1
 #define AUDIO_BUFFER_SIZE (AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE)
 #define AUDIO_MAX_SOUNDS 32
 
@@ -125,11 +118,7 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-<<<<<<< HEAD
     float volume = 0.7;
-=======
-    float volume = 0.0;
->>>>>>> 371ed15eb2c9a56dc84199e5336d0795451b57d1
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;
