@@ -32,8 +32,6 @@ DEF_GLFUNC(void,     ENABLEVERTEXATTRIBARRAY,   EnableVertexAttribArray,    GLui
 DEF_GLFUNC(void,     DISABLEVERTEXATTRIBARRAY,  DisableVertexAttribArray,   GLuint index);
 DEF_GLFUNC(void,     VERTEXATTRIBPOINTER,       VertexAttribPointer,        GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const GLvoid * pointer);
 DEF_GLFUNC(void,     UNIFORMMATRIX4FV,          UniformMatrix4fv,           GLint location,GLsizei count,GLboolean transpose,const GLfloat * value);
-//DEF_GLFUNC(void,     TEXSUBIMAGE3D,             TexSubImage3D,              GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,GLsizei height,GLsizei depth,GLenum format,GLenum type, const GLvoid* data);
-//DEF_GLFUNC(void,     ACTIVETEXTURE,             ActiveTexture,              GLenum texture);
 
 #define GL_LOAD_BLOCK \
 LOAD_GLFUNC(TexStorage3D,               TEXSTORAGE3D);\
@@ -60,9 +58,6 @@ LOAD_GLFUNC(EnableVertexAttribArray,    ENABLEVERTEXATTRIBARRAY); \
 LOAD_GLFUNC(DisableVertexAttribArray,   DISABLEVERTEXATTRIBARRAY);\
 LOAD_GLFUNC(VertexAttribPointer,        VERTEXATTRIBPOINTER); \
 LOAD_GLFUNC(UniformMatrix4fv,           UNIFORMMATRIX4FV); \
-//LOAD_GLFUNC(TexSubImage3D,              TEXSUBIMAGE3D); \
-//LOAD_GLFUNC(ActiveTexture,              ACTIVETEXTURE); \
-
 
 #if defined(OSK_PLATFORM_X11)
 
@@ -76,7 +71,7 @@ gl_load()
 
 #elif defined(OSK_PLATFORM_WIN32)
 
-void *gl_proc_address( const char *name)
+void *win32_gl_proc_address( const char *name)
 {
     
     void* p = wglGetProcAddress(name);
@@ -88,23 +83,28 @@ void *gl_proc_address( const char *name)
 #define _oSTR(x) #x
 #define oSTR(x) _oSTR(x)
 
-#define LOAD_GLFUNC(actual,pfnname) gl##actual = (PFNGL##pfnname)gl_proc_address((const char*) oSTR(gl##actual))
+#define LOAD_GLFUNC(actual,pfnname) gl##actual = (PFNGL##pfnname)win32_gl_proc_address((const char*) oSTR(gl##actual))
 
+// For some reason OpenGL on Windows doesn't have these functions loaded
+// (even if they exist in OpenGL 1.2), and declaring them with glx fails because
+// they _are_ included there, so special case for Win32. Yay
+DEF_GLFUNC(void,     TEXSUBIMAGE3D,             TexSubImage3D,              GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width,GLsizei height,GLsizei depth,GLenum format,GLenum type, const GLvoid* data);
+DEF_GLFUNC(void,     ACTIVETEXTURE,             ActiveTexture,              GLenum texture);
+
+#define WIN32_GL_EXTRA \
+LOAD_GLFUNC(TexSubImage3D,              TEXSUBIMAGE3D); \
+LOAD_GLFUNC(ActiveTexture,              ACTIVETEXTURE); \
 
 internal void
 gl_load()
 {
     GL_LOAD_BLOCK
+        WIN32_GL_EXTRA
 }
 #else
 #error "No platform Opengl load proc defined in gl_funcs.h!"
 #endif
 
-
-#undef LOAD_GLFUNC
-#undef DEF_GLFUNC
-
-/* Opengl */
 #define GL_TEXTURE_2D                     0x0DE1
 #define GL_TEXTURE_2D_ARRAY               0x8C1A
 #define GL_FRAGMENT_SHADER                0x8B30
@@ -133,5 +133,8 @@ gl_load()
 #define GL_TEXTURE0                       0x84C0
 #define GL_ARRAY_BUFFER                   0x8892
 #define GL_STATIC_DRAW                    0x88E4
+
+#undef LOAD_GLFUNC
+#undef DEF_GLFUNC
 
 #endif //! OSK_GL_FUNCS

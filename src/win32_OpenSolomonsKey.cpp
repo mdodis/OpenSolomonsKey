@@ -263,7 +263,7 @@ win32_update_and_render(HDC dc)
     //win32_dsound_update_sound_buffer(bytes_to_lock, bytes_to_write);
     win32_dsound_copy_to_sound_buffer(byte_to_lock, bytes_to_write);
     
-    fprintf(stdout, "DT: %f\n", delta);
+    //fprintf(stdout, "DT: %f\n", delta);
     perf_last = perf_now;
     SwapBuffers(dc);
 }

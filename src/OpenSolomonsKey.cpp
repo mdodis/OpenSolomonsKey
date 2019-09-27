@@ -158,7 +158,7 @@ cb_init()
         .tilemap = &GET_CHAR_TILEMAP(test_player),
         .collision_box = {5,0,45,64},
         .current_frame = 0,
-        .current_animation = GET_CHAR_ANIMENUM(test_player, Run),
+        .current_animation = GET_CHAR_ANIMENUM(test_player, Idle),
         .animation_set = GET_CHAR_ANIMSET(test_player),
         .entity =
         {
@@ -167,6 +167,23 @@ cb_init()
         }
     };
     scene_sprite_add(&player_sprite);
+    
+    Sprite goblin_sprite = {
+        .tilemap = &GET_CHAR_TILEMAP(Goblin),
+        .position = ivec2{10, 10},
+        .collision_box = {5,0,45,64},
+        .current_frame = 0,
+        .current_animation = GET_CHAR_ANIMENUM(Goblin, Walk),
+        .time_accumulator = 0.f,
+        .animation_set = GET_CHAR_ANIMSET(Goblin),
+        
+        .entity =
+        {
+            eGoblin,
+            {0,0}
+        }
+    };
+    scene_sprite_add(&goblin_sprite);
     
     return;
 }
@@ -209,11 +226,6 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
-    
-    if (GET_KEYPRESS(m_pressed))
-    {
-        audio_play_sound(&player_jump_sound);
-    }
     
     persist b32 initial = true;
     if (initial)

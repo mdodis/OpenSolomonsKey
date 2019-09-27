@@ -12,6 +12,7 @@ tilemaps.
 /*          NAME     PATH IN FOLDER                                rows cols*/\
 DEF_TILEMAP(test    ,"test_tilemap.png"                           ,6    ,5   )\
 DEF_TILEMAP(dana    ,"res/joined/dana_all.png"                    ,3    ,6   )\
+DEF_TILEMAP(tmgoblin,"res/characters/goblin/goblin.png"           ,1    ,6   )\
 
 
 struct RESTilemap
@@ -39,18 +40,18 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 You can group animations by "character", and the macro ugliness here
 should prevent name collisions, if you input different character names.
 */
-#define ALL_CHARACTERS                                                         \
-/*            Name,        Tilemap, Animation Count */                         \
-DEF_CHARACTER(test_player, dana,    3,                                         \
-/*       Character,   Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(test_player, Idle,    .1f,      {0,0}, 1,      false)   \
-DEF_ANIM(test_player, Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(test_player, Cast,    .05f,      {0,2}, 3,      false)   \
-)                                                                \
-DEF_CHARACTER(test_enemy, test,     1,                                         \
-/*       Character,   Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(test_enemy,  Idle,    .5f,      {0,0}, 4,      true)    \
-)                                                                \
+#define ALL_CHARACTERS                                                          \
+/*            Name,        Tilemap,  Animation Count */                         \
+DEF_CHARACTER(test_player, dana,     3,                                         \
+/*       Character,    Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(test_player,  Idle,    .1f,      {0,0}, 1,      false)   \
+DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
+DEF_ANIM(test_player,  Cast,    .05f,      {0,2}, 3,      false)  \
+)                                                                 \
+DEF_CHARACTER(Goblin,      tmgoblin, 1,                                         \
+/*       Character,    Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true)    \
+)                                                                 \
 
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
@@ -144,6 +145,7 @@ internal void load_tilemap_textures()
     
     for (u32 i = 0 ;i < TILEMAP_COUNT; ++i)
     {
+        printf("loading tilemap: %s...\n",RES_TILEMAPS[i].name);
         data = load_image_as_rgba_pixels(
             RES_TILEMAPS[i].name,
             &width, &height, &bpp);

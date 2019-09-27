@@ -112,12 +112,10 @@ internal void level_load(char* data)
 
 internal void scene_init(const char* level_path)
 {
-    //load_test_level(g_scene.palette, &g_scene.palette_size);
     char* lvl = platform_load_entire_file("lvl1.osk");
     level_load(lvl);
     free(lvl);
     
-    //exit(0);
 }
 
 internal void 
@@ -170,6 +168,10 @@ scene_update(InputState* istate, float dt)
                 ePlayer_update(spref, istate, dt);
             }break;
             
+            case eGoblin:
+            {
+                eGoblin_update(spref, istate, dt);
+            } break;
             
             default:
             break;

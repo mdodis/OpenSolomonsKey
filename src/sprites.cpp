@@ -10,7 +10,7 @@ struct Sprite
     ivec2 velocity = {0,0};
     b32 is_on_air = false;
     
-    b32 animation_playing = false;
+    b32 animation_playing = true;
     i32 current_frame = 0;
     i32 current_animation = -1;
     float time_accumulator = 0.f;
@@ -64,6 +64,30 @@ struct Sprite
         }
         
     }
+    
+    void move_and_collide(
+        float dt,
+        const i32 GRAVITY,
+        const i32 MAX_YSPEED,
+        const i32 JUMP_STRENGTH,
+        i32 XSPEED,
+        b32 damage_tiles = false);
+    
+    b32 jump(i32 strength)
+    {
+        
+        if (!this->is_on_air)
+        {
+            this->velocity.y = -strength;
+            this->is_on_air = true;
+            // TODO(miked): return if we jumped
+            //audio_play_sound(&this_jump_sound);
+            
+            return true;
+        }
+        return false;
+        
+    }
 };
 
 // This is a simple array list I wrote for C99. I'll probably regret
@@ -72,7 +96,6 @@ struct Sprite
 #define CA_TYPE Sprite
 #include "calist.h"
 #undef CA_TYPE
-
 
 struct
 {
@@ -92,6 +115,127 @@ struct
     }
     
 } g_scene;
+
+
+
+void Sprite::move_and_collide(
+float dt,
+const i32 GRAVITY,
+const i32 MAX_YSPEED,
+const i32 JUMP_STRENGTH,
+i32 XSPEED,
+b32 damage_tiles)
+{
+    this->velocity.x = XSPEED;
+    
+    this->velocity.y += GRAVITY * dt;
+    this->velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
+    
+    // NOTE(miked): This should teach me not to mix integers
+    // and floats ever again:
+#if 1
+    // This would cause less movement in Y. pos.x + vel.y * dt
+    // will result in a float, which will then truncate to an int.
+    this->position.x += (i32)(this->velocity.x * dt);
+    this->position.y += (i32)(this->velocity.y * dt);
+#else
+    // But this implied calculation would be int i = vel.x * dt; pos.x += i
+    //etc... So it results in more movement in the y direction.
+    this->position += this->velocity * dt;
+#endif
+    
+    // Get the upper left tile based on the center of the this sprite
+    ivec2 ipos = {(i32)this->position.x + 32, (i32)this->position.y + 32};
+    ivec2 start_tile = iclamp({0,0}, {14,11},
+                              map_position_to_tile(ipos) - 1);
+    
+    b32 collided_on_bottom = false;
+    
+    for (i32 j = 0; j < 3; ++j)
+    {
+        for (i32 i = 0; i < 3; ++i)
+        {
+            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
+            
+            ivec2 tile_coords =
+            {
+                (start_tile.x + i) * 64,
+                (start_tile.y + j) * 64
+            };
+            
+            AABox collision = {0, 0, 64, 64};
+            collision = collision.translate(tile_coords);
+            AABox this_trans = this->get_transformed_AABox();
+            
+            ivec2 diff;
+            b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
+            if (collided)
+            {
+                this->position = this->position - (diff);
+                
+                // If we are moving up and diff moved us in the Y dir,
+                // then negate the collision.
+                // (fixes bouncing when hitting corner of a tile)
+                if (this->velocity.y < 0 && iabs(diff.y) < 5)
+                {
+                    this->position.y += diff.y;
+                    continue;
+                }
+                
+                if (j == 2)
+                {
+                    collided_on_bottom = true;
+                    if (iabs(diff.y) > 0)
+                    {
+                        this->is_on_air = false;
+                        this->velocity.y = 0;
+                    }
+                }
+                
+                // Bouncing
+                if (this->velocity.y < 0 &&
+                    this->is_on_air &&
+                    this_trans.min_x < collision.max_x && 
+                    diff.x >= 0)
+                {
+                    this->velocity.y = -this->velocity.y * 0.737;
+                    this->is_on_air = true;
+                    
+                    // it has to be mostly above the this, in order to avoid
+                    // destroying blocks diagonally
+                    if ( i != 1 || j != 0 || !damage_tiles) continue;
+                    
+                    ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
+                    if ((EntityBaseType)g_scene.get_tile(current_tile) == eBlockFrail)
+                    {
+                        g_scene.set_tile(current_tile, eEmptySpace);
+                    }
+                    
+                }
+                
+            }
+            
+            gl_slow_tilemap_draw(
+                &GET_TILEMAP_TEXTURE(test),
+                {tile_coords.x, tile_coords.y},
+                {64, 64},
+                0.f,
+                5 * 5);
+        }
+    }
+    
+    if (!collided_on_bottom && this->velocity.y != 0)
+        this->is_on_air = true;
+    
+    // Draw the Bounding box sprite
+    AABox box = this->get_transformed_AABox();
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {box.min_x, box.min_y},
+        {box.max_x - box.min_x, box.max_y - box.min_y},
+        0,5 * 5 + 1 );
+    
+}
 
 
 internal void
@@ -147,30 +291,26 @@ ePlayer_cast(Sprite* player, float dt)
     
 }
 
-// ePlayer
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
     const i32 GRAVITY = 900;
     const i32 MAX_YSPEED = 450;
     const i32 JUMP_STRENGTH = 450;
     const i32 XSPEED = 200;
+    i32 vel = 0;
     
     if (GET_KEYDOWN(move_right))
-        player->velocity.x =  XSPEED;
+        vel = XSPEED;
     else if (GET_KEYDOWN(move_left))
-        player->velocity.x = -XSPEED;
-    else 
-        player->velocity.x =  0;
+        vel = -XSPEED;
     
-    if (GET_KEYPRESS(move_up) && !player->is_on_air)
+    b32 did_jump = false;
+    if (GET_KEYPRESS(move_up)) did_jump = player->jump(JUMP_STRENGTH);
+    
+    if (did_jump)
     {
-        player->velocity.y = -JUMP_STRENGTH;
-        player->is_on_air = true;
         audio_play_sound(&player_jump_sound);
     }
-    
-    player->velocity.y += GRAVITY * dt;
-    player->velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, player->velocity.y);
     
     // Casting basics
     if (GET_KEYPRESS(cast))
@@ -182,7 +322,6 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
             // cast!
             player->velocity.x = 0;
             player->velocity.y = 0;
-            puts("cast!");
             SET_ANIMATION(player, test_player, Cast);
             ePlayer_cast(player, dt);
         }
@@ -195,119 +334,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         player->velocity.y = player_last_yspeed;
     }
     
-    // NOTE(miked): This should teach me not to mix integers
-    // and floats ever again:
-#if 1
-    // This would cause less movement in Y. pos.x + vel.y * dt
-    // will result in a float, which will then truncate to an int.
-    player->position.x += (i32)(player->velocity.x * dt);
-    player->position.y += (i32)(player->velocity.y * dt);
-#else
-    // But this implied calculation would be int i = vel.x * dt; pos.x += i
-    //etc... So it results in more movement in the y direction.
-    player->position += player->velocity * dt;
-#endif
-    
-    // Get the upper left tile based on the center of the player sprite
-    ivec2 ipos = {(i32)player->position.x + 32, (i32)player->position.y + 32};
-    ivec2 start_tile = iclamp({0,0}, {14,11},
-                              map_position_to_tile(ipos) - 1);
-    
-    b32 collided_on_bottom = false;
-    
-    for (i32 j = 0; j < 3; ++j)
-    {
-        for (i32 i = 0; i < 3; ++i)
-        {
-            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
-            
-            ivec2 tile_coords =
-            {
-                (start_tile.x + i) * 64,
-                (start_tile.y + j) * 64
-            };
-            
-            AABox collision = {0, 0, 64, 64};
-            collision = collision.translate(tile_coords);
-            AABox player_trans = player->get_transformed_AABox();
-            
-            ivec2 diff;
-            b32 collided = aabb_minkowski(&player_trans, &collision, &diff);
-            if (collided)
-            {
-                player->position = player->position - (diff);
-                
-                // If we are moving up and diff moved us in the Y dir,
-                // then negate the collision.
-                // (fixes bouncing when hitting corner of a tile)
-                if (player->velocity.y < 0 && iabs(diff.y) < 5)
-                {
-                    player->position.y += diff.y;
-                    continue;
-                }
-                
-                if (j == 2)
-                {
-                    collided_on_bottom = true;
-                    if (iabs(diff.y) > 0)
-                    {
-                        player->is_on_air = false;
-                        player->velocity.y = 0;
-                    }
-                }
-                
-                // Bouncing
-                if (player->velocity.y < 0 &&
-                    player->is_on_air &&
-                    player_trans.min_x < collision.max_x && 
-                    diff.x >= 0)
-                {
-                    player->velocity.y = -player->velocity.y * 0.737;
-                    player->is_on_air = true;
-                    
-                    // it has to be mostly above the player, in order to avoid
-                    // destroying blocks diagonally
-                    if ( i != 1 || j != 0) continue;
-                    
-                    ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
-                    if ((EntityBaseType)g_scene.get_tile(current_tile) == eBlockFrail)
-                    {
-                        g_scene.set_tile(current_tile, eEmptySpace);
-                    }
-                    
-                }
-                
-            }
-            
-            gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {tile_coords.x, tile_coords.y},
-                {64, 64},
-                0.f,
-                5 * 5);
-        }
-    }
-    
-    if (!collided_on_bottom && player->velocity.y != 0)
-        player->is_on_air = true;
-    
-    // Draw the Bounding box sprite
-    AABox box = player->get_transformed_AABox();
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {box.min_x, box.min_y},
-        {box.max_x - box.min_x, box.max_y - box.min_y},
-        0,5 * 5 + 1 );
-    
-    // Draw the "air indicator"
-    if (!player->is_on_air)
-    {
-        gl_slow_tilemap_draw(
-            &GET_TILEMAP_TEXTURE(test),
-            {0, 0},
-            {30, 30},
-            0,5 * 2 + 4 );
-    }
+    player->move_and_collide(dt, GRAVITY, MAX_YSPEED, JUMP_STRENGTH, vel, true);
     
     ////////////////////////////////
     // Animation Logic
@@ -320,6 +347,26 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     else
     {
         SET_ANIMATION(player, test_player, Idle);
+    }
+    
+}
+
+internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
+{
+    persist b32 test_start_moving = false;
+    if (GET_KEYPRESS(m_pressed)) test_start_moving = true;
+    
+    if (!test_start_moving) return;
+    // TODO(miked): goblin behavior
+    goblin->move_and_collide(dt, 900, 450, 450, 100);
+    
+    ////////////////////////////////
+    // Animation Logic
+    if (iabs(goblin->velocity.x) > 0)
+    {
+        SET_ANIMATION(goblin, Goblin, Walk);
+        
+        goblin->mirror.x = goblin->velocity.x > 0;
     }
     
 }

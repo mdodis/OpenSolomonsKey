@@ -101,7 +101,6 @@ struct RESSound
     u32 num_channels;
     u32 num_samples;
     void* data;
-    
 };
 
 struct Sound
