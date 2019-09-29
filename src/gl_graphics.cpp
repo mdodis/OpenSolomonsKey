@@ -195,7 +195,7 @@ b32 mirrory)
     
     model = glm::scale(model, glm::vec3(g_pixel_scale, g_pixel_scale, 1.f));
     // ORIGIN on BOTTOM-CENTER
-    // model = glm::translate(model, glm::vec3(pos - glm::vec2(-0.5f * size.x, size.y), 0.0f));
+    //model = glm::translate(model, glm::vec3(pos - glm::vec2(0, size.y), 0.0f));
     // ORIGIN on TOP-LEFT
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     

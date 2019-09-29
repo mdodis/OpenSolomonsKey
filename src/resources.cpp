@@ -1,6 +1,15 @@
 #if !defined(OSK_RES_H)
 #define OSK_RES_H
 
+struct Animation
+{
+    float duration = 1.f;
+    ivec2 start = {0, 0};
+    u32 size = 1;
+    b32 loop = true;
+};
+
+
 ////////////////////////////////
 ////////////////////////////////
 /* Tilemaps
@@ -11,8 +20,8 @@ tilemaps.
 #define ALL_TILEMAPS \
 /*          NAME     PATH IN FOLDER                                rows cols*/\
 DEF_TILEMAP(test    ,"test_tilemap.png"                           ,6    ,5   )\
-DEF_TILEMAP(dana    ,"res/joined/dana_all.png"                    ,3    ,6   )\
-DEF_TILEMAP(tmgoblin,"res/characters/goblin/goblin.png"           ,1    ,6   )\
+DEF_TILEMAP(dana    ,"res/characters/dana/dana_all.png"           ,4    ,6   )\
+DEF_TILEMAP(tmgoblin,"res/characters/goblin/goblin_all.png"       ,2    ,6   )\
 
 
 struct RESTilemap
@@ -42,15 +51,17 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                          \
 /*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(test_player, dana,     3,                                         \
+DEF_CHARACTER(test_player, dana,     4,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(test_player,  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(test_player,  Cast,    .05f,      {0,2}, 3,      false)  \
+DEF_ANIM(test_player,  Cast,    .05f,     {0,2}, 3,      false)   \
+DEF_ANIM(test_player,  Crouch,  .05f,     {0,3}, 1,      true)    \
 )                                                                 \
-DEF_CHARACTER(Goblin,      tmgoblin, 1,                                         \
+DEF_CHARACTER(Goblin,      tmgoblin, 2,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true)    \
+DEF_ANIM(Goblin,       Punch,   .4f,      {0,1}, 4,      false)   \
 )                                                                 \
 
 

@@ -35,9 +35,9 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #define OSK_MATH_IMPL
 #include "osk_math.h"
 #include "gl_funcs.h"
-#include "objects.h"
 #include "gl_graphics.h"
 #include "resources.cpp"
+#include "objects.h"
 #include "audio.cpp"
 #include "sprites.cpp"
 #include "levels.cpp"
@@ -157,7 +157,7 @@ cb_init()
     Sprite player_sprite = {
         .tilemap = &GET_CHAR_TILEMAP(test_player),
         .collision_box = {5,0,45,64},
-        .current_frame = 0,
+        //.current_frame = 0,
         .current_animation = GET_CHAR_ANIMENUM(test_player, Idle),
         .animation_set = GET_CHAR_ANIMSET(test_player),
         .entity =
@@ -168,21 +168,7 @@ cb_init()
     };
     scene_sprite_add(&player_sprite);
     
-    Sprite goblin_sprite = {
-        .tilemap = &GET_CHAR_TILEMAP(Goblin),
-        .position = ivec2{10, 10},
-        .collision_box = {5,0,45,64},
-        .current_frame = 0,
-        .current_animation = GET_CHAR_ANIMENUM(Goblin, Walk),
-        .time_accumulator = 0.f,
-        .animation_set = GET_CHAR_ANIMSET(Goblin),
-        
-        .entity =
-        {
-            eGoblin,
-            {0,0}
-        }
-    };
+    Sprite goblin_sprite = make_goblin({64,10});
     scene_sprite_add(&goblin_sprite);
     
     return;

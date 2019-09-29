@@ -1,95 +1,4 @@
 
-struct Sprite
-{
-    GLTilemapTexture const * tilemap = 0;
-    ivec2 size = {64, 64};
-    ivec2 position = {0,0};
-    float rotation = 0.f;
-    AABox collision_box = {0,0,64,64};
-    ivec2 mirror = {false, false};
-    ivec2 velocity = {0,0};
-    b32 is_on_air = false;
-    
-    b32 animation_playing = true;
-    i32 current_frame = 0;
-    i32 current_animation = -1;
-    float time_accumulator = 0.f;
-    Animation* animation_set;
-    
-    Entity entity;
-    
-    inline AABox get_transformed_AABox() const
-    {
-        return this->collision_box.translate(this->position);
-    }
-    
-    void update_animation(float dt)
-    {
-        Animation* anim_ref;
-        
-        anim_ref = &this->animation_set[this->current_animation];
-        if (anim_ref->size == 0 || !this->animation_playing)
-            return;
-        
-        this->time_accumulator += dt;
-        if (this->time_accumulator >= anim_ref->duration)
-        {
-            this->current_frame++;
-            if (this->current_frame >= anim_ref->size )
-            {
-                
-                if (anim_ref->loop)
-                    this->current_frame = 0;
-                else
-                {
-                    this->animation_playing = false;
-                    this->current_frame--;
-                }
-            }
-            
-            this->time_accumulator = 0.f;
-        }
-        
-    }
-    
-#define SET_ANIMATION(spr, c, n) spr->set_animation_index(GET_CHAR_ANIMENUM(c, n))
-    void set_animation_index(u32 anim_idx)
-    {
-        if (this->current_animation != anim_idx)
-        {
-            this->animation_playing = true;
-            this->current_animation = anim_idx;
-            this->current_frame = 0;
-            this->time_accumulator = 0;
-        }
-        
-    }
-    
-    void move_and_collide(
-        float dt,
-        const i32 GRAVITY,
-        const i32 MAX_YSPEED,
-        const i32 JUMP_STRENGTH,
-        i32 XSPEED,
-        b32 damage_tiles = false);
-    
-    b32 jump(i32 strength)
-    {
-        
-        if (!this->is_on_air)
-        {
-            this->velocity.y = -strength;
-            this->is_on_air = true;
-            // TODO(miked): return if we jumped
-            //audio_play_sound(&this_jump_sound);
-            
-            return true;
-        }
-        return false;
-        
-    }
-};
-
 // This is a simple array list I wrote for C99. I'll probably regret
 // using it, but life is all about living on the edge, and that means
 // having potential creeping bugs sneaking up you when you least want it.
@@ -99,6 +8,7 @@ struct Sprite
 
 struct
 {
+    
     u64 tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     // TODO(miked): Hidden items
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
@@ -115,8 +25,6 @@ struct
     }
     
 } g_scene;
-
-
 
 void Sprite::move_and_collide(
 float dt,
@@ -145,9 +53,9 @@ b32 damage_tiles)
 #endif
     
     // Get the upper left tile based on the center of the this sprite
-    ivec2 ipos = {(i32)this->position.x + 32, (i32)this->position.y + 32};
+    ivec2 ipos = {(i32)this->position.x, (i32)this->position.y};
     ivec2 start_tile = iclamp({0,0}, {14,11},
-                              map_position_to_tile(ipos) - 1);
+                              map_position_to_tile_centered(ipos) - 1);
     
     b32 collided_on_bottom = false;
     
@@ -263,10 +171,9 @@ internal void
 ePlayer_cast(Sprite* player, float dt)
 {
     // Get the upper left tile based on the center of the player sprite
-    ivec2 ipos = {(i32)player->position.x + 32, (i32)player->position.y + 32};
-    ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile(ipos));
-    
+    ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
+    
     if (player->mirror.x)
     {
         if (player_tile.x >= 14) return;
@@ -276,6 +183,13 @@ ePlayer_cast(Sprite* player, float dt)
     {
         if (player_tile.x <= 0) return;
         target_tile.x -= 1;
+    }
+    
+    // if we were crouching: special condition
+    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch) && 
+        g_scene.get_tile(target_tile) == eEmptySpace)
+    {
+        target_tile.y = iclamp(0, 14,target_tile.y + 1);
     }
     
     // TODO(miked): Secrets in tiles and empty space!
@@ -289,6 +203,8 @@ ePlayer_cast(Sprite* player, float dt)
         g_scene.set_tile(target_tile, eBlockFrail);
     }
     
+    SET_ANIMATION(player, test_player, Cast);
+    
 }
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
@@ -297,22 +213,31 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     const i32 MAX_YSPEED = 450;
     const i32 JUMP_STRENGTH = 450;
     const i32 XSPEED = 200;
-    i32 vel = 0;
     
-    if (GET_KEYDOWN(move_right))
-        vel = XSPEED;
-    else if (GET_KEYDOWN(move_left))
-        vel = -XSPEED;
+    // movement
+    i32 vel = 0;
+    if (GET_KEYDOWN(move_right)) vel = XSPEED;
+    else if (GET_KEYDOWN(move_left)) vel = -XSPEED;
+    
+    b32 is_crouching = false;
+    if (GET_KEYDOWN(move_down))
+    {
+        if (!player->is_on_air)
+            is_crouching = true;
+    }
     
     b32 did_jump = false;
-    if (GET_KEYPRESS(move_up)) did_jump = player->jump(JUMP_STRENGTH);
+    if (GET_KEYPRESS(move_up) && !is_crouching)
+        did_jump = player->jump(JUMP_STRENGTH);
     
     if (did_jump)
     {
         audio_play_sound(&player_jump_sound);
     }
     
-    // Casting basics
+    b32 enable_move = !is_crouching;
+    
+    // Casting 
     if (GET_KEYPRESS(cast))
     {
         if (player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
@@ -322,7 +247,6 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
             // cast!
             player->velocity.x = 0;
             player->velocity.y = 0;
-            SET_ANIMATION(player, test_player, Cast);
             ePlayer_cast(player, dt);
         }
     }
@@ -334,15 +258,19 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         player->velocity.y = player_last_yspeed;
     }
     
-    player->move_and_collide(dt, GRAVITY, MAX_YSPEED, JUMP_STRENGTH, vel, true);
+    if (enable_move)
+        player->move_and_collide(dt, GRAVITY, MAX_YSPEED, JUMP_STRENGTH, vel, true);
     
-    ////////////////////////////////
-    // Animation Logic
+    
     if (iabs(player->velocity.x) > 0)
     {
         SET_ANIMATION(player, test_player, Run);
         
         player->mirror.x = player->velocity.x > 0;
+    }
+    else if (is_crouching)
+    {
+        SET_ANIMATION(player, test_player, Crouch);
     }
     else
     {
@@ -353,19 +281,18 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
-    persist b32 test_start_moving = false;
-    if (GET_KEYPRESS(m_pressed)) test_start_moving = true;
+    persist b32 t_ = false;
+    if (!t_)
+    {
+        t_ = true;
+        SET_ANIMATION(goblin, Goblin, Walk);
+    }
     
-    if (!test_start_moving) return;
-    // TODO(miked): goblin behavior
     goblin->move_and_collide(dt, 900, 450, 450, 100);
     
-    ////////////////////////////////
-    // Animation Logic
+    
     if (iabs(goblin->velocity.x) > 0)
     {
-        SET_ANIMATION(goblin, Goblin, Walk);
-        
         goblin->mirror.x = goblin->velocity.x > 0;
     }
     

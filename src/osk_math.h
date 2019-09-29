@@ -132,9 +132,17 @@ inline int highest_pow2(int n)
 }
 
 inline ivec2 
+map_position_to_tile_centered(ivec2 position)
+{
+    // NOTE(miked): behavior of original game
+    return ivec2{(position.x + 32) / 64, (position.y + 32) / 64};
+}
+
+
+inline ivec2 
 map_position_to_tile(ivec2 position)
 {
-    return ivec2{position.x / 64, position.y / 64};
+    return ivec2{(position.x) / 64, (position.y) / 64};
 }
 
 AABox AABox::translate(ivec2 position) const

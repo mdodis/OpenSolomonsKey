@@ -57,6 +57,9 @@ double g_pixel_scale; // scale of a pixel(for non tile-aligned movement)
 #define W_2_H 1.1428571428571428
 #define HEIGHT_2_WIDTH_SCALE 0.875
 
+#define TILEMAP_ROWS 12
+#define TILEMAP_COLS 15
+
 #include "input.h"
 
 extern void cb_init();
