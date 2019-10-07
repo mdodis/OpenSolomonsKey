@@ -32,6 +32,7 @@ DEF_GLFUNC(void,     ENABLEVERTEXATTRIBARRAY,   EnableVertexAttribArray,    GLui
 DEF_GLFUNC(void,     DISABLEVERTEXATTRIBARRAY,  DisableVertexAttribArray,   GLuint index);
 DEF_GLFUNC(void,     VERTEXATTRIBPOINTER,       VertexAttribPointer,        GLuint index,GLint size,GLenum type,GLboolean normalized,GLsizei stride,const GLvoid * pointer);
 DEF_GLFUNC(void,     UNIFORMMATRIX4FV,          UniformMatrix4fv,           GLint location,GLsizei count,GLboolean transpose,const GLfloat * value);
+DEF_GLFUNC(void,     UNIFORM4F,                 Uniform4f,                  GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 
 #define GL_LOAD_BLOCK \
 LOAD_GLFUNC(TexStorage3D,               TEXSTORAGE3D);\
@@ -58,6 +59,7 @@ LOAD_GLFUNC(EnableVertexAttribArray,    ENABLEVERTEXATTRIBARRAY); \
 LOAD_GLFUNC(DisableVertexAttribArray,   DISABLEVERTEXATTRIBARRAY);\
 LOAD_GLFUNC(VertexAttribPointer,        VERTEXATTRIBPOINTER); \
 LOAD_GLFUNC(UniformMatrix4fv,           UNIFORMMATRIX4FV); \
+LOAD_GLFUNC(Uniform4f,                  UNIFORM4F); \
 
 #if defined(OSK_PLATFORM_X11)
 

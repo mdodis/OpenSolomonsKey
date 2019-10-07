@@ -39,8 +39,8 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include "resources.cpp"
 #include "objects.h"
 #include "audio.cpp"
-#include "sprites.cpp"
 #include "levels.cpp"
+#include "sprites.cpp"
 
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
@@ -168,7 +168,7 @@ cb_init()
     };
     scene_sprite_add(&player_sprite);
     
-    Sprite goblin_sprite = make_goblin({64,10});
+    Sprite goblin_sprite = make_goblin({64 * 3,10});
     scene_sprite_add(&goblin_sprite);
     
     return;

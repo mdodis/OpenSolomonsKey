@@ -181,7 +181,8 @@ glm::vec2 size,
 float rotate,
 i32 tm_index,
 b32 mirrorx,
-b32 mirrory)
+b32 mirrory,
+NRGBA tint)
 {
     if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
@@ -228,7 +229,7 @@ b32 mirrory)
         1,
         GL_FALSE,
         glm::value_ptr(model));
-    
-    
+    loc = glGetUniformLocation(g_shd_2d.id, "tint");
+    glUniform4f(loc, tint.r, tint.g, tint.b, tint.a);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }

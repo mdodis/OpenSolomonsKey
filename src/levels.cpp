@@ -2,6 +2,24 @@
 Attempting to switch to a non palleted level format.
 */
 
+// This is a simple array list I wrote for C99. I'll probably regret
+// using it, but life is all about living on the edge, and that means
+// having potential creeping bugs sneaking up you when you least want it.
+#define CA_TYPE Sprite
+#include "calist.h"
+#undef CA_TYPE
+
+global struct
+{
+    
+    EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    // TODO(miked): Hidden items
+    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    List_Sprite spritelist = {};
+    
+} g_scene;
+
+
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
 
 internal const char*
@@ -94,7 +112,7 @@ internal void level_load(char* data)
                     counter_y++;
                 }
                 
-                g_scene.tilemap[counter_x][counter_y] = res;
+                g_scene.tilemap[counter_x][counter_y] = (EntityBaseType)res;
                 
                 counter_x++;
                 
@@ -148,6 +166,21 @@ scene_draw_tilemap()
         }
     }
 }
+
+
+u64 scene_get_tile(ivec2 p)
+{
+    return g_scene.tilemap[p.x][p.y];
+}
+
+void scene_set_tile(ivec2 p, EntityBaseType t)
+{
+    g_scene.tilemap[p.x][p.y] = t;
+}
+
+
+void ePlayer_update(Sprite* spref, InputState* istate, float dt);
+void eGoblin_update(Sprite* spref, InputState* istate, float dt);
 
 internal void 
 scene_update(InputState* istate, float dt)

@@ -66,7 +66,7 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, u64 audio_sample_count, float dt);
 
-
+// TODO(miked): switch to platform specific functions
 internal char*
 platform_load_entire_file(const char* path)
 {
@@ -120,7 +120,7 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-    float volume = 0.7;
+    float volume = 0.0;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;

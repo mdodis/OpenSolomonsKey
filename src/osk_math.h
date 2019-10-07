@@ -238,4 +238,11 @@ inline float ilength(ivec2 a)
 {
     return sqrt(a.x * a.x + a.y * a.y);
 }
+
+struct NRGBA
+{
+    float r, g, b, a;
+};
+
+
 #endif

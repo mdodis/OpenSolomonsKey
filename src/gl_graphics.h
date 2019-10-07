@@ -36,7 +36,8 @@ glm::vec2 size,
 float rotate = 0.f,
 i32 tm_index = 0,
 b32 mirrorx = false,
-b32 mirrory = false);
+b32 mirrory = false,
+NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f});
 
 const char* const g_2d_vs =
 R"EOS(
@@ -63,10 +64,11 @@ out vec4 color;
 
 uniform sampler2DArray sampler;
 uniform int layer = 0;
+uniform vec4 tint = vec4(1, 1, 1, 1);
 
 void main()
 {
-      color =  texture(sampler, vec3(TexCoords,layer));
+      color =  texture(sampler, vec3(TexCoords,layer)) * tint;
       //color = vec4(0.0, 1.0, 0.0, 1.0);
     }
     

@@ -542,7 +542,6 @@ int       nShowCmd)
     QueryPerformanceFrequency(&perf_freq);
     QueryPerformanceCounter(&perf_last);
     
-    
     while (g_running)
     {
         while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE))
