@@ -1,23 +1,23 @@
 void Sprite::move_and_collide(
 float dt,
-const i32 GRAVITY,
-const i32 MAX_YSPEED,
-const i32 JUMP_STRENGTH,
-i32 XSPEED,
+const float GRAVITY,
+const float MAX_YSPEED,
+const float JUMP_STRENGTH,
+float XSPEED,
 b32 damage_tiles)
 {
     this->velocity.x = XSPEED;
     
     this->velocity.y += GRAVITY * dt;
-    this->velocity.y = iclamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
+    this->velocity.y = fclamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
     
     // NOTE(miked): This should teach me not to mix integers
     // and floats ever again:
-#if 1
+#if 0
     // This would cause less movement in Y. pos.x + vel.y * dt
     // will result in a float, which will then truncate to an int.
-    this->position.x += (i32)(this->velocity.x * dt);
-    this->position.y += (i32)(this->velocity.y * dt);
+    this->position.x += (this->velocity.x * dt);
+    this->position.y += (this->velocity.y * dt);
 #else
     // But this implied calculation would be int i = vel.x * dt; pos.x += i
     //etc... So it results in more movement in the y direction.
@@ -25,8 +25,8 @@ b32 damage_tiles)
 #endif
     
     // Get the upper left tile based on the center of the this sprite
-    ivec2 ipos = {(i32)this->position.x, (i32)this->position.y};
-    ivec2 start_tile = iclamp({0,0}, {14,11},
+    fvec2 ipos = {this->position.x, this->position.y};
+    ivec2 start_tile = iclamp(ivec2{0,0}, ivec2{14,11},
                               map_position_to_tile_centered(ipos) - 1);
     
     b32 collided_on_bottom = false;
@@ -37,17 +37,17 @@ b32 damage_tiles)
         {
             if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
             
-            ivec2 tile_coords =
+            fvec2 tile_coords =
             {
-                (start_tile.x + i) * 64,
-                (start_tile.y + j) * 64
+                (start_tile.x + i) * 64.f,
+                (start_tile.y + j) * 64.f
             };
             
             AABox collision = {0, 0, 64, 64};
             collision = collision.translate(tile_coords);
             AABox this_trans = this->get_transformed_AABox();
             
-            ivec2 diff;
+            fvec2 diff;
             b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
             if (collided)
             {
@@ -122,8 +122,12 @@ b32 damage_tiles)
 
 RESSound player_jump_sound;
 
-internal void
-ePlayer_cast(Sprite* player, float dt)
+
+// TODO(miked): original game says that you can do the following:
+// P 1 | The player is crouched and does a cast, aiming for the empty
+// 1 0 | space. Original says that it _will_ create that block instead
+// of breaking the left one. Change that back!
+internal void ePlayer_cast(Sprite* player, float dt)
 {
     // Get the upper left tile based on the center of the player sprite
     ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
@@ -221,8 +225,13 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     
 }
 
+
+// TODO(miked): make goblin stop at the edges of blocks and switch direction,
+// rather than fall down
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
+    const float goblin_walk_speed = 100;
+    const float goblin_run_speed = 140;
     
     
     if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch))
@@ -234,25 +243,67 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         }
     }
     
-    const i32 direction = goblin->mirror.x ? 1 : -1;
-    const i32 punch_offset_amount = 32;
-    const i32 punch_offset = direction * (punch_offset_amount);
     
+    const float direction = goblin->mirror.x ? 1 : -1;
+    const float punch_offset_amount = 32;
+    const float punch_offset = direction * (punch_offset_amount);
     
-    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Walk))
+    const Sprite* const player = scene_get_first_sprite(ePlayer);
+    fail_unless(player, "Player sprite not found scene_get_first_sprite");
+    
+    fvec2 ppos = player->position;
+    ivec2 ppos_tile = map_position_to_tile_centered(ppos);
+    
+    ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
+    
+    if (goblin_tile.y == ppos_tile.y)
     {
-        goblin->move_and_collide(dt, 900, 450, 450, 100 * direction);
+        
+        i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
+        
+        ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);
+        if (block_tile == ivec2{-1, -1})
+        {
+            persist i32 blocking_tiles = 0;
+            
+            if (tdiff == -direction)
+            {
+                SET_ANIMATION(goblin, Goblin, Chase);
+            }
+        }
+        else
+        {
+            gl_slow_tilemap_draw(
+                &GET_TILEMAP_TEXTURE(test),
+                {block_tile.x * 64, block_tile.y * 64},
+                {64, 64},
+                0,5 * 5 + 0,
+                false, false,
+                NRGBA{0.f, 1.f, 1.f, 1.f});
+            
+        }
+        
+    }
+    
+    if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch))
+    {
+        i32 move_amount = goblin_walk_speed;
+        
+        if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Walk))
+            move_amount = goblin_run_speed;
+        
+        goblin->move_and_collide(dt, 900, 450, 450, move_amount * direction);
         
         if (iabs(goblin->velocity.x) > 0)
         {
-            SET_ANIMATION(goblin, Goblin, Walk);
+            //SET_ANIMATION(goblin, Goblin, Walk);
             goblin->mirror.x = goblin->velocity.x > 0;
         }
         
     }
     
-    printf("%d\n", goblin->mirror.x);
-    ivec2 tile_index = map_position_to_tile_centered(goblin->position + ivec2{punch_offset, 0 });
+    ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
+    
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
         {tile_index.x * 64, tile_index.y * 64},
@@ -260,8 +311,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         0,5 * 5 + 1,
         false, false,
         NRGBA{0.f, 1.f, 0.f, 1.f});
-    if (scene_get_tile(tile_index))
+    
+    if (scene_get_tile(tile_index) != eEmptySpace && !(goblin->is_on_air))
     {
         SET_ANIMATION(goblin, Goblin, Punch);
     }
+    
 }

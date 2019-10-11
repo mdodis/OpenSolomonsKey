@@ -1,22 +1,22 @@
 /*
 TODO:
+- Think about how we'll be doing effects like block creation etc.
+  --My current idea is that we'll make a smaller version of Sprite
+  --(pos + size) and add an Animation, which plays to the end. In resources.cpp
+  --It'll be a single DEF_CHARACTER(Effect).
+  
 - eBlockFrail needs to have a default health parameter
-- eGoblin
-- continue level loading
 - Sound resource system (one of us...)
 - background music play/stop
-=========================================================
-  X Block creation - destruction
-   X Play on event (keyboard press)
- X scene graph to query enemies for collisions
-   X player animation logic
-   
-  NOTE:
+
+NOTE:
   use sox to convert audio into desired format:
 sox [input] -r 48k -c 2 -b 16 [output]
 -r 48k  :: 48000 sample rate
 -c 2    :: stereo (2 channels)
 -b 16   :: 16b / sample (can't explicitly say if it's signed or unsigned though...)
+
+NOTE: VSYNC is currently mandatory for the game to run correctly!
 */
 
 #include <stdio.h>
@@ -30,13 +30,86 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-
-#define OSK_MATH_IMPL
 #include "osk_math.h"
 #include "gl_funcs.h"
 #include "gl_graphics.h"
 #include "resources.cpp"
+
+void draw_num(float num, int line = 0)
+{
+    char buf[20] = "";
+    sprintf(buf, "%f", num);
+    
+    char* c = buf;
+    const float size = 16;
+    float increment = 0;
+    while(*c)
+    {
+        if (*c >= '0' && *c <= '9')
+        {
+            int c_to_font = (*c - 48) + (1 * 16);
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
+                                 glm::vec2{increment, line * size},
+                                 glm::vec2{size, size},
+                                 0,
+                                 c_to_font,
+                                 false, false, NRGBA{1,1,1,1});
+            
+        }
+        else if (*c == '.')
+        {
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
+                                 glm::vec2{increment, line * size},
+                                 glm::vec2{size, size},
+                                 0,
+                                 14,
+                                 false, false, NRGBA{1,1,1,1});
+            
+        }
+        increment += size;
+        
+        c++;
+    }
+}
+
+
+void draw_text(char* text, int line)
+{
+    char* c = text;
+    const float size = 16;
+    float increment = 0;
+    
+    while(*c)
+    {
+        if (*c >= 'a' && *c <= 'z')
+        {
+            
+            int c_to_font = (*c - 65) + (2 * 16 + 1);
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
+                                 glm::vec2{increment, line * size},
+                                 glm::vec2{size, size},
+                                 0,
+                                 c_to_font,
+                                 false, false, NRGBA{1,1,1,1});
+            
+        }
+        else if (*c >= 'A' && *c <= 'Z')
+        {
+            int c_to_font = (*c - 97) + (4 * 16 + 1);
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
+                                 glm::vec2{increment, line * size},
+                                 glm::vec2{size, size},
+                                 0,
+                                 c_to_font,
+                                 false, false, NRGBA{1,1,1,1});
+            
+        }
+        
+        increment += size;
+        c++;
+    }
+}
+
 #include "objects.h"
 #include "audio.cpp"
 #include "levels.cpp"
@@ -152,24 +225,10 @@ cb_init()
     assert(glGetError() == GL_NO_ERROR);
     
     
-    scene_init("Hello ");
+    scene_init("lvl1.osk");
     
-    Sprite player_sprite = {
-        .tilemap = &GET_CHAR_TILEMAP(test_player),
-        .collision_box = {5,0,45,64},
-        //.current_frame = 0,
-        .current_animation = GET_CHAR_ANIMENUM(test_player, Idle),
-        .animation_set = GET_CHAR_ANIMSET(test_player),
-        .entity =
-        {
-            ePlayer,
-            {0,0}
-        }
-    };
-    scene_sprite_add(&player_sprite);
-    
-    Sprite goblin_sprite = make_goblin({64 * 3,10});
-    scene_sprite_add(&goblin_sprite);
+    //Sprite goblin_sprite = make_goblin({64 * 3,64 * 3});
+    //scene_sprite_add(&goblin_sprite);
     
     return;
 }
@@ -209,9 +268,11 @@ cb_resize()
 void
 cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
-    
     glClearColor( 0.156, 0.156,  0.156, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+    
+    draw_text("MS per frame", 0);
+    draw_num(dt * 1000.f, 1);
     
     persist b32 initial = true;
     if (initial)

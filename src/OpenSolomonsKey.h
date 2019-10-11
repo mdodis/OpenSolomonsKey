@@ -28,10 +28,12 @@ inline void _exit_with_message(char* message)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg "\n\t" #expr)
 #endif
 
-#include <assert.h>
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", __VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
+
+#define assert(expr) do{if (!(expr)) { fprintf(stderr, "ASSERTION FAILED: %s:%d\n", __FILE__, __LINE__); exit(-1);}  }while(0)
+
 
 #define internal static
 #define global   static
@@ -120,7 +122,7 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-    float volume = 0.0;
+    float volume = 0.0f;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;

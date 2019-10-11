@@ -48,6 +48,9 @@ I really don't want to have to deal with where config files should be put in
 either of the two currently supported platforms, so I've generated this ugly
 macro based method of doing configuration in input.h and resources.cpp.
 
+### Integer math -> float math
+Switched to float based math calculation to support high framerates.
+
 ## Notes:
 
 * Jump: 2 + 1/3 blocks, goes inside the last block, but without colliding

@@ -20,7 +20,14 @@ global struct
 } g_scene;
 
 
-#define IS_DIGIT(x) (x >= '0' && x <= '9')
+internal void 
+scene_sprite_add(Sprite* sprite)
+{
+    fail_unless(sprite, "Passing null sprite to scene_add");
+    ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
+}
+
+
 
 internal const char*
 string_trim(const char* c)
@@ -52,6 +59,7 @@ internal const char* string_parse(const char* c, const char* str)
 internal const char*
 string_parse_uint(const char* c, u64* out_i)
 {
+#define IS_DIGIT(x) (x >= '0' && x <= '9')
     u64 res = 0;
     while (*c && IS_DIGIT(*c))
     {
@@ -62,8 +70,14 @@ string_parse_uint(const char* c, u64* out_i)
     }
     *out_i = res;
     return c;
+#undef IS_DIGIT
 }
 
+
+internal b32 is_valid_tilemap_object(EntityBaseType type)
+{
+    return ((u64)type <= (u64)eBlockSolid);
+}
 
 internal void level_load(char* data)
 {
@@ -99,7 +113,6 @@ internal void level_load(char* data)
             {
                 u64 res;
                 c = string_parse_uint(c, &res);
-                // TODO(miked): add custom parameters with commas!
                 
                 fail_unless(res < EntityBaseType_Count,
                             "Entity index does not exist in version" 
@@ -108,14 +121,42 @@ internal void level_load(char* data)
                 if (counter_x >= TILEMAP_COLS)
                 {
                     counter_x = 0;
-                    //printf("\t%d\n", counter_y);
                     counter_y++;
                 }
                 
-                g_scene.tilemap[counter_x][counter_y] = (EntityBaseType)res;
+                if (is_valid_tilemap_object((EntityBaseType) res))
+                    g_scene.tilemap[counter_x][counter_y] = (EntityBaseType)res;
+                else
+                {
+                    Sprite sprite_to_make;
+                    fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
+                    
+                    
+                    switch((EntityBaseType)res)
+                    {
+                        case eGoblin:
+                        {
+                            sprite_to_make = make_goblin(sprite_initial_pos);
+                            c = goblin_parse_custom(&sprite_to_make, c);
+                        }break;
+                        
+                        case ePlayerSpawnPoint:
+                        {
+                            sprite_to_make = make_player(sprite_initial_pos);
+                        }break;
+                        
+                        default:
+                        {
+                            warn("sprite type not available for make_");
+                        }break;
+                    }
+                    
+                    scene_sprite_add(&sprite_to_make);
+                    
+                    g_scene.tilemap[counter_x][counter_y] = eEmptySpace;
+                }
                 
                 counter_x++;
-                
                 
             } break;
             
@@ -130,17 +171,11 @@ internal void level_load(char* data)
 
 internal void scene_init(const char* level_path)
 {
-    char* lvl = platform_load_entire_file("lvl1.osk");
+    //assert(level_path);
+    char* lvl = platform_load_entire_file(level_path);
     level_load(lvl);
     free(lvl);
     
-}
-
-internal void 
-scene_sprite_add(Sprite* sprite)
-{
-    fail_unless(sprite, "Passing null sprite to scene_add");
-    ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
 }
 
 internal void
@@ -168,15 +203,8 @@ scene_draw_tilemap()
 }
 
 
-u64 scene_get_tile(ivec2 p)
-{
-    return g_scene.tilemap[p.x][p.y];
-}
-
-void scene_set_tile(ivec2 p, EntityBaseType t)
-{
-    g_scene.tilemap[p.x][p.y] = t;
-}
+inline u64 scene_get_tile(ivec2 p) { return g_scene.tilemap[p.x][p.y];}
+inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
 
 
 void ePlayer_update(Sprite* spref, InputState* istate, float dt);
@@ -212,4 +240,39 @@ scene_update(InputState* istate, float dt)
         
         draw(l.data + i);
     }
+}
+
+// Finds first sprite of specific type
+// if not found; return 0
+internal const Sprite* const scene_get_first_sprite(EntityBaseType type)
+{
+    for (i32 i = 0; i < g_scene.spritelist.sz; i += 1)
+    {
+        Sprite* spref = &g_scene.spritelist.data[i];
+        
+        if (spref->entity.type == type) return spref;
+    }
+    return 0;
+    
+}
+
+// Returns first view-blocking tile in search direction specified
+// otherwise, returns {-1, -1};
+internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile)
+{
+    i32 xdiff = sgn(end_tile.x - start_tile.x);
+    while (start_tile != end_tile)
+    {
+        if (scene_get_tile(start_tile) != eEmptySpace)
+        {
+            return start_tile;
+        }
+        
+        start_tile.x += xdiff;
+        
+        if (start_tile.x < 0 || start_tile.x > 14) return {-1, -1};
+    }
+    
+    
+    return ivec2{-1 ,-1};
 }

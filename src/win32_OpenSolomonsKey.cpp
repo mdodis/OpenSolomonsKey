@@ -30,9 +30,46 @@ global b32 was_previously_moving_or_resizing = false;
 
 // NOTE(miked): Thank you https://gist.github.com/nickrolfe/1127313ed1dbf80254b614a721b3ee9c
 // Modern Opengl is a bitch to init on Windows
-typedef HGLRC WINAPI wglCreateContextAttribsARB_type(HDC hdc, HGLRC hShareContext,
-                                                     const int *attribList);
+typedef HGLRC WINAPI wglCreateContextAttribsARB_type(HDC hdc, HGLRC hShareContext,const int *attribList);
 wglCreateContextAttribsARB_type *wglCreateContextAttribsARB;
+
+typedef const char* PFNwglGetExtensionsStringARB(HDC hdc);
+PFNwglGetExtensionsStringARB* wglGetExtensionsStringARB;
+
+typedef BOOL PFNwglSwapIntervalEXT(int interval);
+PFNwglSwapIntervalEXT* wglSwapIntervalEXT;
+
+b32 wgl_is_extension_supported(char* extname,  char* ext_string)
+{
+    char* csearch = extname;
+    char* chay = ext_string;
+    
+    while(*csearch && *chay)
+    {
+        if (!(*chay))
+        {
+            if (!(*csearch))
+                return false;
+            else 
+                return true;
+        }
+        
+        if (*csearch == *chay)
+        {
+            csearch++;
+        }
+        else
+            csearch = extname;
+        
+        chay++;
+    }
+    
+    if (!(*csearch) && !(*csearch))
+        return true;
+    else
+        return false;
+    
+}
 
 // See https://www.opengl.org/registry/specs/ARB/wgl_create_context.txt for all values
 #define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
@@ -251,8 +288,10 @@ win32_update_and_render(HDC dc)
         delta = 0.f;
         was_previously_moving_or_resizing = false;
     }
+    //fprintf(stdout, "ms : %f\n", delta);
     delta /= 1000.f;
-    //if (delta > 0.015f) delta = 0.015f;
+    
+    if (delta >= 0.9f) delta = 0.9f;
     
     DWORD byte_to_lock, bytes_to_write;
     win32_dsound_get_bytes_to_output(&byte_to_lock, &bytes_to_write, delta);
@@ -260,10 +299,8 @@ win32_update_and_render(HDC dc)
     
     cb_render(g_input_state, samples_to_write, delta);
     
-    //win32_dsound_update_sound_buffer(bytes_to_lock, bytes_to_write);
     win32_dsound_copy_to_sound_buffer(byte_to_lock, bytes_to_write);
     
-    //fprintf(stdout, "DT: %f\n", delta);
     perf_last = perf_now;
     SwapBuffers(dc);
 }
@@ -432,11 +469,43 @@ win32_init_gl_extensions()
         "wglCreateContextAttribsARB");
     wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress(
         "wglChoosePixelFormatARB");
+    wglGetExtensionsStringARB = (PFNwglGetExtensionsStringARB*)wglGetProcAddress(
+        "wglGetExtensionsStringARB");
+    
+    if (wglGetExtensionsStringARB)
+    {
+        char* ext_string = (char*)wglGetExtensionsStringARB(dummy_dc);
+        
+        printf("WGL extensions: %s\n", ext_string);
+        
+        
+        if (wgl_is_extension_supported("WGL_EXT_swap_control", ext_string))
+        {
+            inform("wglSwapInterval is supported!");
+            
+            wglSwapIntervalEXT = (PFNwglSwapIntervalEXT*)wglGetProcAddress(
+                "wglSwapIntervalEXT");
+            
+            // NOTE/TODO(miked): The game does _not_ work without vsync
+            fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
+            fail_unless(wglSwapIntervalEXT(1), "swap interval set failed!");
+        }
+    }
+    
+    
     
     wglMakeCurrent(dummy_dc, 0);
     wglDeleteContext(dummy_context);
+    
+    
+    
+    
+    
     ReleaseDC(dummy_window, dummy_dc);
     DestroyWindow(dummy_window);
+    
+    
+    
 }
 
 
@@ -513,6 +582,62 @@ win32_update_all_keys()
 #undef KEYPRESS
 }
 
+// THREADING
+
+const u32 MAX_THREADS = 3;
+global HANDLE win32_threads[MAX_THREADS];
+
+struct win32_ThreadInfo
+{
+    u32 thread_index;
+};
+
+struct WorkQueueEntry
+{
+    char* string_to_print;
+};
+
+#include <intrin.h>
+
+#define COMPLETE_PAST_WRITES _WriteBarrier(); _mm_sfence()
+#define COMPLETE_PAST_READS  _ReadBarrier()
+
+global u32 volatile next_entry;
+global u32 volatile entry_count;
+global WorkQueueEntry entries[256];
+
+internal void push_queue_entry(char* string)
+{
+    WorkQueueEntry* entry = entries + entry_count;
+    entry->string_to_print = string;
+    
+    COMPLETE_PAST_WRITES;
+    
+    entry_count++;
+    
+}
+
+DWORD test_thread_proc(void* params)
+{
+    win32_ThreadInfo* info = (win32_ThreadInfo*)params;
+    
+    while (1)
+    {
+        if (next_entry < entry_count)
+        {
+            int next_entry_index =  InterlockedIncrement(&next_entry) - 1;
+            
+            COMPLETE_PAST_READS;
+            
+            WorkQueueEntry* entry = entries + next_entry_index;
+            
+            inform("THREAD %d: %s", info->thread_index, entry->string_to_print);
+        }
+    }
+    
+}
+
+
 int WinMain(
 HINSTANCE hInstance,
 HINSTANCE hPrevInstance,
@@ -526,6 +651,37 @@ int       nShowCmd)
     AttachConsole( GetCurrentProcessId() ) ;
     freopen( "CON", "w", stdout ) ;
 #endif
+    
+    
+#if 0    
+    win32_ThreadInfo info[MAX_THREADS] = {};
+    for (i32 i = 0; i < MAX_THREADS; ++i)
+    {
+        info[i].thread_index = i;
+        
+        DWORD thread_id;
+        HANDLE thread_handle = CreateThread(
+            0,0, 
+            test_thread_proc,
+            info + i,
+            0,
+            &thread_id);
+    }
+    
+    push_queue_entry("String 0\n");
+    push_queue_entry("String 1\n");
+    push_queue_entry("String 2\n");
+    push_queue_entry("String 3\n");
+    push_queue_entry("String 4\n");
+    push_queue_entry("String 5\n");
+    push_queue_entry("String 6\n");
+    push_queue_entry("String 7\n");
+    push_queue_entry("String 8\n");
+    push_queue_entry("String 9\n");
+#endif
+    
+    
+    
     win32_init(hInstance);
     HDC dc = GetDC(g_wind);
     
@@ -554,6 +710,8 @@ int       nShowCmd)
         win32_update_and_render(dc);
         
     }
+    
+    //system("pause");
     
     return 0;
 }

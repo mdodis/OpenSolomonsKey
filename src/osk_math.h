@@ -10,11 +10,12 @@ union ivec2
     {
         i32 x, y;
     };
-    struct
-    {
-        i32 w, h;
-    };
     i32 e[2];
+    
+    bool operator==(const ivec2& other)
+    {
+        return (this->x == other.x && this->y == other.y);
+    }
     
     ivec2 operator+(const ivec2& other)
     {
@@ -53,10 +54,66 @@ union ivec2
         return {x * other, y * other};
     }
     
-    ivec2 operator*(float other)
+};
+
+union fvec2
+{
+    struct
     {
-        i32 nx = (i32)( (float)x * other);
-        i32 ny = (i32)( (float)y * other);
+        float x, y;
+    };
+    struct
+    {
+        float w, h;
+    };
+    float e[2];
+    
+    bool operator==(const fvec2& other)
+    {
+        return (this->x == other.x && this->y == other.y);
+    }
+    
+    fvec2 operator+(const fvec2& other)
+    {
+        return {x + other.x, y + other.y};
+    }
+    
+    fvec2 operator-(const fvec2& other)
+    {
+        return {x - other.x, y - other.y};
+    }
+    
+    fvec2 operator+=(const fvec2& other)
+    {
+        *this = *this + other;
+        return *this;
+    }
+    
+    fvec2 operator-=(const fvec2& other)
+    {
+        *this = *this - other;
+        return *this;
+    }
+    
+    fvec2 operator+(i32 other)
+    {
+        return {x + other, y + other};
+    }
+    
+    fvec2 operator-(i32 other)
+    {
+        return {x - other, y - other};
+    }
+    
+    fvec2 operator*(i32 other)
+    {
+        return {x * other, y * other};
+    }
+    
+    fvec2 operator*(float other)
+    {
+        float nx = (float)( (float)x * other);
+        float ny = (float)( (float)y * other);
         return {nx, ny};
     }
     
@@ -67,41 +124,40 @@ Box in sprite space (i.e 64 over 64)
 */
 struct AABox
 {
-    i32 min_x = 0;
-    i32 min_y = 0;
-    i32 max_x = 64;
-    i32 max_y = 64;
+    float min_x = 0;
+    float min_y = 0;
+    float max_x = 64;
+    float max_y = 64;
     
-    AABox translate(ivec2 position) const;
+    AABox translate(fvec2 position) const;
 };
 
 internal b32
 aabb_minkowski(
 const AABox* const a,
 const AABox* const b,
-ivec2* const opt_pen);
+fvec2* const opt_pen);
 
 
-inline u64 lengthsq(const ivec2* const v);
-inline i32 ftrunc(float n);
-inline i32 iabs(i32 n);
-inline i32 iclamp(i32 a, i32 b, i32 x);
+inline u64 lengthsq(const fvec2* const v);
+inline float ftrunc(float n);
+inline float iabs(float n);
+inline float iclamp(float a, float b, float x);
 
-inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x);
+inline fvec2 iclamp(fvec2 a, fvec2 b, fvec2 x);
 inline int highest_pow2(int n);
 
 #endif //!OSK_MATH_H
 
-#ifdef OSK_MATH_IMPL
 
-inline u64 lengthsq(const ivec2& v)
+inline u64 lengthsq(const fvec2& v)
 {
     return v.x * v.x + v.y * v.y;
 }
 
-inline i32 ftrunc(float n) { return (i32)(n); }
+inline float ftrunc(float n) { return (float)(n); }
 
-inline i32 iabs(i32 n) 
+inline float iabs(float n) 
 {
     if (n < 0)
         return -n;
@@ -109,7 +165,24 @@ inline i32 iabs(i32 n)
         return n;
 }
 
-inline i32 iclamp(i32 a, i32 b, i32 x)
+inline float fclamp(float a, float b, float x)
+{
+    if (x < a) return a;
+    if (x > b) return b;
+    return x;
+}
+
+inline fvec2 fclamp(fvec2 a, fvec2 b, fvec2 x)
+{
+    return fvec2
+    {
+        iclamp(a.x, b.x, x.x),
+        iclamp(a.y, b.y, x.y)
+    };
+}
+
+
+inline i32  iclamp(i32  a, i32 b, i32 x)
 {
     if (x < a) return a;
     if (x > b) return b;
@@ -125,6 +198,7 @@ inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
     };
 }
 
+
 inline int highest_pow2(int n)
 {
     int p = (int)log2(n);
@@ -132,20 +206,20 @@ inline int highest_pow2(int n)
 }
 
 inline ivec2 
-map_position_to_tile_centered(ivec2 position)
+map_position_to_tile_centered(fvec2 position)
 {
     // NOTE(miked): behavior of original game
-    return ivec2{(position.x + 32) / 64, (position.y + 32) / 64};
+    return ivec2{((i32)position.x + 32) / 64, ((i32)position.y + 32) / 64};
 }
 
 
 inline ivec2 
-map_position_to_tile(ivec2 position)
+map_position_to_tile(fvec2 position)
 {
-    return ivec2{(position.x) / 64, (position.y) / 64};
+    return ivec2{((i32)position.x) / 64, ((i32)position.y) / 64};
 }
 
-AABox AABox::translate(ivec2 position) const
+AABox AABox::translate(fvec2 position) const
 {
     return AABox
     {
@@ -176,7 +250,7 @@ internal b32
 aabb_minkowski(
 const AABox* const a,
 const AABox* const b,
-ivec2* const opt_pen)
+fvec2* const opt_pen)
 {
     AABox result;
     result.min_y = a->min_y - b->max_y;
@@ -190,8 +264,8 @@ ivec2* const opt_pen)
         result.min_y <= 0 &&
         result.max_y >= 0)
     {
-        ivec2 penetration = {0,0};
-        i32 min = INT_MAX;
+        fvec2 penetration = {0,0};
+        float min = FLT_MAX;
         /*NOTE(miked): prefer Y axis over X on collision*/
         
         if (glm::abs(result.min_x) < min)
@@ -229,12 +303,26 @@ ivec2* const opt_pen)
 }
 
 
-inline i32 idot(ivec2 a, ivec2 b)
+inline float sgn(float a)
+{
+    if (a < 0) return -1;
+    else return 1;
+}
+
+
+inline i32 sgn(i32 a)
+{
+    if (a < 0) return -1;
+    else return 1;
+}
+
+
+inline float dot(fvec2 a, fvec2 b)
 {
     return a.x * b.x + a.y * b.y;
 }
 
-inline float ilength(ivec2 a)
+inline float length(fvec2 a)
 {
     return sqrt(a.x * a.x + a.y * a.y);
 }
@@ -244,5 +332,3 @@ struct NRGBA
     float r, g, b, a;
 };
 
-
-#endif
