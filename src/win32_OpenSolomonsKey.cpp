@@ -379,7 +379,7 @@ win32_init(HINSTANCE hInstance)
     
     RECT rect = {
         .right = 1024,
-        .bottom = 768
+        .bottom = 896
     };
     // DWORD window_style = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME;
     DWORD window_style = WS_OVERLAPPEDWINDOW;

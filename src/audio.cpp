@@ -139,17 +139,33 @@ Wave_load_from_file(const char* file)
     return result;
 }
 
-internal void audio_play_sound(const RESSound* resound, b32 looping = false)
+internal void audio_play_sound(const RESSound* resound, b32 looping = false, SoundType sound_type = SoundEffect)
 {
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
-    Sound new_sound = {
+    Sound new_sound = 
+    {
         .max_counter = resound->num_samples,
         .looping = looping,
-        .resource = resound};
+        .resource = resound,
+        .type = sound_type
+    };
     
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
+}
+
+internal void audio_toggle_playing(SoundType type)
+{
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i)
+    {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        if (sound_ref->type == type)
+        {
+            sound_ref->playing = !sound_ref->playing;
+        }
+    }
+    
 }
 
 internal void audio_update_all_sounds()
@@ -213,6 +229,8 @@ audio_update(const InputState* const istate, u64 samples_to_write)
         {
             Sound* current_sound = g_audio.all_sounds + current_sound_idx;
             warn_unless(current_sound->resource, "");
+            
+            if (!current_sound->playing) continue;
             
             if (!(current_sound->resource))
             {

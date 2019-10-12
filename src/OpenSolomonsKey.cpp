@@ -5,6 +5,8 @@ TODO:
   --(pos + size) and add an Animation, which plays to the end. In resources.cpp
   --It'll be a single DEF_CHARACTER(Effect).
   
+  - Background drawing and selection from .osk format
+  
 - eBlockFrail needs to have a default health parameter
 - Sound resource system (one of us...)
 - background music play/stop
@@ -176,6 +178,98 @@ u32* out_w, u32* out_h)
 }
 
 
+internal void render_extra_stuff()
+{
+    
+    
+    GLTilemapTexture* texture = &GET_TILEMAP_TEXTURE(misc);
+    
+    // Draw the horizontal bars
+    for (i32 i = 0; i < 9; ++i)
+    {
+        // top bars
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{i * 128, 24},
+            glm::vec2{64, 64},
+            0.f, 2 * 4 + 0,
+            true, true,
+            NRGBA{1,1,1,1},
+            false);
+        
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{i * 128 + 64, 24},
+            glm::vec2{64, 64},
+            0.f, 2 * 4 + 1,
+            true, true,
+            NRGBA{1,1,1,1},
+            false);
+        
+        // bottom bars
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{i * 128, 12 * 64 + 32},
+            glm::vec2{64, 64},
+            0.f, 2 * 4 + 2,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{i * 128 + 64, 12 * 64 + 32},
+            glm::vec2{64, 64},
+            0.f, 2 * 4 + 3,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        
+    }
+    
+    
+    // draw the extra stuff:
+    for (i32 i = 0; i < 6; ++i)
+    {
+        // Draw the vertical bars
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{-32, i * 128 + 64},
+            glm::vec2{64, 64},
+            0.f, 1 * 4 + 2,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{-32, i * 128 + 64 + 64},
+            glm::vec2{64, 64},
+            0.f, 1 * 4 + 3,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{15 * 64 + 32, i * 128 + 64},
+            glm::vec2{64, 64},
+            0.f, 1 * 4 + 0,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        gl_slow_tilemap_draw(
+            texture,
+            glm::vec2{15 * 64 + 32, i * 128 + 64 + 64},
+            glm::vec2{64, 64},
+            0.f, 1 * 4 + 1,
+            false, false,
+            NRGBA{1,1,1,1},
+            false);
+        
+    }
+    
+}
+
 RESSound bg_sound;
 
 void
@@ -268,8 +362,16 @@ cb_resize()
 void
 cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
-    glClearColor( 0.156, 0.156,  0.156, 1.0);
+    glClearColor( 0.0, 0.0,  0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
+    
+    render_extra_stuff();
+    
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(background),
+        {0,0}, {15 * 64, 768},
+        0);
     
     draw_text("MS per frame", 0);
     draw_num(dt * 1000.f, 1);
@@ -278,8 +380,17 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     if (initial)
     {
         initial = false;
-        audio_play_sound(&bg_sound, true);
+        audio_play_sound(&bg_sound, true, Music);
     }
+    
+    if (GET_KEYPRESS(space_pressed))
+        audio_toggle_playing(Music);
+    else if (GET_KEYPRESS(sound_up))
+        g_audio.volume = fclamp(0.f, 1.f, g_audio.volume + 0.1f);
+    else if (GET_KEYPRESS(sound_down))
+        g_audio.volume = fclamp(0.f, 1.f, g_audio.volume - 0.1f);
+    
+    
     
     scene_update(&istate, dt);
     audio_update(&istate, audio_sample_count);

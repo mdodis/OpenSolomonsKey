@@ -19,11 +19,12 @@ tilemaps.
 */
 #define ALL_TILEMAPS \
 /*          NAME     PATH IN FOLDER                                rows cols*/\
-DEF_TILEMAP(test    ,"test_tilemap.png"                           ,6    ,5   )\
-DEF_TILEMAP(dana    ,"res/characters/dana/dana_all.png"           ,4    ,6   )\
-DEF_TILEMAP(tmgoblin,"res/characters/goblin/goblin_all.png"       ,3    ,7   )\
-DEF_TILEMAP(font    ,"res/font.png"                               ,6    ,16  )\
-
+DEF_TILEMAP(test      ,"test_tilemap.png"                           ,6    ,5   )\
+DEF_TILEMAP(dana      ,"res/characters/dana/dana_all.png"           ,4    ,6   )\
+DEF_TILEMAP(tmgoblin  ,"res/characters/goblin/goblin_all.png"       ,3    ,7   )\
+DEF_TILEMAP(font      ,"res/font.png"                               ,6    ,16  )\
+DEF_TILEMAP(misc      ,"res/misc.png"                               ,4    ,4   )\
+DEF_TILEMAP(background,"res/bg_room0.png"                           ,1    ,1   )\
 
 struct RESTilemap
 {

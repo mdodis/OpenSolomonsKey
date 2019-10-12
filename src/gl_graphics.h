@@ -37,7 +37,8 @@ float rotate = 0.f,
 i32 tm_index = 0,
 b32 mirrorx = false,
 b32 mirrory = false,
-NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f});
+NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f},
+b32 account_for_offset = true);
 
 const char* const g_2d_vs =
 R"EOS(

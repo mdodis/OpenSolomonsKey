@@ -4,13 +4,15 @@ where you choose to sepcify a KEYPRESS or KEYDOWN action.
 Implementation is left up to the corresponding platform, and
 as always configuration is done at compile time.*/
 #define KEYMAP \
-/*       NAME        X11 key   Win32 key */\
-KEYDOWN (move_right, XK_Right, VK_RIGHT  ) \
-KEYDOWN (move_left , XK_Left , VK_LEFT   ) \
-KEYDOWN (move_down , XK_Down , VK_DOWN   ) \
-KEYPRESS(move_up   , XK_Up   , VK_UP     ) \
-KEYPRESS(m_pressed , XK_M    , 'M'       ) \
-KEYPRESS(cast      , XK_C    , 'C'       ) \
+/*       NAME        X11 key   Win32 key    */\
+KEYDOWN (move_right    , XK_Right , VK_RIGHT    ) \
+KEYDOWN (move_left     , XK_Left  , VK_LEFT     ) \
+KEYDOWN (move_down     , XK_Down  , VK_DOWN     ) \
+KEYPRESS(move_up       , XK_Up    , VK_UP       ) \
+KEYPRESS(space_pressed , XK_Space , VK_SPACE    ) \
+KEYPRESS(cast          , XK_C     , 'C'         ) \
+KEYPRESS(sound_down    , XK_Minus , '9'         ) \
+KEYPRESS(sound_up      , XK_Equals, '0'         ) \
 
 
 #define KEYDOWN(key, ...) b32 key = false;

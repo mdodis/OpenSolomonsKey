@@ -182,7 +182,8 @@ float rotate,
 i32 tm_index,
 b32 mirrorx,
 b32 mirrory,
-NRGBA tint)
+NRGBA tint,
+b32 account_for_offset)
 {
     if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
@@ -203,7 +204,8 @@ NRGBA tint)
     // NOTE(miked): translate half width inwards, and full width outwards
     // to keep space for the textures on the sides, should probably color them
     // as well
-    model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
+    if (account_for_offset)
+        model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
     
     model = glm::translate(model, glm::vec3(0.5f * size.x, .5*size.y, 0.0f));
     model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -233,3 +235,4 @@ NRGBA tint)
     glUniform4f(loc, tint.r, tint.g, tint.b, tint.a);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
+

@@ -108,13 +108,21 @@ struct RESSound
     void* data;
 };
 
+enum SoundType
+{
+    SoundEffect,
+    Music,
+};
+
 struct Sound
 {
     u64 counter = 0;
     u64 max_counter = ~(0u);
     b32 looping = false;
-    b32 playing = false;
+    b32 playing = true;
     const RESSound* resource = 0;
+    
+    SoundType type;
 };
 
 global struct
@@ -122,6 +130,7 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
+    //float volume = 0.5f;
     float volume = 0.0f;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};

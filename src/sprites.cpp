@@ -95,18 +95,23 @@ b32 damage_tiles)
                 
             }
             
+#ifndef NDEBUG
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
                 {tile_coords.x, tile_coords.y},
                 {64, 64},
                 0.f,
-                5 * 5);
+                5 * 5,
+                false, false,
+                NRGBA{1,1,1,.7f});
+#endif
         }
     }
     
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
     
+#ifndef NDEBUG
     // Draw the Bounding box sprite
     AABox box = this->get_transformed_AABox();
     gl_slow_tilemap_draw(
@@ -115,18 +120,14 @@ b32 damage_tiles)
         {box.max_x - box.min_x, box.max_y - box.min_y},
         0,5 * 5 + 1,
         false, false,
-        NRGBA{1.f, 0, 1.f, 1.f});
+        NRGBA{1.f, 0, 1.f, 0.7f});
+#endif
     
 }
 
 
 RESSound player_jump_sound;
 
-
-// TODO(miked): original game says that you can do the following:
-// P 1 | The player is crouched and does a cast, aiming for the empty
-// 1 0 | space. Original says that it _will_ create that block instead
-// of breaking the left one. Change that back!
 internal void ePlayer_cast(Sprite* player, float dt)
 {
     // Get the upper left tile based on the center of the player sprite
@@ -145,8 +146,7 @@ internal void ePlayer_cast(Sprite* player, float dt)
     }
     
     // if we were crouching: special condition
-    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch) && 
-        scene_get_tile(target_tile) == eEmptySpace)
+    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch))
     {
         target_tile.y = iclamp(0, 14,target_tile.y + 1);
     }
@@ -168,9 +168,9 @@ internal void ePlayer_cast(Sprite* player, float dt)
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
-    const i32 GRAVITY = 900;
-    const i32 MAX_YSPEED = 450;
-    const i32 JUMP_STRENGTH = 450;
+    const i32 GRAVITY = 950;
+    const i32 MAX_YSPEED = 500;
+    const i32 JUMP_STRENGTH = 400;
     const i32 XSPEED = 200;
     
     // NOTE(miked): maybe not have it be a local-global?
