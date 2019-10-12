@@ -171,6 +171,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     const i32 GRAVITY = 950;
     const i32 MAX_YSPEED = 500;
     const i32 JUMP_STRENGTH = 400;
+    const i32 RUNNING_JUMP_STRENGTH = 350;
     const i32 XSPEED = 200;
     
     // NOTE(miked): maybe not have it be a local-global?
@@ -212,7 +213,13 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     }
     
     if (!is_crouching)
-        player->move_and_collide(dt, GRAVITY, MAX_YSPEED, JUMP_STRENGTH, vel, true);
+    {
+        // NOTE(miked): A running jump results in a 1-block
+        // height-displacement rather than a 2 block displacement
+        const i32 jump_strength = (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
+        
+        player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, vel, true);
+    }
     
     
     if (iabs(player->velocity.x) > 0)
@@ -226,10 +233,11 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 }
 
 
-// TODO(miked): make goblin stop at the edges of blocks and switch direction,
-// rather than fall down
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
+    // TODO(miked): make goblin stop at the edges of blocks and switch direction,
+    // rather than fall down
+    
     const float goblin_walk_speed = 100;
     const float goblin_run_speed = 140;
     

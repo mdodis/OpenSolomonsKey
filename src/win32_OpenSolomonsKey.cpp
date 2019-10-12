@@ -488,7 +488,7 @@ win32_init_gl_extensions()
             
             // NOTE/TODO(miked): The game does _not_ work without vsync
             fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
-            fail_unless(wglSwapIntervalEXT(1), "swap interval set failed!");
+            fail_unless(wglSwapIntervalEXT(0), "swap interval set failed!");
         }
     }
     

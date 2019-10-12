@@ -5,20 +5,21 @@ TODO:
   --(pos + size) and add an Animation, which plays to the end. In resources.cpp
   --It'll be a single DEF_CHARACTER(Effect).
   
+  
   - Background drawing and selection from .osk format
   
 - eBlockFrail needs to have a default health parameter
 - Sound resource system (one of us...)
 - background music play/stop
 
-NOTE:
+- "Correct pixel shader"; see casey's video (handmade char on octopath traveller)
+  NOTE:
   use sox to convert audio into desired format:
 sox [input] -r 48k -c 2 -b 16 [output]
 -r 48k  :: 48000 sample rate
 -c 2    :: stereo (2 channels)
 -b 16   :: 16b / sample (can't explicitly say if it's signed or unsigned though...)
 
-NOTE: VSYNC is currently mandatory for the game to run correctly!
 */
 
 #include <stdio.h>
@@ -180,8 +181,6 @@ u32* out_w, u32* out_h)
 
 internal void render_extra_stuff()
 {
-    
-    
     GLTilemapTexture* texture = &GET_TILEMAP_TEXTURE(misc);
     
     // Draw the horizontal bars
@@ -367,7 +366,7 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     render_extra_stuff();
     
-    
+    // TODO(miked): move this into resource "manager"
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(background),
         {0,0}, {15 * 64, 768},
@@ -383,12 +382,10 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
         audio_play_sound(&bg_sound, true, Music);
     }
     
-    if (GET_KEYPRESS(space_pressed))
-        audio_toggle_playing(Music);
-    else if (GET_KEYPRESS(sound_up))
-        g_audio.volume = fclamp(0.f, 1.f, g_audio.volume + 0.1f);
-    else if (GET_KEYPRESS(sound_down))
-        g_audio.volume = fclamp(0.f, 1.f, g_audio.volume - 0.1f);
+    // audio control
+    if (GET_KEYPRESS(space_pressed))    audio_toggle_playing(Music);
+    else if (GET_KEYPRESS(sound_up))    g_audio.volume = fclamp(0.f, 1.f, g_audio.volume + 0.1f);
+    else if (GET_KEYPRESS(sound_down))  g_audio.volume = fclamp(0.f, 1.f, g_audio.volume - 0.1f);
     
     
     
