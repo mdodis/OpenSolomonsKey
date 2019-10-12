@@ -30,7 +30,9 @@ inline void _exit_with_message(char* message)
 
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", __VA_ARGS__)
-#define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
+//#define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
+#define warn(fmt, ...) printf("[WARNING] " fmt "\n")
+
 
 #define assert(expr) do{if (!(expr)) { fprintf(stderr, "ASSERTION FAILED: %s:%d\n", __FILE__, __LINE__); exit(-1);}  }while(0)
 

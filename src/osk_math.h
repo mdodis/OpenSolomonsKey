@@ -17,6 +17,11 @@ union ivec2
         return (this->x == other.x && this->y == other.y);
     }
     
+    bool operator!=(const ivec2& other)
+    {
+        return !(this->x == other.x && this->y == other.y);
+    }
+    
     ivec2 operator+(const ivec2& other)
     {
         return {x + other.x, y + other.y};
@@ -72,6 +77,12 @@ union fvec2
     {
         return (this->x == other.x && this->y == other.y);
     }
+    
+    bool operator!=(const fvec2& other)
+    {
+        return (this->x != other.x || this->y != other.y);
+    }
+    
     
     fvec2 operator+(const fvec2& other)
     {
@@ -142,7 +153,7 @@ fvec2* const opt_pen);
 inline u64 lengthsq(const fvec2* const v);
 inline float ftrunc(float n);
 inline float iabs(float n);
-inline float iclamp(float a, float b, float x);
+float iclamp(float a, float b, float x);
 
 inline fvec2 iclamp(fvec2 a, fvec2 b, fvec2 x);
 inline int highest_pow2(int n);

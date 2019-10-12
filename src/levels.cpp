@@ -207,8 +207,8 @@ inline u64 scene_get_tile(ivec2 p) { return g_scene.tilemap[p.x][p.y];}
 inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
 
 
-void ePlayer_update(Sprite* spref, InputState* istate, float dt);
-void eGoblin_update(Sprite* spref, InputState* istate, float dt);
+internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
+internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
 
 internal void 
 scene_update(InputState* istate, float dt)
