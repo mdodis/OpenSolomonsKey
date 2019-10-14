@@ -66,7 +66,10 @@ DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true )   \
 DEF_ANIM(Goblin,       Punch,   .18f,     {0,1}, 4,      false)   \
 DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
 )                                                                 \
-
+DEF_CHARACTER(Effect,      test,     1,                                         \
+/*       Character,    Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(Effect,       Test,    .1f,      {0,0}, 5,      false)   \
+)                                                                 \
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \

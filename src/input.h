@@ -10,9 +10,10 @@ KEYDOWN (move_left     , XK_Left  , VK_LEFT     ) \
 KEYDOWN (move_down     , XK_Down  , VK_DOWN     ) \
 KEYPRESS(move_up       , XK_Up    , VK_UP       ) \
 KEYPRESS(space_pressed , XK_space , VK_SPACE    ) \
+KEYPRESS(m_pressed     , XK_M     , 'M'         ) \
 KEYPRESS(cast          , XK_C     , 'C'         ) \
-KEYPRESS(sound_down    , XK_9 , '9'         ) \
-KEYPRESS(sound_up      , XK_0, '0'         ) \
+KEYPRESS(sound_down    , XK_9     , '9'         ) \
+KEYPRESS(sound_up      , XK_0     , '0'         ) \
 
 
 #define KEYDOWN(key, ...) b32 key = false;

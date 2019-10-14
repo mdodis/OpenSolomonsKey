@@ -5,9 +5,9 @@ Attempting to switch to a non palleted level format.
 // This is a simple array list I wrote for C99. I'll probably regret
 // using it, but life is all about living on the edge, and that means
 // having potential creeping bugs sneaking up you when you least want it.
-#define CA_TYPE Sprite
-#include "calist.h"
-#undef CA_TYPE
+
+#include <vector>
+typedef std::vector<Sprite> List_Sprite;
 
 global struct
 {
@@ -15,7 +15,7 @@ global struct
     EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     // TODO(miked): Hidden items
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    List_Sprite spritelist = {};
+    List_Sprite spritelist;
     
 } g_scene;
 
@@ -24,7 +24,8 @@ internal void
 scene_sprite_add(Sprite* sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
-    ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
+    //ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
+    g_scene.spritelist.push_back(*sprite);
 }
 
 
@@ -215,11 +216,11 @@ scene_update(InputState* istate, float dt)
 {
     scene_draw_tilemap();
     
-    List_Sprite l = g_scene.spritelist;
+    List_Sprite& l = g_scene.spritelist;
     
-    for (int i = 0; i < l.sz; ++i)
+    for (int i = 0; i < l.size(); ++i)
     {
-        Sprite* spref = l.data + i;
+        Sprite* spref = &l[i];
         spref->update_animation(dt);
         
         switch(spref->entity.type)
@@ -234,21 +235,48 @@ scene_update(InputState* istate, float dt)
                 eGoblin_update(spref, istate, dt);
             } break;
             
+            case eEffect:
+            {
+                if (!spref->animation_playing)
+                {
+                    spref->mark_for_remove = true;
+                }
+            }break;
+            
+            
             default:
             break;
         }
         
-        draw(l.data + i);
+        draw(&l[i]);
     }
+    
+    
+    // remove marked elements
+    auto it = g_scene.spritelist.begin();
+    while (it != g_scene.spritelist.end())
+    {
+        Sprite& spref = (*it);
+        if (spref.mark_for_remove)
+        {
+            it = g_scene.spritelist.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+    
+    
 }
 
 // Finds first sprite of specific type
 // if not found; return 0
 internal const Sprite* const scene_get_first_sprite(EntityBaseType type)
 {
-    for (i32 i = 0; i < g_scene.spritelist.sz; i += 1)
+    for (i32 i = 0; i < g_scene.spritelist.size(); i += 1)
     {
-        Sprite* spref = &g_scene.spritelist.data[i];
+        Sprite* spref = &g_scene.spritelist[i];
         
         if (spref->entity.type == type) return spref;
     }

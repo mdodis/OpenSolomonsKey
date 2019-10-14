@@ -1,4 +1,3 @@
-
 #define MAX_ENTITY_PARAMS 2
 // Custom Parameters
 // eEmptySpace :: hidden item
@@ -10,15 +9,24 @@ union CustomParameter
     double as_f64;
 };
 
+/*
+ NOTE: eEffect - scene_update _automatically_ marks
+ any eEffect entity for removal once it's animation is finished
+ 
+ NOTE/TODO: Mixing scene entities with entities you can
+ specify in the level format isn't a good idea.
+*/
 enum EntityBaseType
 {
     eEmptySpace,
     eBlockFrail,
     eBlockSolid,
     ePlayerSpawnPoint,
+    
+    
     ePlayer,
     eGoblin,
-    
+    eEffect,
     EntityBaseType_Count,
 };
 
@@ -38,7 +46,9 @@ struct Sprite
     fvec2 mirror = {false, false};
     fvec2 velocity = {0,0};
     b32 is_on_air = false;
+    b32 mark_for_remove = false;                 // set to true to remove the sprite
     
+    // Animation stuff
     b32 animation_playing = true;
     i32 current_frame = 0;
     i32 current_animation = 0;
@@ -152,6 +162,21 @@ inline internal Sprite make_player(fvec2 position)
         .entity =
         {
             ePlayer,
+            {0,0}
+        }
+    };
+}
+
+inline internal Sprite make_effect(fvec2 position)
+{
+    return Sprite
+    {
+        .tilemap = &GET_CHAR_TILEMAP(Effect),
+        .position = position,
+        .animation_set = GET_CHAR_ANIMSET(Effect),
+        .entity = 
+        {
+            eEffect,
             {0,0}
         }
     };

@@ -1,18 +1,11 @@
 /*
 TODO:
-- Think about how we'll be doing effects like block creation etc.
-  --My current idea is that we'll make a smaller version of Sprite
-  --(pos + size) and add an Animation, which plays to the end. In resources.cpp
-  --It'll be a single DEF_CHARACTER(Effect).
-  
-  
   - Background drawing and selection from .osk format
   
 - eBlockFrail needs to have a default health parameter
 - Sound resource system (one of us...)
-- background music play/stop
 
-- "Correct pixel shader"; see casey's video (handmade char on octopath traveller)
+- Better pixel shader: see casey's video (handmade char on octopath traveller)
   NOTE:
   use sox to convert audio into desired format:
 sox [input] -r 48k -c 2 -b 16 [output]
@@ -387,10 +380,19 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     else if (GET_KEYPRESS(sound_up))    g_audio.volume = fclamp(0.f, 1.f, g_audio.volume + 0.1f);
     else if (GET_KEYPRESS(sound_down))  g_audio.volume = fclamp(0.f, 1.f, g_audio.volume - 0.1f);
     
-    
-    
     scene_update(&istate, dt);
     audio_update(&istate, audio_sample_count);
+    
+    // NOTE(miked): testing an effect
+    if (GET_KEYPRESS(m_pressed))
+    {
+        Sprite effect = make_effect({64 * 5,64 * 3});
+        SET_ANIMATION(((Sprite*)&effect), Effect, Test);
+        
+        scene_sprite_add(&effect);
+        
+    }
+    
     
 }
 
