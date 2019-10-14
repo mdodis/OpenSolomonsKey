@@ -60,11 +60,12 @@ DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
 DEF_ANIM(test_player,  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(test_player,  Crouch,  .05f,     {0,3}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Goblin,      tmgoblin, 3,                                         \
+DEF_CHARACTER(Goblin,      tmgoblin, 4,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true )   \
 DEF_ANIM(Goblin,       Punch,   .18f,     {0,1}, 4,      false)   \
 DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
+DEF_ANIM(Goblin,       Wait,    1.f,      {5,0}, 1,      false)   \
 )                                                                 \
 DEF_CHARACTER(Effect,      test,     1,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \

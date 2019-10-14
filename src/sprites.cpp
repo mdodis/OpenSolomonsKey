@@ -111,18 +111,6 @@ b32 damage_tiles)
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
     
-#ifndef NDEBUG
-    // Draw the Bounding box sprite
-    AABox box = this->get_transformed_AABox();
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {box.min_x, box.min_y},
-        {box.max_x - box.min_x, box.max_y - box.min_y},
-        0,5 * 5 + 1,
-        false, false,
-        NRGBA{1.f, 0, 1.f, 0.7f});
-#endif
-    
 }
 
 
@@ -235,10 +223,9 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
-    // TODO(miked): make goblin stop at the edges of blocks and switch direction,
-    // rather than fall down
-    
-    const float goblin_walk_speed = 100;
+    // TODO(miked): goblin chase mode sometimes results in goblin falling
+    // when it should have stopped
+    const float goblin_walk_speed = 80;
     const float goblin_run_speed = 140;
     
     
@@ -252,48 +239,65 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     }
     
     
+    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
+    {
+        if (!goblin->animation_playing)
+        {
+            SET_ANIMATION(goblin, Goblin, Walk);
+            goblin->mirror.x = !goblin->mirror.x;
+            
+        }
+    }
+    
+    
     const float direction = goblin->mirror.x ? 1 : -1;
     const float punch_offset_amount = 32;
     const float punch_offset = direction * (punch_offset_amount);
     
-    const Sprite* const player = scene_get_first_sprite(ePlayer);
-    fail_unless(player, "Player sprite not found scene_get_first_sprite");
-    
-    fvec2 ppos = player->position;
-    ivec2 ppos_tile = map_position_to_tile_centered(ppos);
-    
-    ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
-    
-    if (goblin_tile.y == ppos_tile.y)
     {
         
-        i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
+        const Sprite* const player = scene_get_first_sprite(ePlayer);
+        fail_unless(player, "Player sprite not found scene_get_first_sprite");
         
-        ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);
-        if (block_tile == ivec2{-1, -1})
+        fvec2 ppos = player->position;
+        ivec2 ppos_tile = map_position_to_tile_centered(ppos);
+        
+        ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
+        
+        if (goblin_tile.y == ppos_tile.y)
         {
-            persist i32 blocking_tiles = 0;
             
-            if (tdiff == -direction)
+            i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
+            
+            ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);
+            if (block_tile == ivec2{-1, -1})
             {
-                SET_ANIMATION(goblin, Goblin, Chase);
+                persist i32 blocking_tiles = 0;
+                
+                if (tdiff == -direction)
+                {
+                    SET_ANIMATION(goblin, Goblin, Chase);
+                }
             }
-        }
-        else
-        {
-            gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {block_tile.x * 64, block_tile.y * 64},
-                {64, 64},
-                0,5 * 5 + 0,
-                false, false,
-                NRGBA{0.f, 1.f, 1.f, 1.f});
+            else
+            {
+                gl_slow_tilemap_draw(
+                    &GET_TILEMAP_TEXTURE(test),
+                    {block_tile.x * 64, block_tile.y * 64},
+                    {64, 64},
+                    0,5 * 5 + 0,
+                    false, false,
+                    NRGBA{0.f, 1.f, 1.f, 1.f});
+                
+            }
             
         }
-        
     }
     
-    if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch))
+    
+    
+    if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch) &&
+        goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Wait))
     {
         i32 move_amount = goblin_walk_speed;
         
@@ -309,6 +313,27 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         }
         
     }
+    
+    
+    // Stop when the block next to you is empty
+    const i32 block_stop_offset = 32;
+    ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
+    ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {dir_tile_under.x * 64, dir_tile_under.y * 64},
+        {64, 64},
+        0,5 * 5 + 1,
+        false, false,
+        NRGBA{1.f, 0.f, 0.f, 1.f});
+    if (scene_get_tile(dir_tile_under) == eEmptySpace && 
+        scene_get_tile(dir_tile) == eEmptySpace)
+    {
+        SET_ANIMATION(goblin, Goblin, Wait);
+        
+        //goblin->mirror.x = !goblin->mirror.x;
+    }
+    
     
     ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
     

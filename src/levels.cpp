@@ -248,6 +248,20 @@ scene_update(InputState* istate, float dt)
             break;
         }
         
+        
+#ifndef NDEBUG
+        // Draw the Bounding box sprite
+        AABox box = spref->get_transformed_AABox();
+        gl_slow_tilemap_draw(
+            &GET_TILEMAP_TEXTURE(test),
+            {box.min_x, box.min_y},
+            {box.max_x - box.min_x, box.max_y - box.min_y},
+            0,5 * 5 + 1,
+            false, false,
+            NRGBA{1.f, 0, 1.f, 0.7f});
+#endif
+        
+        
         draw(&l[i]);
     }
     
