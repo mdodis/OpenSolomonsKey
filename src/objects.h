@@ -46,7 +46,7 @@ struct Sprite
     fvec2 mirror = {false, false};
     fvec2 velocity = {0,0};
     b32 is_on_air = false;
-    b32 mark_for_remove = false;                 // set to true to remove the sprite
+    b32 mark_for_removal = false;                 // set to true to remove the sprite
     
     // Animation stuff
     b32 animation_playing = true;

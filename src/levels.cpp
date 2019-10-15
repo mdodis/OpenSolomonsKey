@@ -239,7 +239,7 @@ scene_update(InputState* istate, float dt)
             {
                 if (!spref->animation_playing)
                 {
-                    spref->mark_for_remove = true;
+                    spref->mark_for_removal = true;
                 }
             }break;
             
@@ -271,7 +271,7 @@ scene_update(InputState* istate, float dt)
     while (it != g_scene.spritelist.end())
     {
         Sprite& spref = (*it);
-        if (spref.mark_for_remove)
+        if (spref.mark_for_removal)
         {
             it = g_scene.spritelist.erase(it);
         }

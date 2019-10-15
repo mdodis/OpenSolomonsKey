@@ -156,6 +156,8 @@ internal void ePlayer_cast(Sprite* player, float dt)
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
+    // TODO(miked): Reorder code to make more sense
+    // TODO(miked): Jump animation and delay
     const i32 GRAVITY = 950;
     const i32 MAX_YSPEED = 500;
     const i32 JUMP_STRENGTH = 400;
@@ -223,14 +225,17 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
-    // TODO(miked): goblin chase mode sometimes results in goblin falling
-    // when it should have stopped
+    // NOTE(miked): Sprite::mirror is a bool, and sprites by default look to the left,
+    // so invert direction vector to get the axis-compliant direction in X.
+#define direction ((float)(goblin->mirror.x ? 1 : -1))
+    
     const float goblin_walk_speed = 80;
-    const float goblin_run_speed = 140;
+    const float goblin_run_speed = 120;
     
-    
-    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch))
+    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) ||
+        goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
     {
+        // Switch direction and continue when either of these states ends
         if (!goblin->animation_playing)
         {
             SET_ANIMATION(goblin, Goblin, Walk);
@@ -238,24 +243,8 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         }
     }
     
-    
-    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
+    // Chase
     {
-        if (!goblin->animation_playing)
-        {
-            SET_ANIMATION(goblin, Goblin, Walk);
-            goblin->mirror.x = !goblin->mirror.x;
-            
-        }
-    }
-    
-    
-    const float direction = goblin->mirror.x ? 1 : -1;
-    const float punch_offset_amount = 32;
-    const float punch_offset = direction * (punch_offset_amount);
-    
-    {
-        
         const Sprite* const player = scene_get_first_sprite(ePlayer);
         fail_unless(player, "Player sprite not found scene_get_first_sprite");
         
@@ -281,6 +270,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             }
             else
             {
+#ifndef NDEBUG
                 gl_slow_tilemap_draw(
                     &GET_TILEMAP_TEXTURE(test),
                     {block_tile.x * 64, block_tile.y * 64},
@@ -288,66 +278,82 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
                     0,5 * 5 + 0,
                     false, false,
                     NRGBA{0.f, 1.f, 1.f, 1.f});
-                
+#endif
             }
             
         }
     }
     
-    
-    
-    if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch) &&
-        goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Wait))
-    {
-        i32 move_amount = goblin_walk_speed;
-        
-        if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Walk))
-            move_amount = goblin_run_speed;
-        
-        goblin->move_and_collide(dt, 900, 450, 450, move_amount * direction);
-        
-        if (iabs(goblin->velocity.x) > 0)
+    // Stop at tile edges
+    {    
+        const i32 block_stop_offset = 32;
+        ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
+        ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
+#ifndef NDEBUG
+        gl_slow_tilemap_draw(
+            &GET_TILEMAP_TEXTURE(test),
+            {dir_tile_under.x * 64, dir_tile_under.y * 64},
+            {64, 64},
+            0,5 * 5 + 1,
+            false, false,
+            NRGBA{1.f, 0.f, 0.f, 1.f});
+#endif
+        if (scene_get_tile(dir_tile_under) == eEmptySpace && 
+            scene_get_tile(dir_tile) == eEmptySpace)
         {
-            //SET_ANIMATION(goblin, Goblin, Walk);
-            goblin->mirror.x = goblin->velocity.x > 0;
+            SET_ANIMATION(goblin, Goblin, Wait);
+            goblin->velocity.x = 0;
         }
+    }
+    
+    // Punching
+    {
+        const float punch_offset_amount = 32;
+        const float punch_offset = direction * (punch_offset_amount);
+        
+        ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
+#ifndef NDEBUG
+        gl_slow_tilemap_draw(
+            &GET_TILEMAP_TEXTURE(test),
+            {tile_index.x * 64, tile_index.y * 64},
+            {64, 64},
+            0,5 * 5 + 1,
+            false, false,
+            NRGBA{0.f, 1.f, 0.f, 1.f});
+#endif
+        if (scene_get_tile(tile_index) != eEmptySpace && !(goblin->is_on_air))
+        {
+            SET_ANIMATION(goblin, Goblin, Punch);
+        }
+    }
+    
+    // Movement
+    i32 move_amount;
+    switch(goblin->current_animation)
+    {
+        case GET_CHAR_ANIMENUM(Goblin, Walk):
+        move_amount = goblin_walk_speed;
+        break;
+        
+        case GET_CHAR_ANIMENUM(Goblin, Chase):
+        move_amount = goblin_run_speed;
+        break;
+        
+        default:
+        move_amount = 0;
+        break;
         
     }
     
+    goblin->move_and_collide(dt, 900, 450, 450, move_amount * direction);
+    if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
-    // Stop when the block next to you is empty
-    const i32 block_stop_offset = 32;
-    ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
-    ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {dir_tile_under.x * 64, dir_tile_under.y * 64},
-        {64, 64},
-        0,5 * 5 + 1,
-        false, false,
-        NRGBA{1.f, 0.f, 0.f, 1.f});
-    if (scene_get_tile(dir_tile_under) == eEmptySpace && 
-        scene_get_tile(dir_tile) == eEmptySpace)
+    if (goblin->is_on_air)
     {
-        SET_ANIMATION(goblin, Goblin, Wait);
-        
-        //goblin->mirror.x = !goblin->mirror.x;
+        // TODO(miked): Death animation
+        goblin->mark_for_removal = true;
+        inform("You killed a Goblin, ouchie!");
     }
     
-    
-    ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
-    
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {tile_index.x * 64, tile_index.y * 64},
-        {64, 64},
-        0,5 * 5 + 1,
-        false, false,
-        NRGBA{0.f, 1.f, 0.f, 1.f});
-    
-    if (scene_get_tile(tile_index) != eEmptySpace && !(goblin->is_on_air))
-    {
-        SET_ANIMATION(goblin, Goblin, Punch);
-    }
-    
+#undef direction
 }

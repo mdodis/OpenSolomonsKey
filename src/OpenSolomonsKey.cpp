@@ -1,7 +1,10 @@
 /*
 TODO:
-  - Background drawing and selection from .osk format
-  
+  - Logging style text system for easier debugging (rather than switching to
+    a console every time...)
+    
+- Background drawing and selection from .osk format
+
 - eBlockFrail needs to have a default health parameter
 - Sound resource system (one of us...)
 
