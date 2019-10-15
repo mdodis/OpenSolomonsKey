@@ -231,7 +231,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     
     const float goblin_walk_speed = 80;
     const float goblin_run_speed = 120;
-    
+    b32 ignore_player = false;
     if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) ||
         goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
     {
@@ -240,6 +240,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         {
             SET_ANIMATION(goblin, Goblin, Walk);
             goblin->mirror.x = !goblin->mirror.x;
+        }
+        else
+        {
+            ignore_player = true;
         }
     }
     
@@ -253,7 +257,8 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         
         ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
         
-        if (goblin_tile.y == ppos_tile.y)
+        if (goblin_tile.y == ppos_tile.y &&
+            !ignore_player)
         {
             
             i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);

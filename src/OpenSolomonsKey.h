@@ -28,10 +28,16 @@ inline void _exit_with_message(char* message)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg "\n\t" #expr)
 #endif
 
+#if defined(OSK_PLATFORM_WIN32)
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", __VA_ARGS__)
-//#define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
-#define warn(fmt, ...) printf("[WARNING] " fmt "\n")
+#define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
+
+#elif defined(OSK_PLATFORM_X11)
+
+#define inform(fmt, ...) printf("[INFO] " fmt "\n", ##__VA_ARGS__)
+#define warn(fmt, ...) printf("[WARNING] " fmt "\n", ##__VA_ARGS__)
+#endif
 
 
 #define assert(expr) do{if (!(expr)) { fprintf(stderr, "ASSERTION FAILED: %s:%d\n", __FILE__, __LINE__); exit(-1);}  }while(0)

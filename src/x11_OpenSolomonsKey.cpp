@@ -54,7 +54,7 @@ struct Timer
         clock_gettime(CLOCK_MONOTONIC, &now);
         delta_timespec = timespec_diff(this->last, now);
         double delta = (double)delta_timespec.tv_nsec /(double) 1000000000.0;
-        //return delta_timespec.tv_sec;
+        delta += delta_timespec.tv_sec;
         return delta;
     }
     
