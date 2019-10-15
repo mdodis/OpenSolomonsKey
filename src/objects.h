@@ -152,13 +152,17 @@ inline internal Sprite make_goblin(fvec2 position)
 
 inline internal Sprite make_player(fvec2 position)
 {
+    const i32 player_height = 50;
     return Sprite
     {
         .tilemap = &GET_CHAR_TILEMAP(test_player),
+        .size = fvec2{64, player_height},
         .position = position,
-        .collision_box = {5, 0, 45, 64},
+        
+        .collision_box = {5, 0, 45, player_height},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(test_player),
+        
         .entity =
         {
             ePlayer,
