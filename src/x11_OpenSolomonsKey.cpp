@@ -380,12 +380,14 @@ int main(int argc, char *argv[])
     gl_load();
     cb_init();
     
-    Timer timer;
-    timer.reset();
     b32 m_final = false;
     b32 m_prev = false;
     
     portaudio_init();
+    
+    Timer timer;
+    timer.reset();
+    
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {

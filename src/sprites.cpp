@@ -158,11 +158,11 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
     // TODO(miked): Reorder code to make more sense
     // TODO(miked): Jump animation and delay
-    const i32 GRAVITY = 950;
-    const i32 MAX_YSPEED = 500;
-    const i32 JUMP_STRENGTH = 400;
-    const i32 RUNNING_JUMP_STRENGTH = 350;
-    const i32 XSPEED = 200;
+    const float GRAVITY = 950;
+    const float MAX_YSPEED = 500;
+    const float JUMP_STRENGTH = 375;
+    const float RUNNING_JUMP_STRENGTH = 350;
+    const float XSPEED = 150;
     
     // NOTE(miked): maybe not have it be a local-global?
     persist i32 player_last_yspeed;
