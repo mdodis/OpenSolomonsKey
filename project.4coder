@@ -32,11 +32,10 @@ command_list = {
    .cmd = { { "build\\solomons_key", .os = "win"   },
             { "build/solomons_key" , .os = "linux" },
             { "build/solomons_key" , .os = "mac"   }, }, },
- { .name = "run with term",
+ { .name = "run without vsync *linux*",
    .out = "*run*", .footer_panel = false, .save_dirty_files = false,
-   .cmd = { { "build\\solomons_key", .os = "win"   },
-            { "kitty --class=popup ./build/solomons_key" , .os = "linux" },
-            { "build/solomons_key" , .os = "mac"   }, }, },
+   .cmd = { { "vblank_mode=0 __GL_SYNC_TO_VBLANK=0 ./build/solomons_key" , .os = "linux" },
+             }, },
 
 
 };
