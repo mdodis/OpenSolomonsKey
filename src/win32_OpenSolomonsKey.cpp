@@ -279,7 +279,7 @@ win32_update_and_render(HDC dc)
     i64 time_elapsed = perf_now.QuadPart - perf_last.QuadPart;
     float delta;
     if (perf_freq.QuadPart == 0) delta = 0;
-    else delta = (time_elapsed * 1000) / perf_freq.QuadPart;
+    else delta = ((float)time_elapsed) / (float)perf_freq.QuadPart;
     //assert(delta >= 0);
     
     if (was_previously_moving_or_resizing &&
@@ -289,7 +289,7 @@ win32_update_and_render(HDC dc)
         was_previously_moving_or_resizing = false;
     }
     //fprintf(stdout, "ms : %f\n", delta);
-    delta /= 1000.f;
+    //delta /= 1000.f;
     
     if (delta >= 0.9f) delta = 0.9f;
     
@@ -486,9 +486,6 @@ win32_init_gl_extensions()
             wglSwapIntervalEXT = (PFNwglSwapIntervalEXT*)wglGetProcAddress(
                 "wglSwapIntervalEXT");
             
-            // NOTE/TODO(miked): The game does _not_ work without vsync
-            fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
-            fail_unless(wglSwapIntervalEXT(0), "swap interval set failed!");
         }
     }
     
@@ -555,6 +552,10 @@ win32_init_gl(HDC real_dc)
     if (!wglMakeCurrent(real_dc, mgl_ctx)) {
         inform("Failed to activate OpenGL 3.3 rendering context.");
     }
+    
+    
+    fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
+    fail_unless(wglSwapIntervalEXT(1), "swap interval set failed!");
     
     gl_load();
 }
