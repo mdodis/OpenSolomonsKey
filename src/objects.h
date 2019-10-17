@@ -62,6 +62,47 @@ struct Sprite
         return this->collision_box.translate(this->position);
     }
     
+    void collide_aabb(AABox* target)
+    {
+        fail_unless(target, "");
+        
+        AABox this_collision = this->get_transformed_AABox();
+        
+        fvec2 diff;
+        b32 collided = aabb_minkowski(&this_collision, target, &diff);
+        b32 collided_on_bottom = false;
+        if (collided)
+        {
+            this->position = this->position - (diff);
+            
+            // If we are moving up and diff moved us in the Y dir,
+            // then negate the collision.
+            // (fixes bouncing when hitting corner of a tile)
+            if (this->velocity.y < 0 && iabs(diff.y) < 5)
+            {
+                this->position.y += diff.y;
+                goto finished;
+            }
+            
+            // NOTE(miked): if on top? 
+            if (this_collision.min_y < target->min_y)
+            {
+                collided_on_bottom = true;
+                if (iabs(diff.y) > 0)
+                {
+                    this->is_on_air = false;
+                    this->velocity.y = 0;
+                }
+            }
+        }
+        
+        finished:
+        if (!collided_on_bottom && this->velocity.y != 0)
+            this->is_on_air = true;
+        
+    }
+    
+    
     void update_animation(float dt)
     {
         // get animation ref

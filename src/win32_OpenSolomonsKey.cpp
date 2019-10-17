@@ -194,8 +194,11 @@ win32_dsound_get_bytes_to_output(DWORD* byte_to_lock, DWORD* bytes_to_write, flo
     
     DWORD expected_bytes_per_tick =(DWORD)( float(AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE) * tdt);
     expected_bytes_per_tick -= expected_bytes_per_tick % AUDIO_BYTESPERSAMPLE;
-    DWORD safety_bytes = expected_bytes_per_tick * 2;
-    safety_bytes -= safety_bytes % AUDIO_BYTESPERSAMPLE;
+    
+    // x extra frames
+    DWORD safety_bytes = expected_bytes_per_tick * 5;
+    //safety_bytes -= safety_bytes % AUDIO_BYTESPERSAMPLE;
+    
     DWORD expected_boundary = play_cursor + expected_bytes_per_tick;
     
     
@@ -555,7 +558,7 @@ win32_init_gl(HDC real_dc)
     
     
     fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
-    fail_unless(wglSwapIntervalEXT(1), "swap interval set failed!");
+    fail_unless(wglSwapIntervalEXT(0), "swap interval set failed!");
     
     gl_load();
 }

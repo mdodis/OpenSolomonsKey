@@ -62,8 +62,12 @@ b32 damage_tiles)
                     continue;
                 }
                 
-                if (j == 2)
+                
+                if (j == 2 || (start_tile.y <= 1 && j == 1))
                 {
+                    // NOTE(miked): j == 2 is the bottom tile in most cases,
+                    // but if y == 1 in tile space, then j will be 1 in that case
+                    
                     collided_on_bottom = true;
                     if (iabs(diff.y) > 0)
                     {
@@ -95,6 +99,7 @@ b32 damage_tiles)
                 
             }
             
+            
 #ifndef NDEBUG
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
@@ -108,8 +113,45 @@ b32 damage_tiles)
         }
     }
     
+    
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
+    
+    // NOTE(miked): collision checking for the bounds
+    AABox bound_bottom = {0, 12 * 64, 64*15 , 12 * 64};
+    AABox bound_right  = {15 * 64, 0, 16 * 64, 12 * 64};
+    AABox bound_left   = {-64, 0, 0, 12 * 64};
+    this->collide_aabb(&bound_bottom);
+    this->collide_aabb(&bound_right);
+    this->collide_aabb(&bound_left);
+    
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {bound_bottom.min_x, bound_bottom.min_y},
+        {bound_bottom.max_x, bound_bottom.max_y},
+        0.f,
+        5 * 5,
+        false, false,
+        NRGBA{0,1,1,.7f});
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {bound_right.min_x, bound_right.min_y},
+        {bound_right.max_x, bound_right.max_y},
+        0.f,
+        5 * 5,
+        false, false,
+        NRGBA{0,1,1,.7f});
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {bound_left.min_x + 32, bound_left.min_y},
+        {bound_left.max_x + 32, bound_left.max_y},
+        0.f,
+        5 * 5,
+        false, false,
+        NRGBA{0,1,1,.7f});
     
 }
 
@@ -225,6 +267,12 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
+    // TODO(miked): Goblin can live from a fall if it's falling and a block appears
+    // near it; SEE: https://youtu.be/jNi6DQEX3xQ?t=12
+    
+    // TODO(miked): What if the goblin is spawned right on the bottom?
+    // right now it doesn't move!
+    
     // NOTE(miked): Sprite::mirror is a bool, and sprites by default look to the left,
     // so invert direction vector to get the axis-compliant direction in X.
 #define direction ((float)(goblin->mirror.x ? 1 : -1))

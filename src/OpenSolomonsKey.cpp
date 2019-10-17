@@ -175,7 +175,7 @@ u32* out_w, u32* out_h)
 }
 
 
-internal void render_extra_stuff()
+internal void draw_extra_stuff()
 {
     GLTilemapTexture* texture = &GET_TILEMAP_TEXTURE(misc);
     
@@ -357,10 +357,10 @@ cb_resize()
 void
 cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
-    glClearColor( 0.0, 0.0,  0.0, 1.0);
+    glClearColor( 0.0, 0.0,  0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
-    render_extra_stuff();
+    draw_extra_stuff();
     
     // TODO(miked): move this into resource "manager"
     gl_slow_tilemap_draw(
