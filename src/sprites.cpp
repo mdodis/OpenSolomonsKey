@@ -198,23 +198,20 @@ internal void ePlayer_cast(Sprite* player, float dt)
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
-    // TODO(miked): Reorder code to make more sense
-    // TODO(miked): Jump animation and delay
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
     const float RUNNING_JUMP_STRENGTH = 350;
     const float XSPEED = 150;
     
-    // NOTE(miked): maybe not have it be a local-global?
-    persist i32 player_last_yspeed;
+    float xmove_amount = 0;
     b32 is_crouching = false;
     b32 did_jump     = false;
+    // NOTE(miked): maybe not have it be a local-global?
+    persist i32 player_last_yspeed;
     
-    // movement
-    i32 vel = 0;
-    if      (GET_KEYDOWN(move_right)) vel = XSPEED;
-    else if (GET_KEYDOWN(move_left )) vel = -XSPEED;
+    if      (GET_KEYDOWN(move_right)) xmove_amount = XSPEED;
+    else if (GET_KEYDOWN(move_left )) xmove_amount = -XSPEED;
     
     if (GET_KEYDOWN(move_down) && !player->is_on_air)
         is_crouching = true;
@@ -244,15 +241,13 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
             player->velocity.y = player_last_yspeed;
     }
     
-    if (!is_crouching)
-    {
-        // NOTE(miked): A running jump results in a 1-block
-        // height-displacement rather than a 2 block displacement
-        const i32 jump_strength = (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
-        
-        player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, vel, true);
-    }
+    if (is_crouching) xmove_amount = 0;
     
+    // NOTE(miked): A running jump results in a 1-block
+    // height-displacement rather than a 2 block displacement
+    const i32 jump_strength = (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
+    
+    player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, xmove_amount, true);
     
     if (iabs(player->velocity.x) > 0)
     {
