@@ -378,7 +378,6 @@ int main(int argc, char *argv[])
 {
     x11_init();
     gl_load();
-    cb_init();
     
     b32 m_final = false;
     b32 m_prev = false;
@@ -388,6 +387,7 @@ int main(int argc, char *argv[])
     Timer timer;
     timer.reset();
     
+    cb_init();
     while(1) {
         while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
         {
