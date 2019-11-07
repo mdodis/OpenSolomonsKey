@@ -125,7 +125,7 @@ b32 damage_tiles)
     this->collide_aabb(&bound_right);
     this->collide_aabb(&bound_left);
     
-    
+#ifndef NDEBUG
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
         {bound_bottom.min_x, bound_bottom.min_y},
@@ -152,7 +152,7 @@ b32 damage_tiles)
         5 * 5,
         false, false,
         NRGBA{0,1,1,.7f});
-    
+#endif
 }
 
 

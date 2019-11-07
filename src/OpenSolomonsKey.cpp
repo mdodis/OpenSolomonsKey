@@ -357,7 +357,7 @@ cb_resize()
 void
 cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
-    glClearColor( 0.0, 0.0,  0.1, 1.0);
+    glClearColor( 0.0, 0.0,  0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
     draw_extra_stuff();
