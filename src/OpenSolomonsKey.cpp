@@ -383,6 +383,8 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     else if (GET_KEYPRESS(sound_up))    g_audio.volume = fclamp(0.f, 1.f, g_audio.volume + 0.1f);
     else if (GET_KEYPRESS(sound_down))  g_audio.volume = fclamp(0.f, 1.f, g_audio.volume - 0.1f);
     
+    if (dt > 0.13f) dt = 0.13f;
+    
     scene_update(&istate, dt);
     audio_update(&istate, audio_sample_count);
     

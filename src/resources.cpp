@@ -21,7 +21,7 @@ tilemaps.
 /*          NAME     PATH IN FOLDER                                rows cols*/\
 DEF_TILEMAP(test      ,"test_tilemap.png"                           ,6    ,5   )\
 DEF_TILEMAP(dana      ,"res/characters/dana/dana_all.png"           ,4    ,6   )\
-DEF_TILEMAP(tmgoblin  ,"res/characters/goblin/goblin_all.png"       ,3    ,7   )\
+DEF_TILEMAP(tmgoblin  ,"res/characters/goblin/goblin_all.png"       ,4    ,7   )\
 DEF_TILEMAP(font      ,"res/font.png"                               ,6    ,16  )\
 DEF_TILEMAP(misc      ,"res/misc.png"                               ,4    ,4   )\
 DEF_TILEMAP(background,"res/bg_room0.png"                           ,1    ,1   )\
@@ -60,12 +60,13 @@ DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
 DEF_ANIM(test_player,  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(test_player,  Crouch,  .05f,     {0,3}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Goblin,      tmgoblin, 4,                                         \
+DEF_CHARACTER(Goblin,      tmgoblin, 5,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true )   \
 DEF_ANIM(Goblin,       Punch,   .18f,     {0,1}, 4,      false)   \
 DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
 DEF_ANIM(Goblin,       Wait,    1.f,      {5,0}, 1,      false)   \
+DEF_ANIM(Goblin,       Fall,    .1f,      {0,3}, 2,      true )   \
 )                                                                 \
 DEF_CHARACTER(Effect,      test,     1,                                         \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \

@@ -596,10 +596,11 @@ struct win32_ThreadInfo
     u32 thread_index;
 };
 
-struct WorkQueueEntry
+struct win32_WorkQueueEntry
 {
     char* string_to_print;
 };
+
 
 #include <intrin.h>
 
@@ -608,11 +609,11 @@ struct WorkQueueEntry
 
 global u32 volatile next_entry;
 global u32 volatile entry_count;
-global WorkQueueEntry entries[256];
+global win32_WorkQueueEntry entries[256];
 
 internal void push_queue_entry(char* string)
 {
-    WorkQueueEntry* entry = entries + entry_count;
+    win32_WorkQueueEntry* entry = entries + entry_count;
     entry->string_to_print = string;
     
     COMPLETE_PAST_WRITES;
@@ -633,7 +634,7 @@ DWORD test_thread_proc(void* params)
             
             COMPLETE_PAST_READS;
             
-            WorkQueueEntry* entry = entries + next_entry_index;
+            win32_WorkQueueEntry* entry = entries + next_entry_index;
             
             inform("THREAD %d: %s", info->thread_index, entry->string_to_print);
         }
