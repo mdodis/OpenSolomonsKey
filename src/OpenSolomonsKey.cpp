@@ -270,8 +270,8 @@ RESSound bg_sound;
 void
 cb_init()
 {
-    player_jump_sound = Wave_load_from_file("bloop.wav");
-    bg_sound = Wave_load_from_file("bgm1.wav");
+    player_jump_sound = Wave_load_from_file("res/bloop.wav");
+    bg_sound = Wave_load_from_file("res/bgm1.wav");
     
     
     glActiveTexture(GL_TEXTURE0);
