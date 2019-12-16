@@ -86,9 +86,6 @@ global pthread_t g_audiothread;
 internal void audio_update(const InputState* const istate, u64 samples_to_write);
 internal void audio_update_all_sounds();
 
-#define OSK_LOCK_AUDIO sem_wait(&g_audiosem)
-#define OSK_UNLOCK_AUDIO sem_post(&g_audiosem)
-
 void* alsa_cb_audio(void* unused)
 {
     
