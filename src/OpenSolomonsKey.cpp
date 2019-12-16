@@ -386,7 +386,6 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     if (dt > 0.13f) dt = 0.13f;
     
     scene_update(&istate, dt);
-    audio_update(&istate, audio_sample_count);
     
     // NOTE(miked): testing an effect
     if (GET_KEYPRESS(m_pressed))

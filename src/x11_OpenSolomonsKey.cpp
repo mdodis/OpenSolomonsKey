@@ -28,7 +28,9 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 #include "OpenSolomonsKey.h"
 #include "gl_funcs.h"
 
-#include <portaudio.h>
+#include <alsa/asoundlib.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 timespec timespec_diff(timespec start, timespec end)
 {
@@ -64,17 +66,68 @@ struct Timer
     }
 };
 
-Display                 *dpy;
-Window                  root;
-XVisualInfo             *vi;
-Colormap                cmap;
-XSetWindowAttributes    swa;
-Window                  win;
-GLXContext              glc;
-XWindowAttributes       gwa;
-XEvent                  xev;
+/* Window Context */
+global Display                 *dpy;
+global Window                  root;
+global XVisualInfo             *vi;
+global Colormap                cmap;
+global XSetWindowAttributes    swa;
+global Window                  win;
+global GLXContext              glc;
+global XWindowAttributes       gwa;
+global XEvent                  xev;
 
 global bool g_ctx_error = false;
+
+global snd_pcm_t* g_alsapcm;
+global sem_t g_audiosem;
+global pthread_t g_audiothread;
+
+internal void audio_update(const InputState* const istate, u64 samples_to_write);
+internal void audio_update_all_sounds();
+
+#define OSK_LOCK_AUDIO sem_wait(&g_audiosem)
+#define OSK_UNLOCK_AUDIO sem_post(&g_audiosem)
+
+void* alsa_cb_audio(void* unused)
+{
+    
+    i16 *buffer = (i16*)g_audio.buffer;
+    for(;;) 
+    {
+        /* 1 frame = [L16|R16] in our case */
+        snd_pcm_sframes_t avail = snd_pcm_avail_update(g_alsapcm);
+        if (avail > 0)
+        {
+            u32 bytes_per_frame = 
+                .0166f * 
+                (float)(AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE);
+            
+            u32 n_to_write = avail * AUDIO_CHANNELS;
+            
+            if (avail * AUDIO_BYTESPERSAMPLE > bytes_per_frame)
+                n_to_write = (bytes_per_frame / AUDIO_BYTESPERSAMPLE);
+            
+            audio_update_all_sounds();
+            
+            sem_wait(&g_audiosem);
+            audio_update(0, n_to_write);
+            sem_post(&g_audiosem);
+            
+            snd_pcm_sframes_t written = 
+                snd_pcm_writei(g_alsapcm, buffer, n_to_write);
+            
+            if (written == -EPIPE)
+            {
+                fprintf(stderr, "EPIPE\n");
+                assert(!snd_pcm_prepare(g_alsapcm));
+            }
+            
+        }
+        
+    }
+    return 0;
+}
 
 static int ctxErrorHandler( Display *dpy, XErrorEvent *ev )
 {
@@ -82,7 +135,7 @@ static int ctxErrorHandler( Display *dpy, XErrorEvent *ev )
     return 0;
 }
 
-static bool isExtensionSupported(const char *extList, const char *extension)
+static bool x11_extension_supported(const char *extList, const char *extension)
 {
     const char *start;
     const char *where, *terminator;
@@ -212,7 +265,7 @@ x11_init()
     
     // Check for the GLX_ARB_create_context extension string and the function.
     // If either is not present, use GLX 1.3 context creation method.
-    if ( !isExtensionSupported( glxExts, "GLX_ARB_create_context" ) ||
+    if ( !x11_extension_supported( glxExts, "GLX_ARB_create_context" ) ||
         !glXCreateContextAttribsARB )
     {
         warn("%s", "glXCreateContextAttribsARB() not found"
@@ -320,58 +373,20 @@ x11_update_all_keys()
 #undef KEYPRESS
 }
 
-global PaStream* portaudio_stream;
 internal void
-portaudio_init()
+alsa_init()
 {
-    PaError err;
-    err = Pa_Initialize();
-    fail_unless(err == paNoError, "failed to init portaudio");
+    snd_pcm_open(&g_alsapcm, "default", SND_PCM_STREAM_PLAYBACK, 0);
+    snd_pcm_set_params(g_alsapcm,
+                       SND_PCM_FORMAT_S16_LE,
+                       SND_PCM_ACCESS_RW_INTERLEAVED,
+                       AUDIO_CHANNELS,
+                       AUDIO_SAMPLERATE,
+                       1,
+                       16667);
+    sem_init(&g_audiosem, 0, 0);
+    pthread_create(&g_audiothread, 0, alsa_cb_audio, 0);
     
-    err = Pa_OpenDefaultStream(
-        &portaudio_stream,
-        0,          /* no input channels */
-        AUDIO_CHANNELS,
-        paInt16,  /* 32 bit floating point output */
-        AUDIO_SAMPLERATE,
-        AUDIO_FRAMES,        /* frames per buffer, i.e. the number
-        of sample frames that PortAudio will
-        request from the callback. Many apps
-        may want to use
-        paFramesPerBufferUnspecified, which
-        tells PortAudio to pick the best,
-        possibly changing, buffer size.*/
-        0, /* this is your callback function */
-        0);
-    
-    fail_unless(err == paNoError, "failed to open stream");
-    err = Pa_StartStream(portaudio_stream);
-    fail_unless(err == paNoError, "failed to start stream");
-}
-
-internal i64
-portaudio_get_samples_to_write()
-{
-    i64 result = Pa_GetStreamWriteAvailable(portaudio_stream);
-    
-    fail_unless(result >= 0, "");
-    
-    return result;
-}
-
-internal void
-portaudio_update_buffer(i64 frames_to_write)
-{
-    PaError err = Pa_WriteStream(
-        portaudio_stream,
-        g_audio.buffer,
-        frames_to_write);
-    
-    if (err != paNoError)
-    {
-        
-        fprintf(stderr, "Pa_WriteStream returned: %s", Pa_GetErrorText(err));
-    }
 }
 
 int main(int argc, char *argv[])
@@ -382,7 +397,7 @@ int main(int argc, char *argv[])
     b32 m_final = false;
     b32 m_prev = false;
     
-    portaudio_init();
+    alsa_init();
     
     Timer timer;
     timer.reset();
@@ -408,10 +423,14 @@ int main(int argc, char *argv[])
         
         float delta = timer.get_elapsed_secs();
         timer.reset();
-        i64 samples_to_write = portaudio_get_samples_to_write();
         // Render code here
-        cb_render(g_input_state, samples_to_write, delta);
-        portaudio_update_buffer(samples_to_write);
+        cb_render(g_input_state, 0, delta);
+        
+        {
+            snd_pcm_sframes_t avail = snd_pcm_avail_update(g_alsapcm);
+            if (g_alsapcm > 0)
+                sem_post(&g_audiosem);
+        }
         
         glXSwapBuffers(dpy, win);
     }

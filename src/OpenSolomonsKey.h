@@ -106,6 +106,7 @@ platform_load_entire_file(const char* path)
 #define AUDIO_BYTESPERSAMPLE ((AUDIO_BPS / 8) * AUDIO_CHANNELS)
 #define AUDIO_FRAMES 1024
 #define AUDIO_BUFFER_SIZE (AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE)
+//#define AUDIO_BUFFER_SIZE 1000 
 #define AUDIO_MAX_SOUNDS 32
 
 struct RESSound
@@ -138,8 +139,8 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-    //float volume = 0.5f;
-    float volume = 0.0f;
+    float volume = 0.5f;
+    //float volume = 0.0f;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;

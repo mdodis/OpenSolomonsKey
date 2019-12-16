@@ -144,6 +144,7 @@ internal void audio_play_sound(const RESSound* resound, b32 looping = false, Sou
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
+    
     Sound new_sound = 
     {
         .max_counter = resound->num_samples,
@@ -153,6 +154,7 @@ internal void audio_play_sound(const RESSound* resound, b32 looping = false, Sou
     };
     
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
+    
 }
 
 internal void audio_toggle_playing(SoundType type)
@@ -202,7 +204,6 @@ internal void audio_update_all_sounds()
                     previous++;
                 }
                 
-                
             }
             
         }
@@ -214,8 +215,7 @@ audio_update(const InputState* const istate, u64 samples_to_write)
 {
     
     i16* out = (i16*)g_audio.buffer;
-    audio_update_all_sounds();
-    //printf("sz %d\n",g_audio.all_sounds_size );
+    //audio_update_all_sounds();
     
     memset(g_audio.buffer, 0, AUDIO_BUFFER_SIZE);
     for (u32 i = 0; i < samples_to_write; i += 1)
