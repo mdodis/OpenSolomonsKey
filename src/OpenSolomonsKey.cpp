@@ -316,8 +316,8 @@ cb_init()
     
     scene_init("lvl1.osk");
     
-    //Sprite goblin_sprite = make_goblin({64 * 3,64 * 3});
-    //scene_sprite_add(&goblin_sprite);
+    Sprite ghost_sprite = make_ghost({0,0});
+    scene_sprite_add(&ghost_sprite);
     
     return;
 }

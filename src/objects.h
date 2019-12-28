@@ -26,6 +26,7 @@ enum EntityBaseType
     
     ePlayer,
     eGoblin,
+    eGhost,
     eEffect,
     EntityBaseType_Count,
 };
@@ -187,6 +188,22 @@ inline internal Sprite make_goblin(fvec2 position)
         .entity =
         {
             .type = eGoblin,
+        }
+    };
+}
+
+inline internal Sprite make_ghost(fvec2 position)
+{
+    return Sprite
+    {
+        .tilemap = &GET_CHAR_TILEMAP(Ghost),
+        .position = position,
+        .collision_box = {0, 0, 64, 64},
+        .mirror = {false, false},
+        .animation_set = GET_CHAR_ANIMSET(Ghost),
+        .entity =
+        {
+            .type = eGhost,
         }
     };
 }
