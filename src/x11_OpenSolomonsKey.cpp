@@ -195,7 +195,10 @@ x11_init()
     swa.border_pixel = 0;
     swa.event_mask = ExposureMask | KeyPressMask;
     
-    win = XCreateWindow(dpy, root, 0, 0, 1024, 896, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
+    win = XCreateWindow(dpy, root, 0, 0, 700, 700, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
+    
+    XClassHint h = {"solomons key", "popup"};
+    XSetClassHint(dpy, win, &h);
     
     XFree(vi);
     
