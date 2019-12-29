@@ -343,3 +343,16 @@ struct NRGBA
     float r, g, b, a;
 };
 
+
+NRGBA rand_nrgb()
+{
+    NRGBA result =
+    {
+        (float)rand() / (float)RAND_MAX,
+        (float)rand() / (float)RAND_MAX,
+        (float)rand() / (float)RAND_MAX,
+        1.f,
+    };
+    
+    return result;
+}

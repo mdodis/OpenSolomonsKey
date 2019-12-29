@@ -19,6 +19,7 @@ sox [input] -r 48k -c 2 -b 16 [output]
 */
 
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <GL/gl.h>
 
@@ -33,86 +34,12 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include "gl_funcs.h"
 #include "gl_graphics.h"
 #include "resources.cpp"
-
-void draw_num(float num, int line = 0)
-{
-    char buf[20] = "";
-    sprintf(buf, "%f", num);
-    
-    char* c = buf;
-    const float size = 16;
-    float increment = 0;
-    while(*c)
-    {
-        if (*c >= '0' && *c <= '9')
-        {
-            int c_to_font = (*c - 48) + (1 * 16);
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{increment, line * size},
-                                 glm::vec2{size, size},
-                                 0,
-                                 c_to_font,
-                                 false, false, NRGBA{1,1,1,1});
-            
-        }
-        else if (*c == '.')
-        {
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{increment, line * size},
-                                 glm::vec2{size, size},
-                                 0,
-                                 14,
-                                 false, false, NRGBA{1,1,1,1});
-            
-        }
-        increment += size;
-        
-        c++;
-    }
-}
-
-
-void draw_text(char* text, int line)
-{
-    char* c = text;
-    const float size = 16;
-    float increment = 0;
-    
-    while(*c)
-    {
-        if (*c >= 'a' && *c <= 'z')
-        {
-            
-            int c_to_font = (*c - 65) + (2 * 16 + 1);
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{increment, line * size},
-                                 glm::vec2{size, size},
-                                 0,
-                                 c_to_font,
-                                 false, false, NRGBA{1,1,1,1});
-            
-        }
-        else if (*c >= 'A' && *c <= 'Z')
-        {
-            int c_to_font = (*c - 97) + (4 * 16 + 1);
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{increment, line * size},
-                                 glm::vec2{size, size},
-                                 0,
-                                 c_to_font,
-                                 false, false, NRGBA{1,1,1,1});
-            
-        }
-        
-        increment += size;
-        c++;
-    }
-}
-
+#include "text.cpp"
 #include "objects.h"
 #include "audio.cpp"
 #include "levels.cpp"
 #include "sprites.cpp"
+
 
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
@@ -273,7 +200,7 @@ cb_init()
     player_jump_sound = Wave_load_from_file("res/bloop.wav");
     bg_sound = Wave_load_from_file("res/bgm1.wav");
     
-    
+    srand(time(0));
     glActiveTexture(GL_TEXTURE0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -315,9 +242,6 @@ cb_init()
     
     
     scene_init("lvl1.osk");
-    
-    Sprite ghost_sprite = make_ghost({0,0});
-    scene_sprite_add(&ghost_sprite);
     
     return;
 }
@@ -398,7 +322,17 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
         
     }
     
+    // 1p
+    persist float text_1p_t = 0.f;
+    text_1p_t += dt;
     
+    draw_text("1p", 0, 0, false, 32,NRGBA{
+              sinf(text_1p_t) + 1,
+              cosf(text_1p_t) + 1,
+              sinf(text_1p_t) * 0.5f + cosf(text_1p_t) * 0.5f + 1,1});
+    
+    draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
+    draw_num(1000, 1, 15 , false, 32, true);
 }
 
 #include "gl_graphics.cpp"

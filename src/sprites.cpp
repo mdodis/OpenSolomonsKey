@@ -422,8 +422,6 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     
     if (goblin->is_on_air && !is_dying)
     {
-        // TODO(miked): Death animation
-        //goblin->mark_for_removal = true;
         SET_ANIMATION(goblin, Goblin, Fall);
     }
     else if (is_dying)
