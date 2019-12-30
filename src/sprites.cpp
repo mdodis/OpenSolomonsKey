@@ -198,6 +198,11 @@ internal void ePlayer_cast(Sprite* player, float dt)
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
+    /* 
+ TODO: dana cast fireball, tread on edge of blocks until decay
+ 
+*/
+    
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
@@ -247,7 +252,13 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     // height-displacement rather than a 2 block displacement
     const i32 jump_strength = (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
     
-    player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, xmove_amount, true);
+    player->move_and_collide(
+        dt, 
+        GRAVITY, 
+        MAX_YSPEED,
+        jump_strength, 
+        xmove_amount,
+        true);
     
     if (iabs(player->velocity.x) > 0)
     {
@@ -262,14 +273,18 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
-    // TODO(miked): Goblin can live from a fall if it's falling and a block appears
-    // near it; SEE: https://youtu.be/jNi6DQEX3xQ?t=12
+    /*  
+ TODO: Goblin can live from a fall if it's falling and a block appears
+     near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
+     
+     TODO: Goblin can only fall _IF_ its currently in the walking,
+     chasing, or waiting state. If it were in a punch state, it would have
+     to finish that first, and then proceed to die by gravity
+     
+     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
+     so invert direction vector to get the axis-compliant direction in X.
+*/
     
-    // TODO(miked): What if the goblin is spawned right on the bottom?
-    // right now it doesn't move!
-    
-    // NOTE(miked): Sprite::mirror is a bool, and sprites by default look to the left,
-    // so invert direction vector to get the axis-compliant direction in X.
 #define direction ((float)(goblin->mirror.x ? 1 : -1))
     
     const float goblin_walk_speed = 80;
@@ -308,7 +323,8 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         if (goblin_tile.y == ppos_tile.y &&
             !ignore_player)
         {
-            
+            // search in the direction of the goblin to see if there is
+            // an obstacle blocking its view of the player
             i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
             
             ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);

@@ -243,6 +243,21 @@ cb_init()
     
     scene_init("lvl1.osk");
     
+    
+    Sprite s = 
+    {
+        .tilemap = &GET_CHAR_TILEMAP(DFireball),
+        .position = {3*64,5*64},
+        .animation_set = GET_CHAR_ANIMSET(DFireball),
+        .entity = 
+        {
+            eGhost,
+            {0,0}
+        }
+    };
+    Sprite *p = scene_sprite_add(&s);
+    SET_ANIMATION(p, DFireball, Up);
+    
     return;
 }
 

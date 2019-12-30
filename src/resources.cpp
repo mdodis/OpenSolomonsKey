@@ -18,14 +18,15 @@ the extra required information. All of the rendering is done through
 tilemaps.
 */
 #define ALL_TILEMAPS \
-/*          NAME     PATH IN FOLDER                                rows cols*/\
-DEF_TILEMAP(test      ,"test_tilemap.png"                           ,6    ,5   )\
-DEF_TILEMAP(dana      ,"res/characters/dana/dana_all.png"           ,4    ,6   )\
-DEF_TILEMAP(tmgoblin  ,"res/characters/goblin/goblin_all.png"       ,4    ,7   )\
-DEF_TILEMAP(tmghost   ,"res/characters/ghost/ghost_all.png"         ,2    ,3   )\
-DEF_TILEMAP(font      ,"res/font.png"                               ,6    ,16  )\
-DEF_TILEMAP(misc      ,"res/misc.png"                               ,4    ,4   )\
-DEF_TILEMAP(background,"res/bg_room0.png"                           ,1    ,1   )\
+/*          NAME          PATH IN FOLDER                             rows cols*/\
+DEF_TILEMAP(test          ,"test_tilemap.png"                        ,6    ,5  )\
+DEF_TILEMAP(dana          ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
+DEF_TILEMAP(tmgoblin      ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
+DEF_TILEMAP(tmghost       ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
+DEF_TILEMAP(tmdana_fire   ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )\
+DEF_TILEMAP(font          ,"res/font.png"                            ,6    ,16 )\
+DEF_TILEMAP(misc          ,"res/misc.png"                            ,4    ,4  )\
+DEF_TILEMAP(background    ,"res/bg_room0.png"                        ,1    ,1  )\
 
 struct RESTilemap
 {
@@ -78,6 +79,12 @@ DEF_CHARACTER(Ghost,       tmghost,  2,                                         
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Ghost,        Fly,     .1f,      {0,0}, 3,      true )   \
 DEF_ANIM(Ghost,        Punch ,  .1f,      {0,1}, 3,      false)   \
+)                                                                 \
+DEF_CHARACTER(DFireball,   tmdana_fire,  3,                                     \
+/*       Character,    Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
+DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \
+DEF_ANIM(DFireball,    Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,

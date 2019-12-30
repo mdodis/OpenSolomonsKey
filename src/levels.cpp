@@ -20,12 +20,12 @@ global struct
 } g_scene;
 
 
-internal void 
-scene_sprite_add(Sprite* sprite)
+internal Sprite *scene_sprite_add(Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
     //ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
     g_scene.spritelist.push_back(*sprite);
+    return &g_scene.spritelist.back();
 }
 
 
