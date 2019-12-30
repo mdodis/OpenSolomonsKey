@@ -210,6 +210,7 @@ inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y
 
 internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
 internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
+internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 
 internal void 
 scene_update(InputState* istate, float dt)
@@ -243,6 +244,10 @@ scene_update(InputState* istate, float dt)
                 }
             }break;
             
+            case eDFireball:
+            {
+                eDFireball_update(spref, istate, dt);
+            }break;
             
             default:
             break;

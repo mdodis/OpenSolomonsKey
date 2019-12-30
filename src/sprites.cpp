@@ -101,6 +101,8 @@ b32 damage_tiles)
             
             
 #ifndef NDEBUG
+            
+#if 0            
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
                 {tile_coords.x, tile_coords.y},
@@ -109,6 +111,7 @@ b32 damage_tiles)
                 5 * 5,
                 false, false,
                 NRGBA{1,1,1,.7f});
+#endif
 #endif
         }
     }
@@ -196,12 +199,100 @@ internal void ePlayer_cast(Sprite* player, float dt)
     
 }
 
+
+internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
+{
+    
+#define direction ((float)(dfire->mirror.x ? 1 : -1))
+#define vdirection ((float) (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Up) ? -1 : +1))
+#define middle ((dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Middle)))
+    
+    ivec2 current_tile = map_position_to_tile_centered(dfire->position);
+    ivec2 start_tile = iclamp(ivec2{0,0}, ivec2{14,11},
+                              current_tile - 1);
+    ivec2 closest_tile = {-1, -1};
+    float closest_dist = 100000.f;
+    
+    // find the closest tile (NOTE prefer bottom maybe?) and follow it
+    for (i32 j = 0; j < 3; ++j)
+    {
+        for (i32 i = 0; i < 3; ++i)
+        {
+            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
+            
+            fvec2 tile_coords =
+            {
+                (start_tile.x + i) * 64.f,
+                (start_tile.y + j) * 64.f
+            };
+            
+            float dist = distance(
+                dfire->position + fvec2{24, 24},
+                tile_coords + fvec2{32,32});
+            
+            if (dist < closest_dist)
+            {
+                closest_dist = dist;
+                closest_tile = start_tile + ivec2{i, j};
+            }
+            
+#ifndef NDEBUG
+            gl_slow_tilemap_draw(
+                &GET_TILEMAP_TEXTURE(test),
+                {tile_coords.x , tile_coords.y },
+                {64, 64},
+                0.f,
+                5 * 5,
+                false, false,
+                NRGBA{.4f,2.f,1.f,1});
+#endif
+            
+        }
+    }
+    
+    if (closest_tile.x != -1)
+    {
+        if (closest_tile.y == current_tile.y)
+            SET_ANIMATION(dfire, DFireball, Up);     // tile is above
+        else
+            SET_ANIMATION(dfire, DFireball, Middle);
+        
+        if (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Middle))
+        {
+            if (scene_get_tile(closest_tile - ivec2{0, 1}) == eEmptySpace)
+                dfire->position.y = closest_tile.y * 64.f - dfire->collision_box.max_y;
+            
+            // if we are at an edge
+            if (scene_get_tile(closest_tile + ivec2{1,1}) == eEmptySpace)
+            {
+                SET_ANIMATION(dfire, DFireball, Down);
+            }
+        }
+        
+        if (dfire->current_animation != GET_CHAR_ANIMENUM(DFireball, Middle))
+        {
+            dfire->position.y += 
+                (dt * 200.f * vdirection);
+        }
+        
+        if (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Down))
+        {
+            dfire->position += fvec2{direction,vdirection} * 50.f  * dt;
+        }
+        
+    }
+    
+    
+#undef direction
+}
+
+
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
     /* 
- TODO: dana cast fireball, tread on edge of blocks until decay
- 
-*/
+    TODO: dana cast fireball, tread on edge of blocks until decay
+    
+    */
     
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
@@ -238,6 +329,16 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         ePlayer_cast(player, dt);
     }
     
+    // Fireball Casting
+    if (GET_KEYPRESS(fireball) &&
+        player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
+    {
+        Sprite f = make_dfireball(player->position + fvec2{16, 0});
+        Sprite *p = scene_sprite_add(&f);
+        
+        p->mirror = player->mirror;
+    }
+    
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast))
     {
         if (player->animation_playing)
@@ -250,7 +351,8 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     
     // NOTE(miked): A running jump results in a 1-block
     // height-displacement rather than a 2 block displacement
-    const i32 jump_strength = (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
+    const i32 jump_strength =
+        (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
     
     player->move_and_collide(
         dt, 
@@ -274,16 +376,16 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
     /*  
- TODO: Goblin can live from a fall if it's falling and a block appears
-     near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
-     
-     TODO: Goblin can only fall _IF_ its currently in the walking,
-     chasing, or waiting state. If it were in a punch state, it would have
-     to finish that first, and then proceed to die by gravity
-     
-     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
-     so invert direction vector to get the axis-compliant direction in X.
-*/
+    TODO: Goblin can live from a fall if it's falling and a block appears
+    near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
+    
+    TODO: Goblin can only fall _IF_ its currently in the walking,
+    chasing, or waiting state. If it were in a punch state, it would have
+    to finish that first, and then proceed to die by gravity
+    
+    NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
+    so invert direction vector to get the axis-compliant direction in X.
+    */
     
 #define direction ((float)(goblin->mirror.x ? 1 : -1))
     

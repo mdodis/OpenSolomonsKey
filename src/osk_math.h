@@ -338,6 +338,13 @@ inline float length(fvec2 a)
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
+inline float distance(fvec2 a, fvec2 b)
+{
+#define SQ(x) ((x) * (x))
+    return sqrtf( SQ(a.x - b.x) + SQ(a.y - b.y));
+#undef SQ
+}
+
 struct NRGBA
 {
     float r, g, b, a;

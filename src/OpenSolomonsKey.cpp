@@ -243,21 +243,6 @@ cb_init()
     
     scene_init("lvl1.osk");
     
-    
-    Sprite s = 
-    {
-        .tilemap = &GET_CHAR_TILEMAP(DFireball),
-        .position = {3*64,5*64},
-        .animation_set = GET_CHAR_ANIMSET(DFireball),
-        .entity = 
-        {
-            eGhost,
-            {0,0}
-        }
-    };
-    Sprite *p = scene_sprite_add(&s);
-    SET_ANIMATION(p, DFireball, Up);
-    
     return;
 }
 
@@ -326,16 +311,6 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     scene_update(&istate, dt);
     audio_update(&istate, audio_sample_count);
-    
-    // NOTE(miked): testing an effect
-    if (GET_KEYPRESS(m_pressed))
-    {
-        Sprite effect = make_effect({64 * 5,64 * 3});
-        SET_ANIMATION(((Sprite*)&effect), Effect, Test);
-        
-        scene_sprite_add(&effect);
-        
-    }
     
     // 1p
     persist float text_1p_t = 0.f;

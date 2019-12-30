@@ -27,7 +27,9 @@ enum EntityBaseType
     ePlayer,
     eGoblin,
     eGhost,
+    
     eEffect,
+    eDFireball,
     EntityBaseType_Count,
 };
 
@@ -242,6 +244,27 @@ inline internal Sprite make_effect(fvec2 position)
             {0,0}
         }
     };
+}
+
+inline internal Sprite make_dfireball(fvec2 position)
+{
+    Sprite res = 
+    {
+        .tilemap = &GET_CHAR_TILEMAP(DFireball),
+        .size = {48,48},
+        .position = position,
+        .collision_box = {0,0,48,48},
+        .animation_set = GET_CHAR_ANIMSET(DFireball),
+        .entity = 
+        {
+            eDFireball,
+            {0,0}
+        }
+    };
+    
+    SET_ANIMATION(&res, DFireball, Middle);
+    
+    return res;
 }
 
 internal const char* goblin_parse_custom(Sprite* goblin, const char* c)
