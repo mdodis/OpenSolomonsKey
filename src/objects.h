@@ -54,7 +54,7 @@ struct Sprite
     // Animation stuff
     b32 animation_playing = true;
     i32 current_frame = 0;
-    i32 current_animation = 0;
+    u32 current_animation = 0;
     float time_accumulator = 0.f;
     Animation* animation_set;
     
