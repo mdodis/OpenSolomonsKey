@@ -178,7 +178,7 @@ internal void load_tilemap_textures()
     
     for (u32 i = 0 ;i < TILEMAP_COUNT; ++i)
     {
-        printf("loading tilemap: %s...\n",RES_TILEMAPS[i].name);
+        inform("loading tilemap: %s...",RES_TILEMAPS[i].name);
         data = load_image_as_rgba_pixels(
             RES_TILEMAPS[i].name,
             &width, &height, &bpp);

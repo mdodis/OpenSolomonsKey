@@ -310,7 +310,6 @@ cb_render(InputState istate, u64 audio_sample_count, float dt)
     if (dt > 0.13f) dt = 0.13f;
     
     scene_update(&istate, dt);
-    audio_update(&istate, audio_sample_count);
     
     // 1p
     persist float text_1p_t = 0.f;
