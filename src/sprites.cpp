@@ -203,85 +203,48 @@ internal void ePlayer_cast(Sprite* player, float dt)
 internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
 {
     
-#define direction ((float)(dfire->mirror.x ? 1 : -1))
+#define direction ((dfire->mirror.x ? 1 : -1))
 #define vdirection ((float) (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Up) ? -1 : +1))
 #define middle ((dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Middle)))
     
-    ivec2 current_tile = map_position_to_tile_centered(dfire->position);
-    ivec2 start_tile = iclamp(ivec2{0,0}, ivec2{14,11},
-                              current_tile - 1);
-    ivec2 closest_tile = {-1, -1};
-    float closest_dist = 100000.f;
     
-    // find the closest tile (NOTE prefer bottom maybe?) and follow it
-    for (i32 j = 0; j < 3; ++j)
-    {
-        for (i32 i = 0; i < 3; ++i)
-        {
-            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
-            
-            fvec2 tile_coords =
-            {
-                (start_tile.x + i) * 64.f,
-                (start_tile.y + j) * 64.f
-            };
-            
-            float dist = distance(
-                dfire->position + fvec2{24, 24},
-                tile_coords + fvec2{32,32});
-            
-            if (dist < closest_dist)
-            {
-                closest_dist = dist;
-                closest_tile = start_tile + ivec2{i, j};
-            }
-            
-#ifndef NDEBUG
-            gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {tile_coords.x , tile_coords.y },
-                {64, 64},
-                0.f,
-                5 * 5,
-                false, false,
-                NRGBA{.4f,2.f,1.f,1});
-#endif
-            
-        }
-    }
+    const float proximity_thresh = 5.f;
+    ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     
-    if (closest_tile.x != -1)
-    {
-        if (closest_tile.y == current_tile.y)
-            SET_ANIMATION(dfire, DFireball, Up);     // tile is above
-        else
-            SET_ANIMATION(dfire, DFireball, Middle);
-        
-        if (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Middle))
-        {
-            if (scene_get_tile(closest_tile - ivec2{0, 1}) == eEmptySpace)
-                dfire->position.y = closest_tile.y * 64.f - dfire->collision_box.max_y;
-            
-            // if we are at an edge
-            if (scene_get_tile(closest_tile + ivec2{1,1}) == eEmptySpace)
-            {
-                SET_ANIMATION(dfire, DFireball, Down);
-            }
-        }
-        
-        if (dfire->current_animation != GET_CHAR_ANIMENUM(DFireball, Middle))
-        {
-            dfire->position.y += 
-                (dt * 200.f * vdirection);
-        }
-        
-        if (dfire->current_animation == GET_CHAR_ANIMENUM(DFireball, Down))
-        {
-            dfire->position += fvec2{direction,vdirection} * 50.f  * dt;
-        }
-        
-    }
     
+    dfire->rotation = 270.f;
+    fvec2 forward = direction_from_rotation(D2R * dfire->rotation);
+    fvec2 right = direction_from_rotation(D2R * (dfire->rotation + 90.f));
+    fvec2 left = direction_from_rotation(D2R * (dfire->rotation - 90.f));
+    
+    ivec2 forward_tile = target_tile + ivec2{(int)forward.x, (int)forward.y};
+    ivec2 right_tile = target_tile + ivec2{(int)right.x, (int)right.y};
+    ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
+    
+    AABox aabb = dfire->get_transformed_AABox();
+    
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {forward_tile.x * 64.f, forward_tile.y * 64.f},
+        {64.f, 64.f},
+        0.f, 5, false, false, NRGBA{1.f,0.f,0.f,1.f});
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {right_tile.x * 64.f, right_tile.y * 64.f},
+        {64.f, 64.f},
+        0.f, 6, false, false, NRGBA{1.f,0.f,0.f,1.f});
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {left_tile.x * 64.f, left_tile.y * 64.f},
+        {64.f, 64.f},
+        0.f, 6, false, false, NRGBA{1.f,0.f,0.f,1.f});
+    
+    dfire->rotation = fclamp(0.f, 360.f, dfire->rotation);
+    
+    dfire->position += direction_from_rotation(D2R * dfire->rotation) * 100.f * dt;
     
 #undef direction
 }
@@ -333,10 +296,12 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     if (GET_KEYPRESS(fireball) &&
         player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
     {
-        Sprite f = make_dfireball(player->position + fvec2{16, 0});
+        Sprite f = make_dfireball(player->position + fvec2{16, 5});
+        // TODO(miked): FLIP SPRITE image
+        f.mirror.x = !player->mirror.x;
+        
         Sprite *p = scene_sprite_add(&f);
         
-        p->mirror = player->mirror;
     }
     
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast))

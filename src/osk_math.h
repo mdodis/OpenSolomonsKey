@@ -4,6 +4,8 @@
 #include <math.h>
 #include <float.h>
 
+#define D2R 0.0174533f
+#define R2D 57.2958f
 union ivec2
 {
     struct
@@ -219,8 +221,11 @@ inline int highest_pow2(int n)
 inline ivec2 
 map_position_to_tile_centered(fvec2 position)
 {
-    // NOTE(miked): behavior of original game
     return ivec2{((i32)position.x + 32) / 64, ((i32)position.y + 32) / 64};
+}
+
+inline fvec2 direction_from_rotation( float theta){
+    return fvec2{ cosf(theta),  sinf(theta)  };
 }
 
 

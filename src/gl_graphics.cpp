@@ -125,29 +125,7 @@ i32 tilemap_cols)
     {
         for (i32 x = 0; x < tilemap_cols; x++)
         {
-            // target (GL_TEXTURE_2D_ARRAY)
-            // miplevels 0 for just single image
-            // 0 (const)
-            // 0 (const)
-            // x * tiles_x + y
-            // tile_width
-            // tiles_height
-            // 1 (const)
-            // pformat (GL_BGR)
-            // iformat (GL_UNSIGNED_BYTE)
-            // pixels + (x * tile_height * width + y * tile_width) * components
-            // http://docs.gl/gl4/glTexSubImage3D
             
-#if 0
-            glTexSubImage3D(
-                GL_TEXTURE_2D_ARRAY,
-                0, 0, 0,
-                x * tilemap_cols + y,
-                tile_width, tile_height, 1,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                data + (x * tile_height * width + y * tile_width) * 4);
-#else
             glTexSubImage3D(
                 GL_TEXTURE_2D_ARRAY,
                 0, 0, 0,
@@ -157,7 +135,6 @@ i32 tilemap_cols)
                 GL_RGBA,
                 GL_UNSIGNED_BYTE,
                 data + (y * tile_width * width + x * tile_width) * 4);
-#endif
             
             count++;
         }
