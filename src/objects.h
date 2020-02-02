@@ -251,9 +251,9 @@ inline internal Sprite make_dfireball(fvec2 position)
     Sprite res = 
     {
         .tilemap = &GET_CHAR_TILEMAP(DFireball),
-        .size = {48,48},
+        .size = {45,45},
         .position = position,
-        .collision_box = {0,5,40,40},
+        .collision_box = {10,10,30,30},
         .animation_set = GET_CHAR_ANIMSET(DFireball),
         .entity = 
         {

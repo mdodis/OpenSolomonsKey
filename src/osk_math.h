@@ -211,7 +211,6 @@ inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
     };
 }
 
-
 inline int highest_pow2(int n)
 {
     int p = (int)log2(n);
@@ -225,7 +224,9 @@ map_position_to_tile_centered(fvec2 position)
 }
 
 inline fvec2 direction_from_rotation( float theta){
-    return fvec2{ cosf(theta),  sinf(theta)  };
+    fvec2 result = fvec2{ roundf(cosf(theta)),  roundf(sinf(theta))  };
+    
+    return result;
 }
 
 
@@ -319,6 +320,7 @@ fvec2* const opt_pen)
 }
 
 
+
 inline float sgn(float a)
 {
     if (a < 0) return -1;
@@ -332,6 +334,12 @@ inline i32 sgn(i32 a)
     else return 1;
 }
 
+inline float min(float a, float b)
+{
+    return a < b 
+        ? a
+        : b;
+}
 
 inline float dot(fvec2 a, fvec2 b)
 {
