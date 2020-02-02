@@ -204,7 +204,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
 {
     
 #define is_horizontal (dfire->rotation == 180.f || dfire->rotation == 0.f)
-#define going_right (!dfire->mirror.x)
+#define going_right (dfire->mirror.x)
     const float proximity_thresh = 2.f;
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
@@ -322,6 +322,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
         
     }
     
+    if (last_rot != dfire->rotation) printf("%5f -> %5f\n", last_rot, dfire->rotation);
     
     if (GET_KEYPRESS(sound_up)) dfire->rotation += 90.f;
     if (GET_KEYPRESS(sound_down)) dfire->rotation -= 90.f;
@@ -400,9 +401,9 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     if (GET_KEYPRESS(fireball) &&
         player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
     {
-        Sprite f = make_dfireball(player->position + fvec2{16, 15});
+        Sprite f = make_dfireball(player->position + fvec2{16, 10});
         // TODO(miked): FLIP SPRITE image
-        f.mirror.x = !player->mirror.x;
+        f.mirror.x = player->mirror.x;
         f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
         
