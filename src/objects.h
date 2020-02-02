@@ -178,6 +178,19 @@ struct Sprite
     }
 };
 
+#include <vector>
+typedef std::vector<Sprite> List_Sprite;
+
+global struct
+{
+    
+    EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    // TODO(miked): Hidden items
+    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
+    List_Sprite spritelist;
+    
+} g_scene;
+
 inline internal Sprite make_goblin(fvec2 position)
 {
     return Sprite

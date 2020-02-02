@@ -203,8 +203,8 @@ internal void ePlayer_cast(Sprite* player, float dt)
 internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
 {
     
-#define is_horizontal (dfire->rotation == 180.f || dfire->rotation == 0.f)
 #define going_right (dfire->mirror.x)
+    
     const float proximity_thresh = 2.f;
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
@@ -213,116 +213,109 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     
     fvec2 forward = direction_from_rotation(D2R * dfire->rotation);
     fvec2 back = direction_from_rotation(D2R * (dfire->rotation + 180.f));
-    
-    float mod = 1.f;
-#if 0    
-    if ( dfire->rotation == 180)
-        mod = -1.f;
-#endif
-    
-    fvec2 right = direction_from_rotation(D2R * (dfire->rotation + 90.f * mod));
+    fvec2 right = direction_from_rotation(D2R * (dfire->rotation + 90.f));
     fvec2 left = direction_from_rotation(D2R * (dfire->rotation - 90.f));
-    // NOTE(miked): left is the opposite of right
-    if (!going_right) right = left;
     
     ivec2 forward_tile = target_tile + ivec2{(int)forward.x, (int)forward.y};
-    ivec2 fwd_tile_add = ivec2{(int)forward.x, (int)forward.y};
-    ivec2 back_tile = target_tile + ivec2{(int)back.x, (int)back.y};
     ivec2 right_tile = target_tile + ivec2{(int)right.x, (int)right.y};
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
     
-    ivec2 forward_right_tile = right_tile + ivec2{(int)forward.x, (int)forward.y};
-    ivec2 back_right_tile = right_tile + ivec2{(int)back.x, (int)back.y};
     
     /* 
- RIGHT CASES:
-     ====1-2========3-4=========5-6========7-8====
- | Go down  | Go right | Go right | Go right |
- |          |   [XX]   |[XX]o     |          |
-   | o>       |   [XX]   |[XX]▼     |          |
- |[XX]      |    <o    |   [XX]   |   ▲[XX]  |
- |[XX]      |          |   [XX]   |   o[XX]  |
- |----------|----------|----------|----------|
- | Go up    | Go left  | Go left  | Go left  |
- |    [XX]  |   [XX]   |[XX]o     | [XX]     |
- | o> [XX]  |   [XX]   |[XX]▼     | [XX]     |
- |[XX]      |[XX] <o   |          |   ▲[XX]  |
- |[XX]      |[XX]      |          |   o[XX]  |
- =============================================
-*/
+    RIGHT CASES:                                 LEFT CASES:
+      ROT 0       ROT 180    ROT 90     ROT 270     ROT 180    ROT 0      ROT 90     ROT 270
+     ====1-2========3-4=========5-6========7-8===||===1-2========3-4=========5-6========7-8====
+     | Go down  | Go right | Go right | Go right || Go down  | Go left  | Go left  | Go left  |
+     |          |   [XX]   |[XX]o     |          ||          |   [XX]   |     o[XX]|          |
+     | o>       |   [XX]   |[XX]▼     |          ||       <o |   [XX]   |     ▼[XX]|          |
+     |[XX]      |    <o    |   [XX]   |   ▲[XX]  ||      [XX]|    o>    |   [XX]   |[XX]▲     |
+     |[XX]      |          |   [XX]   |   o[XX]  ||      [XX]|          |   [XX]   |[XX]o     |
+     |----------|----------|----------|----------||----------|----------|----------|----------|
+     | Go up    | Go left  | Go left  | Go left  || Go up    | Go right | Go right | Go right |
+     |    [XX]  |   [XX]   |[XX]o     | [XX]     ||  [XX]    |   [XX]   |     o[XX]|    [XX]  |
+     | o> [XX]  |   [XX]   |[XX]▼     | [XX]     ||  [XX] <o |   [XX]   |     ▼[XX]|    [XX]  |
+     |[XX]      |[XX] <o   |          |   ▲[XX]  ||      [XX]|    o>[XX]|          |[XX]▲     |
+     |[XX]      |[XX]      |          |   o[XX]  ||      [XX]|      [XX]|          |[XX]o     |
+     ============================================||===========================================|
+    */
     float last_rot = dfire->rotation;
-    if (dfire->rotation == 0) {                             // CASES 1-2
-        bool guard1 = false;
+    
+    if (going_right){                                           // RIGHT CASES
         
-        if (scene_get_tile(right_tile + ivec2{1,0}) != eEmptySpace &&
-            (right_tile.x + 1) * 64.f - aabb.max_x < proximity_thresh)
-            guard1 = true;
-        
-        if (scene_get_tile(target_tile) == eEmptySpace &&
-            scene_get_tile(right_tile)  == eEmptySpace &&
-            !guard1 &&
-            (right_tile.x * 64.f - aabb.min_x + proximity_thresh / 2.f) < 0)
-            dfire->rotation = 90 ; // CASE 1
-        
-        if (scene_get_tile(forward_tile) != eEmptySpace &&
-            (forward_tile.x * 64.f - aabb.max_x + proximity_thresh) < 0)
-            dfire->rotation = 270; // CASE 2
-        
-    }
-    else if (dfire->rotation == 180){                       // CASES 3-4
-        
-        bool guard3 = false;
-        if (scene_get_tile(right_tile + ivec2{-1, 0}) != eEmptySpace &&
-            (aabb.max_x - right_tile.x * 64.f - 64.f) < proximity_thresh)
-            guard3 = true;
-        
-        if (scene_get_tile(target_tile) == eEmptySpace &&
-            scene_get_tile(right_tile)  == eEmptySpace &&
-            !guard3 &&
-            ((right_tile.x - 1) * 64.f - aabb.min_x) < 0)
-            dfire->rotation = 270; // CASE 3
-        
-        if (scene_get_tile(forward_tile) != eEmptySpace &&
-            (aabb.min_x - (forward_tile.x + 1) * 64.f) < 0)
-            dfire->rotation = 90 ; // CASE 4
-    }
-    else if (dfire->rotation == 90){                        // CASES 5-6
-        if (scene_get_tile(forward_tile) != eEmptySpace &&
-            ((right_tile.y + 1) * 64.f - aabb.max_y) < proximity_thresh)
-            dfire->rotation = 0  ; // CASE 5
-        
-        bool guard6 = false;
-        if (scene_get_tile(right_tile + ivec2{0, 1}) != eEmptySpace &&
-            (right_tile.y + 1) * 64.f - aabb.max_y < proximity_thresh)
-            guard6 = true;
-        
-        if (scene_get_tile(target_tile) == eEmptySpace &&
-            scene_get_tile(right_tile)  == eEmptySpace &&
-            !guard6&&
-            ((right_tile.y) * 64.f - aabb.min_y) < 0)
-            dfire->rotation = 180; // CASE 6
-    }
-    else if (dfire->rotation == 270){                       // CASES 7-8
-        
-        bool guard7 = false;
-        
-        if (scene_get_tile(right_tile + ivec2{0,-1}) != eEmptySpace &&
-            aabb.min_y - (right_tile.y) * 64.f < proximity_thresh)
-            guard7 = true;
-        
-        if (scene_get_tile(target_tile) == eEmptySpace &&
-            scene_get_tile(right_tile)  == eEmptySpace &&
-            !guard7 &&
-            aabb.max_y - (right_tile.y + 1) * 64.f < 0)
-            dfire->rotation = 0  ; // CASE 7
-        
-        if (scene_get_tile(forward_tile) != eEmptySpace &&
-            (aabb.min_y - right_tile.y * 64.f) < 0)
-            dfire->rotation = 180; // CASE 8
-        
+        if (dfire->rotation == 0) {                             // CASES 1-2
+            bool guard1 = false;
+            
+            if (/*scene_get_tile(right_tile + ivec2{1,0}) != eEmptySpace &&*/
+                (right_tile.x + 1) * 64.f - aabb.max_x < proximity_thresh)
+                guard1 = true;
+            
+            if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
+                scene_get_tile(right_tile)  == eEmptySpace &&
+                (right_tile.x + 1) * 64.f - aabb.max_x >= proximity_thresh &&
+                fabs(right_tile.y * 64.f - aabb.max_y) <= proximity_thresh &&
+                (right_tile.x * 64.f - aabb.min_x + proximity_thresh) < 0)
+                dfire->rotation = 90 ; // CASE 1
+            
+            if (scene_get_tile(forward_tile) != eEmptySpace &&
+                (forward_tile.x * 64.f - aabb.max_x + proximity_thresh) < 0)
+                dfire->rotation = 270; // CASE 2
+            
+        }
+        else if (dfire->rotation == 180){                       // CASES 3-4
+            
+            bool guard3 = false;
+            if (/*scene_get_tile(right_tile + ivec2{-1, 0}) != eEmptySpace &&*/
+                (aabb.max_x - right_tile.x * 64.f - 64.f) < proximity_thresh)
+                guard3 = true;
+            
+            if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
+                scene_get_tile(right_tile)  == eEmptySpace &&
+                !guard3 &&
+                ((right_tile.x - 1) * 64.f - aabb.min_x) < 0)
+                dfire->rotation = 270; // CASE 3
+            
+            if (scene_get_tile(forward_tile) != eEmptySpace &&
+                (aabb.min_x - (forward_tile.x + 1) * 64.f) < 0)
+                dfire->rotation = 90 ; // CASE 4
+        }
+        else if (dfire->rotation == 90){                        // CASES 5-6
+            if (scene_get_tile(forward_tile) != eEmptySpace &&
+                ((right_tile.y + 1) * 64.f - aabb.max_y) < proximity_thresh)
+                dfire->rotation = 0  ; // CASE 5
+            
+            bool guard6 = false;
+            if (/*scene_get_tile(right_tile + ivec2{0, 1}) != eEmptySpace &&*/
+                (right_tile.y + 1) * 64.f - aabb.max_y < proximity_thresh)
+                guard6 = true;
+            
+            if (scene_get_tile(target_tile) == eEmptySpace &&
+                scene_get_tile(right_tile)  == eEmptySpace &&
+                !guard6&&
+                ((right_tile.y) * 64.f - aabb.min_y) < 0)
+                dfire->rotation = 180; // CASE 6
+        }
+        else if (dfire->rotation == 270){                       // CASES 7-8
+            
+            bool guard7 = false;
+            
+            if (/*scene_get_tile(right_tile + ivec2{0,-1}) != eEmptySpace &&*/
+                aabb.min_y - (right_tile.y) * 64.f < proximity_thresh)
+                guard7 = true;
+            
+            if (scene_get_tile(target_tile) == eEmptySpace &&
+                scene_get_tile(right_tile)  == eEmptySpace &&
+                !guard7 &&
+                aabb.max_y - (right_tile.y + 1) * 64.f < 0)
+                dfire->rotation = 0  ; // CASE 7
+            
+            if (scene_get_tile(forward_tile) != eEmptySpace &&
+                (aabb.min_y - right_tile.y * 64.f) < 0)
+                dfire->rotation = 180; // CASE 8
+            
+        }
     }
     
-    if (last_rot != dfire->rotation) printf("%5f -> %5f\n", last_rot, dfire->rotation);
+    if (last_rot != dfire->rotation) printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
     
     if (GET_KEYPRESS(sound_up)) dfire->rotation += 90.f;
     if (GET_KEYPRESS(sound_down)) dfire->rotation -= 90.f;
@@ -345,12 +338,15 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
-        {back_right_tile.x * 64.f, back_right_tile.y * 64.f},
+        {left_tile.x * 64.f, left_tile.y * 64.f},
         {64.f, 64.f},
         0.f, 6, false, false, NRGBA{1.f,0.f,1.f,1.f});
     
+    float output_rotation = dfire->rotation;
+    output_rotation += going_right ? 0 : 180;
+    output_rotation = (int)output_rotation % 360;
     
-    dfire->position += direction_from_rotation(D2R * dfire->rotation) * 100.f * dt;
+    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 100.f * dt;
     
 }
 
@@ -404,7 +400,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
         // TODO(miked): FLIP SPRITE image
         f.mirror.x = player->mirror.x;
-        f.rotation = player->mirror.x ? 0.f  : 180.f;
+        //f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
         
     }

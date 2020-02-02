@@ -2,23 +2,6 @@
 Attempting to switch to a non palleted level format.
 */
 
-// This is a simple array list I wrote for C99. I'll probably regret
-// using it, but life is all about living on the edge, and that means
-// having potential creeping bugs sneaking up you when you least want it.
-
-#include <vector>
-typedef std::vector<Sprite> List_Sprite;
-
-global struct
-{
-    
-    EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    // TODO(miked): Hidden items
-    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    List_Sprite spritelist;
-    
-} g_scene;
-
 
 internal Sprite *scene_sprite_add(Sprite *sprite)
 {
@@ -204,7 +187,11 @@ scene_draw_tilemap()
 }
 
 
-inline u64 scene_get_tile(ivec2 p) { return g_scene.tilemap[p.x][p.y];}
+inline u64 scene_get_tile(ivec2 p) { 
+    if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
+        p.x < 0 || p.y < 0) return eBlockSolid;
+    return g_scene.tilemap[p.x][p.y];
+}
 inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
 
 
