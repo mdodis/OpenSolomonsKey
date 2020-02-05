@@ -1,4 +1,4 @@
-/* NOTE(miked): 
+/* NOTE(miked):
 Attempting to switch to a non palleted level format.
 */
 
@@ -99,7 +99,7 @@ internal void level_load(char* data)
                 c = string_parse_uint(c, &res);
                 
                 fail_unless(res < EntityBaseType_Count,
-                            "Entity index does not exist in version" 
+                            "Entity index does not exist in version"
                             OSK_LEVEL_FMT_VERSION);
                 
                 if (counter_x >= TILEMAP_COLS)
@@ -187,7 +187,8 @@ scene_draw_tilemap()
 }
 
 
-inline u64 scene_get_tile(ivec2 p) { 
+inline u64 scene_get_tile(ivec2 p) {
+    
     if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
         p.x < 0 || p.y < 0) return eBlockSolid;
     return g_scene.tilemap[p.x][p.y];
@@ -199,7 +200,7 @@ internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
 internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 
-internal void 
+internal void
 scene_update(InputState* istate, float dt)
 {
     scene_draw_tilemap();
