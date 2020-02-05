@@ -221,7 +221,10 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
     
     
-    /* 
+    /*
+    NOTE(miked): Left cases can be hit, even if the ball is going right
+    We should account for that. That means that this code was completely pointless :(
+    
     RIGHT CASES:                                 LEFT CASES:
       ROT 0       ROT 180    ROT 90     ROT 270     ROT 180    ROT 0      ROT 90     ROT 270
      ====1-2========3-4=========5-6========7-8===||===1-2========3-4=========5-6========7-8====
@@ -252,7 +255,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
                 scene_get_tile(right_tile)  == eEmptySpace &&
                 (right_tile.x + 1) * 64.f - aabb.max_x >= proximity_thresh &&
-                fabs(right_tile.y * 64.f - aabb.max_y) <= proximity_thresh &&
+                //fabs(right_tile.y * 64.f - aabb.max_y) <= proximity_thresh &&
                 (right_tile.x * 64.f - aabb.min_x + proximity_thresh) < 0)
                 dfire->rotation = 90 ; // CASE 1
             
@@ -271,11 +274,11 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
                 scene_get_tile(right_tile)  == eEmptySpace &&
                 !guard3 &&
-                ((right_tile.x - 1) * 64.f - aabb.min_x) < 0)
+                ((right_tile.x - 1) * 64.f - aabb.min_x) < proximity_thresh)
                 dfire->rotation = 270; // CASE 3
             
             if (scene_get_tile(forward_tile) != eEmptySpace &&
-                (aabb.min_x - (forward_tile.x + 1) * 64.f) < 0)
+                (aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh)
                 dfire->rotation = 90 ; // CASE 4
         }
         else if (dfire->rotation == 90){                        // CASES 5-6
@@ -291,7 +294,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             if (scene_get_tile(target_tile) == eEmptySpace &&
                 scene_get_tile(right_tile)  == eEmptySpace &&
                 !guard6&&
-                ((right_tile.y) * 64.f - aabb.min_y) < 0)
+                ((right_tile.y) * 64.f - aabb.min_y) < proximity_thresh)
                 dfire->rotation = 180; // CASE 6
         }
         else if (dfire->rotation == 270){                       // CASES 7-8
@@ -305,11 +308,11 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             if (scene_get_tile(target_tile) == eEmptySpace &&
                 scene_get_tile(right_tile)  == eEmptySpace &&
                 !guard7 &&
-                aabb.max_y - (right_tile.y + 1) * 64.f < 0)
+                aabb.max_y - (right_tile.y + 1) * 64.f < proximity_thresh)
                 dfire->rotation = 0  ; // CASE 7
             
             if (scene_get_tile(forward_tile) != eEmptySpace &&
-                (aabb.min_y - right_tile.y * 64.f) < 0)
+                (aabb.min_y - right_tile.y * 64.f) < proximity_thresh)
                 dfire->rotation = 180; // CASE 8
             
         }
@@ -323,6 +326,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     dfire->rotation = (int)dfire->rotation % 360;
     draw_num(dfire->rotation, 3);
     
+#ifndef NDEBUG    
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
         {forward_tile.x * 64.f, forward_tile.y * 64.f},
@@ -341,12 +345,13 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
         {left_tile.x * 64.f, left_tile.y * 64.f},
         {64.f, 64.f},
         0.f, 6, false, false, NRGBA{1.f,0.f,1.f,1.f});
+#endif
     
     float output_rotation = dfire->rotation;
     output_rotation += going_right ? 0 : 180;
     output_rotation = (int)output_rotation % 360;
     
-    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 100.f * dt;
+    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 300.f * dt;
     
 }
 

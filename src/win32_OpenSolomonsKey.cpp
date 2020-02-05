@@ -232,7 +232,7 @@ win32_init_gl(HDC real_dc)
     
     
     fail_unless(wglSwapIntervalEXT, "wglSwapIntervalEXT");
-    fail_unless(wglSwapIntervalEXT(0), "swap interval set failed!");
+    fail_unless(wglSwapIntervalEXT(1), "swap interval set failed!");
     
     gl_load();
 }

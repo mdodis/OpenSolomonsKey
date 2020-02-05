@@ -115,23 +115,27 @@ struct Sprite
             return;
         
         // increase time by dt
-        this->time_accumulator += dt;
-        if (this->time_accumulator >= anim_ref->duration)
+        if (this->animation_playing)
         {
-            this->current_frame++;
-            if (this->current_frame >= anim_ref->size )
-            {
-                // if its looping
-                if (anim_ref->loop)
-                    this->current_frame = 0;
-                else
-                {
-                    this->animation_playing = false;
-                    this->current_frame--;
-                }
-            }
             
-            this->time_accumulator = 0.f;
+            this->time_accumulator += dt;
+            if (this->time_accumulator >= anim_ref->duration)
+            {
+                this->current_frame++;
+                if (this->current_frame >= anim_ref->size )
+                {
+                    // if its looping
+                    if (anim_ref->loop)
+                        this->current_frame = 0;
+                    else
+                    {
+                        this->animation_playing = false;
+                        this->current_frame--;
+                    }
+                }
+                
+                this->time_accumulator = 0.f;
+            }
         }
         
     }
