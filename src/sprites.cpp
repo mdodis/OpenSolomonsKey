@@ -240,9 +240,11 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
      |[XX]      |[XX] <o   |          |   ▲[XX]  ||      [XX]|    o>[XX]|          |[XX]▲     |
      |[XX]      |[XX]      |          |   o[XX]  ||      [XX]|      [XX]|          |[XX]o     |
      ============================================||===========================================|
-    */
+     */
+    
     float last_rot = dfire->rotation;
     
+#if 0
     if (going_right){                                           // RIGHT CASES
         
         if (dfire->rotation == 0) {                             // CASES 1-2
@@ -268,7 +270,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             
             bool guard3 = false;
             if (/*scene_get_tile(right_tile + ivec2{-1, 0}) != eEmptySpace &&*/
-                (aabb.max_x - right_tile.x * 64.f - 64.f) < proximity_thresh)
+                (aabb.max_x - right_tile.x * 64.f - 64.f) < proximity_thresh)   // like case 1 guard
                 guard3 = true;
             
             if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
@@ -317,8 +319,111 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             
         }
     }
+#else
+    /*
+     At each critical point, there's one decision: rotate -90 or +90 ?
+     For example, horizontally:
+      ============ROT 0===========||==========ROT 180===========   And tile-wise there are two general situations:
+     |            |    [XX]      ||            |      [XX]    |     1) The tile in front is blocking the way.
+     |   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |     2) The tile in front(target_tile) is empty.
+     |[XX]        |[XX]          ||        [XX]|          [XX]|   What is important in every one of these, is
+     |[XX]        |[XX]          ||        [XX]|          [XX]|   knowing which tile we're going to be "attached"
+     |------------|--------------||------------|--------------|   to (side_tile).
+     |[XX]        |[XX]          ||        [XX]|          [XX]|
+     |[XX]        |[XX]          ||        [XX]|          [XX]|   
+     |  o>   (-90)|  o>[XX] (+90)||(+90)   <o  |(-90) [XX]<o  |
+     |            |    [XX]      ||            |      [XX]    |
+     |            |              ||            |              |
+     ============================||============================
+      =======================HORIZONTAL=========================
+      
+========================VERTICAL==========================
+     ===========Rot 90===========||==========ROT 270===========
+     |[XX]o  (+90)|[XX]o    (-90)||       (-90)|    [XX] (+90)|
+     |[XX]|       |[XX]|         ||            |    [XX]      |
+     |            |    [XX]      ||[XX]|       |[XX]|         |
+     |            |    [XX]      ||[XX]o       |[XX]o         |
+     |------------|--------------||------------|--------------|
+     |o[XX]  (-90)|   o[XX] (+90)||       (+90)|[XX]     (-90)|
+     ||[XX]       |   |[XX]      ||            |[XX]          |
+     |            |[XX]          |||[XX]       |   |[XX]      |
+     |            |[XX]          ||o[XX]       |   o[XX]      |
+     ==========================================================
+     
+     |> Get side_tile :: ST.
+     |> If on horizontal rotation:
+|    > If ST is empty (case 2):
+|        >             For 1st column          For 3rd column 
+|        > H = osk__min(ST.x* 64.f - aabb.min_x, aabb.max_x - (ST.x + 1) * 64.f)
+|        > If H < proximity_thresh
+|            > TURN side_tile == right_tile ? 90 : -90;
+|    > If FW is NOT emprty (case 1):
+  |        >
+|        >
+|> If on vertical rotation:
+|    > If ST is empty
+|    > If FW is NOT empty:
+|        >                   For 2nd column
+|        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y - 1) * 64)
+|        > If H < proximity_thresh
+|            > TURN side_tile == right_tile ? -90 : 90;
+|        >
+
+    */
+    const float tile_attach_thresh = 66.f;
+    ivec2 side_tile = ivec2{-1, -1};
+    fvec2 aabb_center = fvec2{(aabb.min_x + aabb.max_x) / 2.f,(aabb.min_y + aabb.max_y) / 2.f};
+    fvec2 right_tile_center = fvec2{right_tile.x * 64.f + 32.f, right_tile.y * 64.f + 32.f};
+    fvec2 left_tile_center = fvec2{left_tile.x * 64.f + 32.f, left_tile.y * 64.f + 32.f};
     
-    if (last_rot != dfire->rotation) printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
+    
+    if (distance(right_tile_center, aabb_center) < tile_attach_thresh)
+        side_tile = right_tile;
+    if (distance(left_tile_center, aabb_center) < tile_attach_thresh &&
+        distance(left_tile_center, aabb_center) < distance(right_tile_center, aabb_center))
+        side_tile = left_tile;
+    
+    if (side_tile == left_tile) dfire->mirror.x = false;
+    else dfire->mirror.x = true;
+    //if (scene_get_tile(side_tile) == eEmptySpace) side_tile = {-1,-1};
+    draw_text(side_tile == right_tile ? "RIGHT" : "LEFT", 4);
+    if (side_tile.x != -1) {
+        
+        if (dfire->rotation == 0.f || dfire->rotation == 180) {
+            
+            if (scene_get_tile(side_tile) == eEmptySpace) {                     // columns 1 & 3
+                
+                float col1 = (side_tile.x * 64.f - aabb.min_x);
+                float col3 = (aabb.max_x - (side_tile.x + 1) * 64.f);
+                float comp = osk__min(col1, col3, proximity_thresh * 2.f);
+                
+                if (comp <= proximity_thresh ) 
+                    dfire->rotation += side_tile == right_tile ? 90.f : -90.f;
+            } else if (scene_get_tile(forward_tile) != eEmptySpace) {           // columns 2 & 4
+                
+                
+            }
+            
+        } else {
+            
+            if (scene_get_tile(right_tile) == eEmptySpace) {                    // columns 1 & 3
+                
+            }
+            if (scene_get_tile(forward_tile) != eEmptySpace) {           // columns 2 & 4
+                
+                float col2 = (forward_tile.y * 64.f - aabb.max_y);
+                float col4 = (aabb.min_y - (forward_tile.y - 1) * 64.f);
+                float comp = osk__min(col2, col4, proximity_thresh * 2.f);
+                
+                if (comp <= proximity_thresh)
+                    dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
+            }
+            
+        }
+    }
+    
+#endif
+    if (dfire->rotation != last_rot) printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
     
     if (GET_KEYPRESS(sound_up)) dfire->rotation += 90.f;
     if (GET_KEYPRESS(sound_down)) dfire->rotation -= 90.f;
@@ -327,12 +432,6 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     draw_num(dfire->rotation, 3);
     
 #ifndef NDEBUG    
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {forward_tile.x * 64.f, forward_tile.y * 64.f},
-        {64.f, 64.f},
-        0.f, 6, false, false, 
-        NRGBA{0.f,1.f,0.f,1.f});
     
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
@@ -345,13 +444,18 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
         {left_tile.x * 64.f, left_tile.y * 64.f},
         {64.f, 64.f},
         0.f, 6, false, false, NRGBA{1.f,0.f,1.f,1.f});
+    
+    gl_slow_tilemap_draw(
+        &GET_TILEMAP_TEXTURE(test),
+        {side_tile.x * 64.f, side_tile.y * 64.f},
+        {32.f, 32.f},
+        0.f, 6, false, false, NRGBA{1.f,1.f,1.f,1.f});
+    
 #endif
     
     float output_rotation = dfire->rotation;
-    output_rotation += going_right ? 0 : 180;
-    output_rotation = (int)output_rotation % 360;
     
-    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 300.f * dt;
+    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 50.f * dt;
     
 }
 
@@ -404,8 +508,8 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     {
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
         // TODO(miked): FLIP SPRITE image
-        f.mirror.x = player->mirror.x;
-        //f.rotation = player->mirror.x ? 0.f  : 180.f;
+        //f.mirror.x = player->mirror.x;
+        f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
         
     }

@@ -351,6 +351,19 @@ inline float length(fvec2 a)
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+
+
+inline float osk__min(float a, float b, float on_zero) {
+    if (a < 0.f)
+        return (b > 0) ? (b) : on_zero;
+    if (b < 0.f)
+        return (a > 0) ? (a) : on_zero;
+    
+    return MIN(a, b);
+}
+
 inline float distance(fvec2 a, fvec2 b)
 {
 #define SQ(x) ((x) * (x))
