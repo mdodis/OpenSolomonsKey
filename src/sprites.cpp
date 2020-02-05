@@ -358,13 +358,16 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
 |        > If H < proximity_thresh
 |            > TURN side_tile == right_tile ? 90 : -90;
 |    > If FW is NOT emprty (case 1):
-  |        >
+  |        > 
+|        > H = osk__min(FW.x * 64 - aabb.max_x, aabb.min_x - (FW.x + 1) * 64)
+|        > If H < proximity_thresh
+|            > TURN side_tile == right_tile ? -90 : 90;
 |        >
 |> If on vertical rotation:
 |    > If ST is empty
 |    > If FW is NOT empty:
 |        >                   For 2nd column
-|        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y - 1) * 64)
+|        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
 |        > If H < proximity_thresh
 |            > TURN side_tile == right_tile ? -90 : 90;
 |        >
@@ -386,8 +389,7 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     if (side_tile == left_tile) dfire->mirror.x = false;
     else dfire->mirror.x = true;
     //if (scene_get_tile(side_tile) == eEmptySpace) side_tile = {-1,-1};
-    draw_text(side_tile == right_tile ? "RIGHT" : "LEFT", 4);
-    if (side_tile.x != -1) {
+    if (side_tile.x != -1 ) {
         
         if (dfire->rotation == 0.f || dfire->rotation == 180) {
             
@@ -399,9 +401,16 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
                 
                 if (comp <= proximity_thresh ) 
                     dfire->rotation += side_tile == right_tile ? 90.f : -90.f;
-            } else if (scene_get_tile(forward_tile) != eEmptySpace) {           // columns 2 & 4
+            }
+            if (scene_get_tile(forward_tile) != eEmptySpace) {                   // columns 2 & 4
                 
+                float col2 = forward_tile.x * 64.f - aabb.max_x;
+                float col4 = aabb.min_x - (forward_tile.x + 1) * 64.f;
                 
+                float comp = osk__min(col2, col4, proximity_thresh * 2.f);
+                
+                if (comp <= proximity_thresh)
+                    dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
             }
             
         } else {
@@ -409,10 +418,10 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
             if (scene_get_tile(right_tile) == eEmptySpace) {                    // columns 1 & 3
                 
             }
-            if (scene_get_tile(forward_tile) != eEmptySpace) {           // columns 2 & 4
+            if (scene_get_tile(forward_tile) != eEmptySpace) {                 // columns 2 & 4
                 
                 float col2 = (forward_tile.y * 64.f - aabb.max_y);
-                float col4 = (aabb.min_y - (forward_tile.y - 1) * 64.f);
+                float col4 = (aabb.min_y - (forward_tile.y + 1) * 64.f);
                 float comp = osk__min(col2, col4, proximity_thresh * 2.f);
                 
                 if (comp <= proximity_thresh)
@@ -423,14 +432,20 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     }
     
 #endif
-    if (dfire->rotation != last_rot) printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
+    
+    
+    
     
     if (GET_KEYPRESS(sound_up)) dfire->rotation += 90.f;
     if (GET_KEYPRESS(sound_down)) dfire->rotation -= 90.f;
     
-    dfire->rotation = (int)dfire->rotation % 360;
+    dfire->rotation = deg_0_360(dfire->rotation);
     draw_num(dfire->rotation, 3);
     
+    if (dfire->rotation != last_rot)
+    {
+        printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
+    }
 #ifndef NDEBUG    
     
     gl_slow_tilemap_draw(

@@ -364,6 +364,12 @@ inline float osk__min(float a, float b, float on_zero) {
     return MIN(a, b);
 }
 
+inline float deg_0_360(float a) {
+    if (a < 0) return a + 360.f;
+    
+    return (float)((int)a % 360);
+}
+
 inline float distance(fvec2 a, fvec2 b)
 {
 #define SQ(x) ((x) * (x))
