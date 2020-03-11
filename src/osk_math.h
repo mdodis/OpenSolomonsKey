@@ -229,6 +229,11 @@ inline fvec2 direction_from_rotation( float theta){
     return result;
 }
 
+inline ivec2 get_tile_behind(ivec2 t, fvec2 tv) {
+    tv = fvec2{-tv.x, -tv.y};
+    
+    return t + ivec2{(int)tv.x, (int)tv.y};
+}
 
 inline ivec2 
 map_position_to_tile(fvec2 position)

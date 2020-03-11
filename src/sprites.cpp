@@ -7,10 +7,10 @@ float XSPEED,
 b32 damage_tiles)
 {
     this->velocity.x = XSPEED;
-    
+
     this->velocity.y += GRAVITY * dt;
     this->velocity.y = fclamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
-    
+
     // NOTE(miked): This should teach me not to mix integers
     // and floats ever again:
 #if 0
@@ -23,36 +23,36 @@ b32 damage_tiles)
     //etc... So it results in more movement in the y direction.
     this->position += this->velocity * dt;
 #endif
-    
+
     // Get the upper left tile based on the center of the this sprite
     fvec2 ipos = {this->position.x, this->position.y};
     ivec2 start_tile = iclamp(ivec2{0,0}, ivec2{14,11},
                               map_position_to_tile_centered(ipos) - 1);
-    
+
     b32 collided_on_bottom = false;
-    
+
     for (i32 j = 0; j < 3; ++j)
     {
         for (i32 i = 0; i < 3; ++i)
         {
             if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
-            
+
             fvec2 tile_coords =
             {
                 (start_tile.x + i) * 64.f,
                 (start_tile.y + j) * 64.f
             };
-            
+
             AABox collision = {0, 0, 64, 64};
             collision = collision.translate(tile_coords);
             AABox this_trans = this->get_transformed_AABox();
-            
+
             fvec2 diff;
             b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
             if (collided)
             {
                 this->position = this->position - (diff);
-                
+
                 // If we are moving up and diff moved us in the Y dir,
                 // then negate the collision.
                 // (fixes bouncing when hitting corner of a tile)
@@ -61,13 +61,13 @@ b32 damage_tiles)
                     this->position.y += diff.y;
                     continue;
                 }
-                
-                
+
+
                 if (j == 2 || (start_tile.y <= 1 && j == 1))
                 {
                     // NOTE(miked): j == 2 is the bottom tile in most cases,
                     // but if y == 1 in tile space, then j will be 1 in that case
-                    
+
                     collided_on_bottom = true;
                     if (iabs(diff.y) > 0)
                     {
@@ -75,7 +75,7 @@ b32 damage_tiles)
                         this->velocity.y = 0;
                     }
                 }
-                
+
                 // Bouncing
                 if (this->velocity.y < 0 &&
                     this->is_on_air &&
@@ -84,24 +84,24 @@ b32 damage_tiles)
                 {
                     this->velocity.y = -this->velocity.y * 0.737;
                     this->is_on_air = true;
-                    
+
                     // it has to be mostly above the this, in order to avoid
                     // destroying blocks diagonally
                     if ( i != 1 || j != 0 || !damage_tiles) continue;
-                    
+
                     ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
                     if ((EntityBaseType)scene_get_tile(current_tile) == eBlockFrail)
                     {
                         scene_set_tile(current_tile, eEmptySpace);
                     }
-                    
+
                 }
-                
+
             }
-            
-            
+
+
 #ifndef NDEBUG
-            
+
 #if 0
             gl_slow_tilemap_draw(
                 &GET_TILEMAP_TEXTURE(test),
@@ -115,11 +115,11 @@ b32 damage_tiles)
 #endif
         }
     }
-    
-    
+
+
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
-    
+
     // NOTE(miked): collision checking for the bounds
     AABox bound_bottom = {0, 12 * 64, 64*15 , 12 * 64};
     AABox bound_right  = {15 * 64, 0, 16 * 64, 12 * 64};
@@ -127,7 +127,7 @@ b32 damage_tiles)
     this->collide_aabb(&bound_bottom);
     this->collide_aabb(&bound_right);
     this->collide_aabb(&bound_left);
-    
+
 #ifndef NDEBUG
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
@@ -137,7 +137,7 @@ b32 damage_tiles)
         5 * 5,
         false, false,
         NRGBA{0,1,1,.7f});
-    
+
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
         {bound_right.min_x, bound_right.min_y},
@@ -146,7 +146,7 @@ b32 damage_tiles)
         5 * 5,
         false, false,
         NRGBA{0,1,1,.7f});
-    
+
     gl_slow_tilemap_draw(
         &GET_TILEMAP_TEXTURE(test),
         {bound_left.min_x + 32, bound_left.min_y},
@@ -166,7 +166,7 @@ internal void ePlayer_cast(Sprite* player, float dt)
     // Get the upper left tile based on the center of the player sprite
     ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
-    
+
     if (player->mirror.x)
     {
         if (player_tile.x >= 14) return;
@@ -177,13 +177,13 @@ internal void ePlayer_cast(Sprite* player, float dt)
         if (player_tile.x <= 0) return;
         target_tile.x -= 1;
     }
-    
+
     // if we were crouching: special condition
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch))
     {
         target_tile.y = iclamp(0, 14,target_tile.y + 1);
     }
-    
+
     // TODO(miked): Secrets in tiles and empty space!
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
     if (type == eBlockFrail)
@@ -194,215 +194,138 @@ internal void ePlayer_cast(Sprite* player, float dt)
     {
         scene_set_tile(target_tile, eBlockFrail);
     }
-    
+
     SET_ANIMATION(player, test_player, Cast);
-    
+
 }
 
 
 internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
+// TODO(miked): Test cases for different speeds
+// TODO(miked): Make ball rotate correctly (now its all over the place)
 {
-    
-#define going_right (dfire->mirror.x)
-    
-    const float proximity_thresh = 2.f;
+    const float proximity_thresh = 5.f;
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
-    
+
     dfire->rotation = (int)dfire->rotation % 360;
-    
+
     fvec2 forward = direction_from_rotation(D2R * dfire->rotation);
     fvec2 back = direction_from_rotation(D2R * (dfire->rotation + 180.f));
     fvec2 right = direction_from_rotation(D2R * (dfire->rotation + 90.f));
     fvec2 left = direction_from_rotation(D2R * (dfire->rotation - 90.f));
-    
+
     ivec2 forward_tile = target_tile + ivec2{(int)forward.x, (int)forward.y};
     ivec2 right_tile = target_tile + ivec2{(int)right.x, (int)right.y};
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
-    
-    
+
     /*
-    NOTE(miked): Left cases can be hit, even if the ball is going right
-    We should account for that. That means that this code was completely pointless :(
-    
-    RIGHT CASES:                                 LEFT CASES:
-      ROT 0       ROT 180    ROT 90     ROT 270     ROT 180    ROT 0      ROT 90     ROT 270
-     ====1-2========3-4=========5-6========7-8===||===1-2========3-4=========5-6========7-8====
-     | Go down  | Go right | Go right | Go right || Go down  | Go left  | Go left  | Go left  |
-     |          |   [XX]   |[XX]o     |          ||          |   [XX]   |     o[XX]|          |
-     | o>       |   [XX]   |[XX]▼     |          ||       <o |   [XX]   |     ▼[XX]|          |
-     |[XX]      |    <o    |   [XX]   |   ▲[XX]  ||      [XX]|    o>    |   [XX]   |[XX]▲     |
-     |[XX]      |          |   [XX]   |   o[XX]  ||      [XX]|          |   [XX]   |[XX]o     |
-     |----------|----------|----------|----------||----------|----------|----------|----------|
-     | Go up    | Go left  | Go left  | Go left  || Go up    | Go right | Go right | Go right |
-     |    [XX]  |   [XX]   |[XX]o     | [XX]     ||  [XX]    |   [XX]   |     o[XX]|    [XX]  |
-     | o> [XX]  |   [XX]   |[XX]▼     | [XX]     ||  [XX] <o |   [XX]   |     ▼[XX]|    [XX]  |
-     |[XX]      |[XX] <o   |          |   ▲[XX]  ||      [XX]|    o>[XX]|          |[XX]▲     |
-     |[XX]      |[XX]      |          |   o[XX]  ||      [XX]|      [XX]|          |[XX]o     |
-     ============================================||===========================================|
-     */
-    
-    float last_rot = dfire->rotation;
-    
-#if 0
-    if (going_right){                                           // RIGHT CASES
-        
-        if (dfire->rotation == 0) {                             // CASES 1-2
-            bool guard1 = false;
-            
-            if (/*scene_get_tile(right_tile + ivec2{1,0}) != eEmptySpace &&*/
-                (right_tile.x + 1) * 64.f - aabb.max_x < proximity_thresh)
-                guard1 = true;
-            
-            if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
-                scene_get_tile(right_tile)  == eEmptySpace &&
-                (right_tile.x + 1) * 64.f - aabb.max_x >= proximity_thresh &&
-                //fabs(right_tile.y * 64.f - aabb.max_y) <= proximity_thresh &&
-                (right_tile.x * 64.f - aabb.min_x + proximity_thresh) < 0)
-                dfire->rotation = 90 ; // CASE 1
-            
-            if (scene_get_tile(forward_tile) != eEmptySpace &&
-                (forward_tile.x * 64.f - aabb.max_x + proximity_thresh) < 0)
-                dfire->rotation = 270; // CASE 2
-            
-        }
-        else if (dfire->rotation == 180){                       // CASES 3-4
-            
-            bool guard3 = false;
-            if (/*scene_get_tile(right_tile + ivec2{-1, 0}) != eEmptySpace &&*/
-                (aabb.max_x - right_tile.x * 64.f - 64.f) < proximity_thresh)   // like case 1 guard
-                guard3 = true;
-            
-            if (/*scene_get_tile(target_tile) == eEmptySpace &&*/
-                scene_get_tile(right_tile)  == eEmptySpace &&
-                !guard3 &&
-                ((right_tile.x - 1) * 64.f - aabb.min_x) < proximity_thresh)
-                dfire->rotation = 270; // CASE 3
-            
-            if (scene_get_tile(forward_tile) != eEmptySpace &&
-                (aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh)
-                dfire->rotation = 90 ; // CASE 4
-        }
-        else if (dfire->rotation == 90){                        // CASES 5-6
-            if (scene_get_tile(forward_tile) != eEmptySpace &&
-                ((right_tile.y + 1) * 64.f - aabb.max_y) < proximity_thresh)
-                dfire->rotation = 0  ; // CASE 5
-            
-            bool guard6 = false;
-            if (/*scene_get_tile(right_tile + ivec2{0, 1}) != eEmptySpace &&*/
-                (right_tile.y + 1) * 64.f - aabb.max_y < proximity_thresh)
-                guard6 = true;
-            
-            if (scene_get_tile(target_tile) == eEmptySpace &&
-                scene_get_tile(right_tile)  == eEmptySpace &&
-                !guard6&&
-                ((right_tile.y) * 64.f - aabb.min_y) < proximity_thresh)
-                dfire->rotation = 180; // CASE 6
-        }
-        else if (dfire->rotation == 270){                       // CASES 7-8
-            
-            bool guard7 = false;
-            
-            if (/*scene_get_tile(right_tile + ivec2{0,-1}) != eEmptySpace &&*/
-                aabb.min_y - (right_tile.y) * 64.f < proximity_thresh)
-                guard7 = true;
-            
-            if (scene_get_tile(target_tile) == eEmptySpace &&
-                scene_get_tile(right_tile)  == eEmptySpace &&
-                !guard7 &&
-                aabb.max_y - (right_tile.y + 1) * 64.f < proximity_thresh)
-                dfire->rotation = 0  ; // CASE 7
-            
-            if (scene_get_tile(forward_tile) != eEmptySpace &&
-                (aabb.min_y - right_tile.y * 64.f) < proximity_thresh)
-                dfire->rotation = 180; // CASE 8
-            
-        }
-    }
-#else
-    /*
-    At each critical point, there's one decision: rotate -90 or +90 ?
-    For example, horizontally:
-    ============ROT 0===========||==========ROT 180===========   And tile-wise there are two general situations:
-    |            |    [XX]      ||            |      [XX]    |     1) The tile in front is blocking the way.
-    |   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |     2) The tile in front(target_tile) is empty.
-    |[XX] | [XX] |[XX]          ||        [XX]|          [XX]|   What is important in every one of these, is
-    |[XX]   [XX] |[XX]          ||        [XX]|          [XX]|   knowing which tile we're going to be "attached"
-    |------------|--------------||------------|--------------|   to (side_tile).
-    |[XX]        |[XX]          ||        [XX]|          [XX]|
-    |[XX]        |[XX]          ||        [XX]|          [XX]|
-    |  o>   (-90)|  o>[XX] (+90)||(+90)   <o  |(-90) [XX]<o  |
-    |            |    [XX]      ||            |      [XX]    |
-    |            |              ||            |              |
-    ============================||============================
-    =======================HORIZONTAL=========================
-    
-    ========================VERTICAL==========================
-    ===========Rot 90===========||==========ROT 270===========
-    |[XX]o  (+90)|[XX]o    (-90)||       (-90)|    [XX] (+90)|
-    |[XX]|       |[XX]|         ||            |    [XX]      |
-    |            |    [XX]      ||[XX]|       |[XX]|         |
-    |            |    [XX]      ||[XX]o       |[XX]o         |
-    |------------|--------------||------------|--------------|
-    |o[XX]  (-90)|   o[XX] (+90)||       (+90)|[XX]     (-90)|
-    ||[XX]       |   |[XX]      ||            |[XX]          |
-    |            |[XX]          |||[XX]       |   |[XX]      |
-    |            |[XX]          ||o[XX]       |   o[XX]      |
-    ==========================================================
-    
-     |> Get side_tile :: ST.
-     |> If on horizontal rotation:
-     |    > If ST is empty (case 2):
-     |        >             For 1st column          For 3rd column
-     |        > H = osk__min(ST.x* 64.f - aabb.min_x, aabb.max_x - (ST.x + 1) * 64.f)
-     |        > If H < proximity_thresh
-     |            > TURN side_tile == right_tile ? 90 : -90;
-     |    > If FW is NOT emprty (case 1):
-     |        >
-     |        > H = osk__min(FW.x * 64 - aabb.max_x, aabb.min_x - (FW.x + 1) * 64)
-     |        > If H < proximity_thresh
-     |            > TURN side_tile == right_tile ? -90 : 90;
-     |        >
-     |> If on vertical rotation:
-     |    > If ST is empty
-     |        >                   For 1st column
-     |        > H = osk__min(ST.y * 64 - aabb.min_y, aabb.max_y - ST.y * 64)
-     |        > If H < proximity_thresh
-     |            > TURN side_tile == right_tile ? 90 : -90;
-     |    > If FW is NOT empty:
-     |        >                   For 2nd column
-     |        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
-     |        > If H < proximity_thresh
-     |            > TURN side_tile == right_tile ? -90 : 90;
-     |        >
-     
-     
-     // TODO(miked): Make it more sticky
-     // TODO(miked): Test cases for different speeds
+=======================HORIZONTAL=========================
+============ROT 0===========||==========ROT 180===========   And tile-wise there are two general situations:
+|            |    [XX]      ||            |      [XX]    |     1) The tile in front is blocking the way.
+|   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |     2) The tile in front(target_tile) is empty.
+|[XX] | [XX] |[XX]          ||        [XX]|          [XX]|   What is important in every one of these, is
+|[XX]   [XX] |[XX]          ||        [XX]|          [XX]|   knowing which tile we're going to be "attached"
+|------------|--------------||------------|--------------|   to (side_tile).
+|[XX]        |[XX]          ||        [XX]|          [XX]|
+|[XX]        |[XX]          ||        [XX]|          [XX]|
+|  o>   (-90)|  o>[XX] (+90)||(+90)   <o  |(-90) [XX]<o  |
+|            |    [XX]      ||            |      [XX]    |
+|            |              ||            |              |
+============================||============================
+
+========================VERTICAL==========================
+===========Rot 90===========||==========ROT 270===========
+|[XX]o  (+90)|[XX]o    (-90)||       (-90)|    [XX] (+90)|
+|[XX]|       |[XX]|         ||            |    [XX]      |
+|            |    [XX]      ||[XX]|       |[XX]|         |
+|            |    [XX]      ||[XX]o       |[XX]o         |
+|------------|--------------||------------|--------------|
+|o[XX]  (-90)|   o[XX] (+90)||       (+90)|[XX]     (-90)|
+||[XX]       |   |[XX]      ||            |[XX]          |
+|            |[XX]          |||[XX]       |   |[XX]      |
+|            |[XX]          ||o[XX]       |   o[XX]      |
+==========================================================
+
+ |> Get side_tile :: ST.
+ |> If on horizontal rotation:
+ |    > If ST is empty (case 2):
+ |        >             For 1st column          For 3rd column
+ |        > H = osk__min(ST.x* 64.f - aabb.min_x, aabb.max_x - (ST.x + 1) * 64.f)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? 90 : -90;
+ |    > If FW is NOT emprty (case 1):
+ |        >
+ |        > H = osk__min(FW.x * 64 - aabb.max_x, aabb.min_x - (FW.x + 1) * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? -90 : 90;
+ |        >
+ |> If on vertical rotation:
+ |    > If ST is empty
+ |        >                   For 1st column
+ |        > H = osk__min(ST.y * 64 - aabb.min_y, aabb.max_y - ST.y * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? 90 : -90;
+ |    > If FW is NOT empty:
+ |        >                   For 2nd column
+ |        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? -90 : 90;
+ |        > TODO write this up or del you fucking idiot
+
+
+ At Any point there are two cases in which the tile should be attached:
+   | o>   It should be            o>   The same
+ |[XX]  attached to         [XX]
+ |[XX]  the side tile       [XX]
+
+So either the side_tile shouldn't be eEmptySpace ||
+side_tile should be eEmptySpace and side_tile + (tile_behind)
+should't be eEmptySpace
+
     */
-    const float tile_attach_thresh = 70.f;
+    const float tile_attach_thresh = 66.f;
     ivec2 side_tile = ivec2{-1, -1};
     fvec2 aabb_center = fvec2{(aabb.min_x + aabb.max_x) / 2.f,(aabb.min_y + aabb.max_y) / 2.f};
     fvec2 right_tile_center = fvec2{right_tile.x * 64.f + 32.f, right_tile.y * 64.f + 32.f};
     fvec2 left_tile_center = fvec2{left_tile.x * 64.f + 32.f, left_tile.y * 64.f + 32.f};
-    
-    
-    if (distance(right_tile_center, aabb_center) < tile_attach_thresh)
+    fvec2 side_vector = fvec2{-1,-1};
+
+    if (distance(right_tile_center, aabb_center) < tile_attach_thresh) {
+        side_vector = right;
         side_tile = right_tile;
+
+        bool should_attach = scene_get_tile(side_tile) != eEmptySpace ||
+            (scene_get_tile(side_tile) == eEmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != eEmptySpace);
+
+        if (!should_attach) side_tile = ivec2{-1,-1};
+    }
     if (distance(left_tile_center, aabb_center) < tile_attach_thresh &&
-        distance(left_tile_center, aabb_center) < distance(right_tile_center, aabb_center))
+        (distance(left_tile_center, aabb_center) < distance(right_tile_center, aabb_center) ||
+         side_tile.x == -1) ) {
+        side_vector = left;
         side_tile = left_tile;
-    
+
+
+        bool should_attach = scene_get_tile(side_tile) != eEmptySpace ||
+            (scene_get_tile(side_tile) == eEmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != eEmptySpace);
+
+        if (!should_attach) side_tile = ivec2{-1,-1};
+    }
+
+    draw_num(side_tile.x, 5, 0); draw_num(side_tile.y, 5, 20);
+
     if (side_tile == left_tile) dfire->mirror.x = false;
     else dfire->mirror.x = true;
-    
-    static bool pause = false;
-    if (side_tile.x != -1  && !pause) {
-        
+
+    if (side_tile.x != -1) {
+
         if (dfire->rotation == 0.f || dfire->rotation == 180) {
-            
-            if (scene_get_tile(side_tile) == eEmptySpace) {                     // columns 1 & 3
-                
+
+            if (scene_get_tile(side_tile) == eEmptySpace) { // columns 1 & 3
+
                 float col1 = dfire->rotation == 000.f
                     ? (side_tile.x * 64.f - aabb.min_x)
                     : FLT_MAX;
@@ -410,171 +333,142 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
                     ? (aabb.max_x - (side_tile.x + 1) * 64.f)
                     : FLT_MAX;
                 float comp = osk__min(col1, col3, FLT_MAX);
-                
+
                 assert(comp >= 0 );
-                
+
                 if (comp <= proximity_thresh) {
                     dfire->rotation += side_tile == right_tile ? 90.f : -90.f;
                     goto END_ROT;
+
                 }
             }
-            if (scene_get_tile(forward_tile) != eEmptySpace) {                  // columns 2 & 4
-                
+            if (scene_get_tile(forward_tile) != eEmptySpace) { // columns 2 & 4
+
                 float col2 = dfire->rotation == 000.f
                     ? forward_tile.x * 64.f - aabb.max_x
                     : FLT_MAX;
                 float col4 = dfire->rotation == 180.f
                     ? aabb.min_x - (forward_tile.x + 1) * 64.f
                     : FLT_MAX;
-                
+
                 float comp = osk__min(col2, col4, FLT_MAX);
                 assert(comp >= 0 );
-                
+
                 if (comp <= proximity_thresh) {
                     puts("H F");
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
                     goto END_ROT;
                 }
             }
-            
+
         } else {
-            
-            if (scene_get_tile(side_tile) == eEmptySpace) {                    // columns 1 & 3
+
+            if (scene_get_tile(side_tile) == eEmptySpace) { // columns 1 & 3
                 float col1 = dfire->rotation == 090.f
                     ? (side_tile.y + 0) * 64.f - aabb.min_y
                     : FLT_MAX;
                 float col3 = dfire->rotation == 270.f
                     ? (aabb.max_y - (side_tile.y + 1) * 64.f)
                     : FLT_MAX;
-                
+
                 float comp = osk__min(col1, col3, FLT_MAX);
                 assert(comp >= 0 );
-                
+
                 if (comp <= proximity_thresh){
-                    
+
                     printf("V R %f %f %f\n", col1, col3, comp);
                     dfire->rotation += side_tile == right_tile ? 90.f : -90.f;
                     goto END_ROT;
                 }
             }
-            if (scene_get_tile(forward_tile) != eEmptySpace) {                  // columns 2 & 4
-                
+            if (scene_get_tile(forward_tile) != eEmptySpace) { // columns 2 & 4
+
                 float col2 = dfire->rotation == 090.f
                     ? (forward_tile.y * 64.f - aabb.max_y)
                     : FLT_MAX;
                 float col4 = dfire->rotation == 270.f
                     ? (aabb.min_y - (forward_tile.y + 1) * 64.f)
                     : FLT_MAX;
-                
+
                 float comp = osk__min(col2, col4, FLT_MAX);
                 assert(comp >= 0 );
-                
+
                 if (comp <= proximity_thresh){
                     puts("V F");
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
                     goto END_ROT;
                 }
             }
-            
+
         }
     } else {
-        
-#if 1
+
         // if we haven't attached to a nearby (side) tile.
         // Check the forward tile and react accordingly
         if (scene_get_tile(forward_tile) != eEmptySpace){
-            if (dfire->rotation == 90.f){
-                if (forward_tile.y * 64.f - aabb.max_y < proximity_thresh)
-                    dfire->rotation -= 90.f;
-            } else {
-                if (aabb.min_y - (forward_tile.y + 1) * 64.f < proximity_thresh)
+
+            if (dfire->rotation == 180.f){
+                if ((aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh){
                     dfire->rotation += 90.f;
+                    goto END_ROT;
+                }
             }
+
+            if (dfire->rotation == 90.f){
+                if (forward_tile.y * 64.f - aabb.max_y < proximity_thresh) {
+                    dfire->rotation -= 90.f;
+                    goto END_ROT;
+                }
+            }
+
+            if (dfire->rotation == 270.f){
+                if (aabb.min_y - (forward_tile.y + 1) * 64.f < proximity_thresh) {
+                    dfire->rotation += 90.f;
+                    goto END_ROT;
+                }
+            }
+
         }
-#endif
+
     }
-    
-#endif
+
     END_ROT:
-    
-    
-    if (side_tile == right_tile) draw_text("RIGHT", 4);
-    else if (side_tile == left_tile) draw_text("LEFT", 4);
-    else draw_text("NONE", 4);
-    
-    if (GET_KEYPRESS(sound_up)) dfire->rotation += 90.f;
-    if (GET_KEYPRESS(sound_down)) dfire->rotation -= 90.f;
-    
+
     dfire->rotation = deg_0_360(dfire->rotation);
-    draw_num(dfire->rotation, 3);
-    
-    if (dfire->rotation != last_rot)
-    {
-        pause = true;
-        printf("%3.0f -> %3.0f\n", last_rot, dfire->rotation);
-    }
-    
-    if (GET_KEYPRESS(move_up)) pause = false;
-    
-#ifndef NDEBUG
-    
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {forward_tile.x * 64.f, forward_tile.y * 64.f},
-        {64.f, 64.f},
-        0.f, 6, false, false, NRGBA{1.f,1.f,1.f,1.f});
-    
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {left_tile.x * 64.f, left_tile.y * 64.f},
-        {64.f, 64.f},
-        0.f, 6, false, false, NRGBA{1.f,0.f,1.f,1.f});
-    
-    gl_slow_tilemap_draw(
-        &GET_TILEMAP_TEXTURE(test),
-        {side_tile.x * 64.f, side_tile.y * 64.f},
-        {32.f, 32.f},
-        0.f, 6, false, false, NRGBA{1.f,1.f,1.f,1.f});
-    
-#endif
-    
+
     float output_rotation = dfire->rotation;
-    if (!pause)
-        dfire->position += direction_from_rotation(D2R * (output_rotation)) * 80.f * dt;
-    
+    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 100.f * dt;
+
 }
 
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
 {
-    /*
-    TODO: dana cast fireball, tread on edge of blocks until decay
-    
-    */
-    
+
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
     const float RUNNING_JUMP_STRENGTH = 350;
     const float XSPEED = 150;
-    
+
     float xmove_amount = 0;
     b32 is_crouching = false;
     b32 did_jump     = false;
+
     // NOTE(miked): maybe not have it be a local-global?
     persist i32 player_last_yspeed;
-    
+
     if      (GET_KEYDOWN(move_right)) xmove_amount = XSPEED;
     else if (GET_KEYDOWN(move_left )) xmove_amount = -XSPEED;
-    
+
     if (GET_KEYDOWN(move_down) && !player->is_on_air)
         is_crouching = true;
-    
+
     if (GET_KEYPRESS(move_up) && !is_crouching)
         did_jump = player->jump(JUMP_STRENGTH);
-    
+
     if (did_jump)  audio_play_sound(&player_jump_sound);
-    
+
     // Casting
     if (GET_KEYPRESS(cast) &&
         player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
@@ -586,7 +480,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         player->velocity.y = 0;
         ePlayer_cast(player, dt);
     }
-    
+
     // Fireball Casting
     if (GET_KEYPRESS(fireball) &&
         player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
@@ -596,9 +490,9 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         //f.mirror.x = player->mirror.x;
         f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
-        
+
     }
-    
+
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast))
     {
         if (player->animation_playing)
@@ -606,14 +500,14 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         else
             player->velocity.y = player_last_yspeed;
     }
-    
+
     if (is_crouching) xmove_amount = 0;
-    
+
     // NOTE(miked): A running jump results in a 1-block
     // height-displacement rather than a 2 block displacement
     const i32 jump_strength =
         (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
-    
+
     player->move_and_collide(
         dt,
         GRAVITY,
@@ -621,7 +515,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         jump_strength,
         xmove_amount,
         true);
-    
+
     if (iabs(player->velocity.x) > 0)
     {
         SET_ANIMATION(player, test_player, Run);
@@ -629,7 +523,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     }
     else if (is_crouching) SET_ANIMATION(player, test_player, Crouch);
     else                   SET_ANIMATION(player, test_player, Idle);
-    
+
 }
 
 
@@ -638,25 +532,25 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     /*
     TODO: Goblin can live from a fall if it's falling and a block appears
     near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
-    
+
     TODO: Goblin can only fall _IF_ its currently in the walking,
     chasing, or waiting state. If it were in a punch state, it would have
     to finish that first, and then proceed to die by gravity
-    
+
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
     so invert direction vector to get the axis-compliant direction in X.
     */
-    
+
 #define direction ((float)(goblin->mirror.x ? 1 : -1))
-    
+
     const float goblin_walk_speed = 80;
     const float goblin_run_speed = 120;
     b32 ignore_player = false;
     b32 is_dying = goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Fall);
-    
-    
+
+
     ignore_player = is_dying;
-    
+
     if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) ||
         goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
     {
@@ -671,29 +565,29 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             ignore_player = true;
         }
     }
-    
+
     // Chase
     {
         const Sprite* const player = scene_get_first_sprite(ePlayer);
         fail_unless(player, "Player sprite not found scene_get_first_sprite");
-        
+
         fvec2 ppos = player->position;
         ivec2 ppos_tile = map_position_to_tile_centered(ppos);
-        
+
         ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
-        
+
         if (goblin_tile.y == ppos_tile.y &&
             !ignore_player)
         {
             // search in the direction of the goblin to see if there is
             // an obstacle blocking its view of the player
             i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
-            
+
             ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);
             if (block_tile == ivec2{-1, -1})
             {
                 persist i32 blocking_tiles = 0;
-                
+
                 if (tdiff == -direction)
                 {
                     SET_ANIMATION(goblin, Goblin, Chase);
@@ -711,10 +605,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
                     NRGBA{0.f, 1.f, 1.f, 1.f});
 #endif
             }
-            
+
         }
     }
-    
+
     // Stop at tile edges
     if (!is_dying)
     {
@@ -722,7 +616,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         const ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
         ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
         ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
-        
+
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
             &GET_TILEMAP_TEXTURE(test),
@@ -740,7 +634,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             goblin->velocity.x = 0;
         }
     }
-    
+
     // Punching
     {
         const float punch_offset_amount = 32;
@@ -749,8 +643,8 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         const b32 is_at_edge_of_map =
             (goblin_tile.x == 14 && direction == 1) ||
             (goblin->position.x <= 2 && direction == -1);
-        
-        
+
+
         ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
@@ -767,7 +661,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             SET_ANIMATION(goblin, Goblin, Punch);
         }
     }
-    
+
     // Movement
     i32 move_amount;
     switch(goblin->current_animation)
@@ -775,29 +669,29 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         case GET_CHAR_ANIMENUM(Goblin, Walk):
         move_amount = goblin_walk_speed;
         break;
-        
+
         case GET_CHAR_ANIMENUM(Goblin, Chase):
         move_amount = goblin_run_speed;
         break;
-        
+
         default:
         move_amount = 0;
         break;
-        
+
     }
-    
+
     if (!is_dying)
         goblin->move_and_collide(dt, 900, 450, 450, move_amount * direction);
     else
     {
         goblin->velocity.y += 900 * dt;
         goblin->velocity.y = fclamp(-450, 450, goblin->velocity.y);
-        
+
         goblin->position.y += goblin->velocity.y * dt;
     }
-    
+
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
-    
+
     if (goblin->is_on_air && !is_dying)
     {
         SET_ANIMATION(goblin, Goblin, Fall);
@@ -810,6 +704,6 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             inform("You killed a Goblin, ouchie!");
         }
     }
-    
+
 #undef direction
 }

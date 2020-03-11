@@ -9,6 +9,10 @@ KEYDOWN (move_right    , XK_Right , VK_RIGHT    ) \
 KEYDOWN (move_left     , XK_Left  , VK_LEFT     ) \
 KEYDOWN (move_down     , XK_Down  , VK_DOWN     ) \
 KEYPRESS(move_up       , XK_Up    , VK_UP       ) \
+KEYDOWN (fmove_right    , XK_D , VK_RIGHT    ) \
+KEYDOWN (fmove_left     , XK_A  , VK_LEFT     ) \
+KEYDOWN (fmove_down     , XK_S  , VK_DOWN     ) \
+KEYDOWN (fmove_up       , XK_W    , VK_UP       ) \
 KEYPRESS(space_pressed , XK_space , VK_SPACE    ) \
 KEYPRESS(fireball      , XK_X     , 'X'         ) \
 KEYPRESS(cast          , XK_C     , 'C'         ) \

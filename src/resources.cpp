@@ -53,16 +53,16 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 You can group animations by "character", and the macro ugliness here
 should prevent name collisions, if you input different character names.
 */
-#define ALL_CHARACTERS                                                          \
-/*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(test_player, dana,     4,                                         \
+#define ALL_CHARACTERS                                            \
+/*            Name,        Tilemap,  Animation Count */           \
+DEF_CHARACTER(test_player, dana,     4,                           \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(test_player,  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
 DEF_ANIM(test_player,  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(test_player,  Crouch,  .05f,     {0,3}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Goblin,      tmgoblin, 5,                                         \
+DEF_CHARACTER(Goblin,      tmgoblin, 5,                           \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true )   \
 DEF_ANIM(Goblin,       Punch,   .18f,     {0,1}, 4,      false)   \
@@ -70,17 +70,17 @@ DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
 DEF_ANIM(Goblin,       Wait,    1.f,      {5,0}, 1,      false)   \
 DEF_ANIM(Goblin,       Fall,    .1f,      {0,3}, 2,      true )   \
 )                                                                 \
-DEF_CHARACTER(Effect,      test,     1,                                         \
+DEF_CHARACTER(Effect,      test,     1,                           \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Effect,       Test,    .1f,      {0,0}, 5,      false)   \
 )                                                                 \
-/*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(Ghost,       tmghost,  2,                                         \
+/*            Name,        Tilemap,  Animation Count */           \
+DEF_CHARACTER(Ghost,       tmghost,  2,                           \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Ghost,        Fly,     .1f,      {0,0}, 3,      true )   \
 DEF_ANIM(Ghost,        Punch ,  .1f,      {0,1}, 3,      false)   \
 )                                                                 \
-DEF_CHARACTER(DFireball,   tmdana_fire,  3,                                     \
+DEF_CHARACTER(DFireball,   tmdana_fire,  3,                       \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \

@@ -191,6 +191,7 @@ inline u64 scene_get_tile(ivec2 p) {
     
     if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
         p.x < 0 || p.y < 0) return eBlockSolid;
+    
     return g_scene.tilemap[p.x][p.y];
 }
 inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
