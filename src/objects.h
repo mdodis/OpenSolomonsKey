@@ -46,7 +46,7 @@ struct Sprite
     fvec2 position = {0,0};
     float rotation = 0.f;
     AABox collision_box = {0,0,64,64};
-    fvec2 mirror = {false, false};
+    ivec2 mirror = {false, false};
     fvec2 velocity = {0,0};
     b32 is_on_air = false;
     b32 mark_for_removal = false;                 // set to true to remove the sprite
@@ -271,7 +271,9 @@ inline internal Sprite make_dfireball(fvec2 position)
         .size = {55,55},
         .position = position,
         .collision_box = {8,8,40,40},
+        .mirror = {true, false},
         .animation_set = GET_CHAR_ANIMSET(DFireball),
+
         .entity = 
         {
             eDFireball,

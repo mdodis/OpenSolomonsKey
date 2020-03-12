@@ -16,9 +16,7 @@ pushd build
 del build.ctime 2> NUL
 
 
-
 ctime -begin build.ctime
-echo make[1]: Entering Directory %cd%\src
 REM Debug
 cl %opts% %debug%   -I%incl% -I..\ %code%\win32_OpenSolomonsKey.cpp -Fesolomons_key /link  %link_opts%
 

@@ -204,7 +204,6 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
 // TODO(miked): Test cases for different speeds
 // TODO(miked): Make ball rotate correctly (now its all over the place)
 {
-    const float proximity_thresh = 5.f;
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
 
@@ -284,6 +283,7 @@ side_tile should be eEmptySpace and side_tile + (tile_behind)
 should't be eEmptySpace
 
     */
+    const float proximity_thresh = 5.f;
     const float tile_attach_thresh = 66.f;
     ivec2 side_tile = ivec2{-1, -1};
     fvec2 aabb_center = fvec2{(aabb.min_x + aabb.max_x) / 2.f,(aabb.min_y + aabb.max_y) / 2.f};
@@ -316,9 +316,6 @@ should't be eEmptySpace
     }
 
     draw_num(side_tile.x, 5, 0); draw_num(side_tile.y, 5, 20);
-
-    if (side_tile == left_tile) dfire->mirror.x = false;
-    else dfire->mirror.x = true;
 
     if (side_tile.x != -1) {
 
@@ -355,7 +352,6 @@ should't be eEmptySpace
                 assert(comp >= 0 );
 
                 if (comp <= proximity_thresh) {
-                    puts("H F");
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
                     goto END_ROT;
                 }
@@ -364,7 +360,7 @@ should't be eEmptySpace
         } else {
 
             if (scene_get_tile(side_tile) == eEmptySpace) { // columns 1 & 3
-                float col1 = dfire->rotation == 090.f
+                float col1 = dfire->rotation == 90.f
                     ? (side_tile.y + 0) * 64.f - aabb.min_y
                     : FLT_MAX;
                 float col3 = dfire->rotation == 270.f
@@ -376,14 +372,13 @@ should't be eEmptySpace
 
                 if (comp <= proximity_thresh){
 
-                    printf("V R %f %f %f\n", col1, col3, comp);
                     dfire->rotation += side_tile == right_tile ? 90.f : -90.f;
                     goto END_ROT;
                 }
             }
             if (scene_get_tile(forward_tile) != eEmptySpace) { // columns 2 & 4
 
-                float col2 = dfire->rotation == 090.f
+                float col2 = dfire->rotation == 90.f
                     ? (forward_tile.y * 64.f - aabb.max_y)
                     : FLT_MAX;
                 float col4 = dfire->rotation == 270.f
@@ -394,7 +389,6 @@ should't be eEmptySpace
                 assert(comp >= 0 );
 
                 if (comp <= proximity_thresh){
-                    puts("V F");
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
                     goto END_ROT;
                 }
@@ -407,22 +401,29 @@ should't be eEmptySpace
         // Check the forward tile and react accordingly
         if (scene_get_tile(forward_tile) != eEmptySpace){
 
-            if (dfire->rotation == 180.f){
+            if (dfire->rotation == 180.f) {
                 if ((aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh){
                     dfire->rotation += 90.f;
                     goto END_ROT;
                 }
             }
 
-            if (dfire->rotation == 90.f){
+            if (dfire->rotation == 90.f) {
                 if (forward_tile.y * 64.f - aabb.max_y < proximity_thresh) {
                     dfire->rotation -= 90.f;
                     goto END_ROT;
                 }
             }
 
-            if (dfire->rotation == 270.f){
+            if (dfire->rotation == 270.f) {
                 if (aabb.min_y - (forward_tile.y + 1) * 64.f < proximity_thresh) {
+                    dfire->rotation += 90.f;
+                    goto END_ROT;
+                }
+            }
+
+            if (dfire->rotation == 0.f) {
+                if ((forward_tile.x) * 64.f - aabb.max_x < proximity_thresh) {
                     dfire->rotation += 90.f;
                     goto END_ROT;
                 }
@@ -433,11 +434,10 @@ should't be eEmptySpace
     }
 
     END_ROT:
-
     dfire->rotation = deg_0_360(dfire->rotation);
 
     float output_rotation = dfire->rotation;
-    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 100.f * dt;
+    dfire->position += direction_from_rotation(D2R * (output_rotation)) * 200.f * dt;
 
 }
 
