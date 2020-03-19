@@ -177,11 +177,11 @@ scene_draw_tilemap()
             if (type == eBlockFrail) id = 1;
             
             gl_slow_tilemap_draw(
-                &GET_TILEMAP_TEXTURE(test),
-                {i * 64, j * 64},
-                {64, 64},
-                0.f,
-                id);
+                                 &GET_TILEMAP_TEXTURE(test),
+                                 {i * 64, j * 64},
+                                 {64, 64},
+                                 0.f,
+                                 id);
         }
     }
 }
@@ -197,86 +197,6 @@ inline u64 scene_get_tile(ivec2 p) {
 inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
 
 
-internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
-internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
-internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
-
-internal void
-scene_update(InputState* istate, float dt)
-{
-    scene_draw_tilemap();
-    
-    List_Sprite& l = g_scene.spritelist;
-    
-    for (int i = 0; i < l.size(); ++i)
-    {
-        Sprite* spref = &l[i];
-        spref->update_animation(dt);
-        
-        switch(spref->entity.type)
-        {
-            case ePlayer:
-            {
-                ePlayer_update(spref, istate, dt);
-            }break;
-            
-            case eGoblin:
-            {
-                eGoblin_update(spref, istate, dt);
-            } break;
-            
-            case eEffect:
-            {
-                if (!spref->animation_playing)
-                {
-                    spref->mark_for_removal = true;
-                }
-            }break;
-            
-            case eDFireball:
-            {
-                eDFireball_update(spref, istate, dt);
-            }break;
-            
-            default:
-            break;
-        }
-        
-        
-#ifndef NDEBUG
-        // Draw the Bounding box sprite
-        AABox box = spref->get_transformed_AABox();
-        gl_slow_tilemap_draw(
-            &GET_TILEMAP_TEXTURE(test),
-            {box.min_x, box.min_y},
-            {box.max_x - box.min_x, box.max_y - box.min_y},
-            0,5 * 5 + 1,
-            false, false,
-            NRGBA{1.f, 0, 1.f, 0.7f});
-#endif
-        
-        
-        draw(&l[i]);
-    }
-    
-    
-    // remove marked elements
-    auto it = g_scene.spritelist.begin();
-    while (it != g_scene.spritelist.end())
-    {
-        Sprite& spref = (*it);
-        if (spref.mark_for_removal)
-        {
-            it = g_scene.spritelist.erase(it);
-        }
-        else
-        {
-            it++;
-        }
-    }
-    
-    
-}
 
 // Finds first sprite of specific type
 // if not found; return 0
@@ -311,4 +231,144 @@ internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile)
     
     
     return ivec2{-1 ,-1};
+}
+
+
+internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
+internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
+internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
+internal void eStarRing_update(Sprite* spref, InputState* istate, float dt);
+
+internal void scene_startup_animation(float dt) {
+    static bool scene_started = false;
+    
+    if (!scene_started) {
+        Sprite s = make_starring(fvec2{100.f, 100.f});
+        scene_sprite_add(&s);
+        scene_started = true;
+    }
+    
+    Sprite *ring = (Sprite*)scene_get_first_sprite(eStarRing);
+    const Sprite *const player = scene_get_first_sprite(ePlayer);
+    
+    if (distance(player->position, ring->position) < 0.00001f) {
+        g_scene.playing = true;
+        ring->mark_for_removal = true;
+    }
+    
+    eStarRing_update(ring, 0, dt);
+    //draw(ring);
+    
+    const int iter = 16;
+    for (int j = 0; j < iter; ++j) {
+        Sprite tmp = *ring;
+        
+        float r = ring->entity.params[0].as_f64;
+        float phase = ring->rotation;
+        float angle = (360.f / float(iter)) * j * D2R;
+        
+        tmp.position += fvec2{r * sinf(angle + phase), r * cosf(angle + phase)} ;
+        tmp.rotation = 0.f;
+        draw(&tmp);
+    }
+    
+}
+
+internal void
+scene_update(InputState* istate, float dt) {
+    scene_draw_tilemap();
+    
+    List_Sprite& l = g_scene.spritelist;
+    
+    for (int i = 0; i < l.size(); ++i) {
+        Sprite* spref = &l[i];
+        spref->update_animation(dt);
+        
+        switch(spref->entity.type) {
+            case ePlayer:
+            {
+                ePlayer_update(spref, istate, dt);
+            }break;
+            
+            case eGoblin:
+            {
+                eGoblin_update(spref, istate, dt);
+            } break;
+            
+            case eEffect:
+            {
+                if (!spref->animation_playing) {
+                    spref->mark_for_removal = true;
+                }
+            }break;
+            
+            case eDFireball:
+            {
+                eDFireball_update(spref, istate, dt);
+            }break;
+            
+            case eStarRing: {
+                eStarRing_update(spref, istate, dt);
+            }break;
+            
+            default:
+            break;
+        }
+        
+        
+#ifndef NDEBUG
+        // Draw the Bounding box sprite
+        AABox box = spref->get_transformed_AABox();
+        gl_slow_tilemap_draw(
+                             &GET_TILEMAP_TEXTURE(test),
+                             {box.min_x, box.min_y},
+                             {box.max_x - box.min_x, box.max_y - box.min_y},
+                             0,5 * 5 + 1,
+                             false, false,
+                             NRGBA{1.f, 0, 1.f, 0.7f});
+#endif
+        
+        if (l[i].entity.type == eStarRing) {
+            // draw 16 stars around position
+            // param[0] : time
+            const int iter = 16;
+            for (int j = 0; j < iter; ++j) {
+                Sprite tmp = l[i];
+                
+                float r = l[i].entity.params[0].as_f64;
+                float phase = l[i].rotation;
+                float angle = (360.f / float(iter)) * j * D2R;
+                
+                tmp.position += fvec2{r * sinf(angle + phase), r * cosf(angle + phase)} ;
+                tmp.rotation = 0.f;
+                draw(&tmp);
+            }
+            
+            
+            
+        } else {
+            
+            draw(&l[i]);
+        }
+        
+        
+    }
+    
+    
+    // remove marked elements
+    auto it = g_scene.spritelist.begin();
+    while (it != g_scene.spritelist.end())
+    {
+        Sprite& spref = (*it);
+        if (spref.mark_for_removal)
+        {
+            it = g_scene.spritelist.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+    
+    
 }

@@ -27,6 +27,7 @@ DEF_TILEMAP(tmdana_fire   ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )
 DEF_TILEMAP(font          ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc          ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(background    ,"res/bg_room0.png"                        ,1    ,1  )\
+DEF_TILEMAP(tmstar_ring   ,"res/effects/rotate_star_all.png"         ,1    ,3  )\
 
 struct RESTilemap
 {
@@ -70,11 +71,6 @@ DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
 DEF_ANIM(Goblin,       Wait,    1.f,      {5,0}, 1,      false)   \
 DEF_ANIM(Goblin,       Fall,    .1f,      {0,3}, 2,      true )   \
 )                                                                 \
-DEF_CHARACTER(Effect,      test,     1,                           \
-/*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(Effect,       Test,    .1f,      {0,0}, 5,      false)   \
-)                                                                 \
-/*            Name,        Tilemap,  Animation Count */           \
 DEF_CHARACTER(Ghost,       tmghost,  2,                           \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Ghost,        Fly,     .1f,      {0,0}, 3,      true )   \
@@ -86,10 +82,13 @@ DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \
 DEF_ANIM(DFireball,    Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
+DEF_CHARACTER(StarRing,    tmstar_ring,  1,                       \
+DEF_ANIM(StarRing,     Default, .1f,      {0,0}, 3,      true )   \
+)                                                                 \
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \
-    __VA_ARGS__ CHARACTER_##name##_animcount\
+__VA_ARGS__ CHARACTER_##name##_animcount\
 }; \
 
 
@@ -125,7 +124,7 @@ global u64 CHARACTER_TO_TILEMAP[CHARACTER_COUNT] =
 #define DEF_ANIM(character, name, ...) {__VA_ARGS__},
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) \
 global Animation CHARACTER_##name##_anims[anim_count] = { \
-    __VA_ARGS__ \
+__VA_ARGS__ \
 };
 
 ALL_CHARACTERS
@@ -152,10 +151,10 @@ ALL_CHARACTERS
 
 internal u8*
 load_image_as_rgba_pixels(
-const char* const name,
-i32* out_width,
-i32* out_height,
-i32* out_n)
+                          const char* const name,
+                          i32* out_width,
+                          i32* out_height,
+                          i32* out_n)
 {
     int i_w, i_h, i_n;
     unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
@@ -168,7 +167,7 @@ internal void load_tilemap_textures()
     i32 width, height, bpp;
     u8* data;
     
-    const RESTilemap RES_TILEMAPS[TILEMAP_COUNT] = 
+    const RESTilemap RES_TILEMAPS[TILEMAP_COUNT] =
     {
         ALL_TILEMAPS
     };
@@ -180,14 +179,14 @@ internal void load_tilemap_textures()
     {
         inform("loading tilemap: %s...",RES_TILEMAPS[i].name);
         data = load_image_as_rgba_pixels(
-            RES_TILEMAPS[i].name,
-            &width, &height, &bpp);
+                                         RES_TILEMAPS[i].name,
+                                         &width, &height, &bpp);
         assert(data);
         
         g_tilemap_textures[i] = gl_load_rgba_tilemap(
-            data,
-            width, height,
-            RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
+                                                     data,
+                                                     width, height,
+                                                     RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
         
     }
     

@@ -30,6 +30,7 @@ enum EntityBaseType
     
     eEffect,
     eDFireball,
+    eStarRing,
     EntityBaseType_Count,
 };
 
@@ -38,6 +39,9 @@ struct Entity
     EntityBaseType type;
     CustomParameter params[MAX_ENTITY_PARAMS];
 };
+
+
+#define ENTITY_CUSTOM_PARAM(type, name)
 
 struct Sprite
 {
@@ -87,7 +91,7 @@ struct Sprite
                 goto finished;
             }
             
-            // NOTE(miked): if on top? 
+            // NOTE(miked): if on top?
             if (this_collision.min_y < target->min_y)
             {
                 collided_on_bottom = true;
@@ -156,12 +160,12 @@ struct Sprite
     }
     
     void move_and_collide(
-        float dt,
-        const float GRAVITY,
-        const float MAX_YSPEED,
-        const float JUMP_STRENGTH,
-        float XSPEED,
-        b32 damage_tiles = false);
+                          float dt,
+                          const float GRAVITY,
+                          const float MAX_YSPEED,
+                          const float JUMP_STRENGTH,
+                          float XSPEED,
+                          b32 damage_tiles = false);
     
     void collide_sprite(float dt);
     
@@ -193,6 +197,7 @@ global struct
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     List_Sprite spritelist;
     
+    b32 playing = false;
 } g_scene;
 
 inline internal Sprite make_goblin(fvec2 position)
@@ -248,24 +253,9 @@ inline internal Sprite make_player(fvec2 position)
     };
 }
 
-inline internal Sprite make_effect(fvec2 position)
-{
-    return Sprite
-    {
-        .tilemap = &GET_CHAR_TILEMAP(Effect),
-        .position = position,
-        .animation_set = GET_CHAR_ANIMSET(Effect),
-        .entity = 
-        {
-            eEffect,
-            {0,0}
-        }
-    };
-}
-
 inline internal Sprite make_dfireball(fvec2 position)
 {
-    Sprite res = 
+    Sprite res =
     {
         .tilemap = &GET_CHAR_TILEMAP(DFireball),
         .size = {55,55},
@@ -273,8 +263,8 @@ inline internal Sprite make_dfireball(fvec2 position)
         .collision_box = {8,8,40,40},
         .mirror = {true, false},
         .animation_set = GET_CHAR_ANIMSET(DFireball),
-
-        .entity = 
+        
+        .entity =
         {
             eDFireball,
             {0,0}
@@ -286,6 +276,27 @@ inline internal Sprite make_dfireball(fvec2 position)
     return res;
 }
 
+
+inline internal Sprite make_starring(fvec2 position) {
+    Sprite res =
+    {
+        .tilemap = &GET_CHAR_TILEMAP(StarRing),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        .current_animation = 0,
+        .animation_set = GET_CHAR_ANIMSET(StarRing),
+        .entity = {
+            eStarRing,
+            {0.f,0.f}
+        }
+    };
+    
+    res.entity.params[0].as_f64 = 128.f;
+    return res;
+    
+}
 internal const char* goblin_parse_custom(Sprite* goblin, const char* c)
 {
     if (*c == ',')
@@ -313,10 +324,10 @@ draw(Sprite const * sprite)
         + anim_ref->start.x + sprite->current_frame;
     
     gl_slow_tilemap_draw(
-        sprite->tilemap,
-        {(float)sprite->position.x, (float)sprite->position.y},
-        {(float)sprite->size.x, (float)sprite->size.y},
-        sprite->rotation,
-        frame_to_render,
-        sprite->mirror.x, sprite->mirror.y);
+                         sprite->tilemap,
+                         {(float)sprite->position.x, (float)sprite->position.y},
+                         {(float)sprite->size.x, (float)sprite->size.y},
+                         sprite->rotation,
+                         frame_to_render,
+                         sprite->mirror.x, sprite->mirror.y);
 }

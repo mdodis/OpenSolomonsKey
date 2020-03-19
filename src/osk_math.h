@@ -147,16 +147,19 @@ struct AABox
 
 internal b32
 aabb_minkowski(
-const AABox* const a,
-const AABox* const b,
-fvec2* const opt_pen);
+               const AABox* const a,
+               const AABox* const b,
+               fvec2* const opt_pen);
 
 
 inline u64 lengthsq(const fvec2* const v);
 inline float ftrunc(float n);
 inline float iabs(float n);
 float iclamp(float a, float b, float x);
-
+// Precise method, which guarantees v = v1 when t = 1.
+float lerp(float v0, float v1, float t) {
+    return (1 - t) * v0 + t * v1;
+}
 inline fvec2 iclamp(fvec2 a, fvec2 b, fvec2 x);
 inline int highest_pow2(int n);
 
@@ -170,7 +173,7 @@ inline u64 lengthsq(const fvec2& v)
 
 inline float ftrunc(float n) { return (float)(n); }
 
-inline float iabs(float n) 
+inline float iabs(float n)
 {
     if (n < 0)
         return -n;
@@ -217,7 +220,7 @@ inline int highest_pow2(int n)
     return (int)pow(2, p);
 }
 
-inline ivec2 
+inline ivec2
 map_position_to_tile_centered(fvec2 position)
 {
     return ivec2{((i32)position.x + 32) / 64, ((i32)position.y + 32) / 64};
@@ -235,7 +238,7 @@ inline ivec2 get_tile_behind(ivec2 t, fvec2 tv) {
     return t + ivec2{(int)tv.x, (int)tv.y};
 }
 
-inline ivec2 
+inline ivec2
 map_position_to_tile(fvec2 position)
 {
     return ivec2{((i32)position.x) / 64, ((i32)position.y) / 64};
@@ -270,9 +273,9 @@ intersect(const AABox* const a, const AABox* const b)
 
 internal b32
 aabb_minkowski(
-const AABox* const a,
-const AABox* const b,
-fvec2* const opt_pen)
+               const AABox* const a,
+               const AABox* const b,
+               fvec2* const opt_pen)
 {
     AABox result;
     result.min_y = a->min_y - b->max_y;
@@ -341,7 +344,7 @@ inline i32 sgn(i32 a)
 
 inline float min(float a, float b)
 {
-    return a < b 
+    return a < b
         ? a
         : b;
 }

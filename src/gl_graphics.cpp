@@ -71,14 +71,14 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
     glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        width, height,
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        data);
+                 GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 width, height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 data);
     
     fail_unless(glGetError() == GL_NO_ERROR, "");
     
@@ -87,11 +87,11 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
 
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
-u8* data,
-i32 width,
-i32 height,
-i32 tilemap_rows,
-i32 tilemap_cols)
+                     u8* data,
+                     i32 width,
+                     i32 height,
+                     i32 tilemap_rows,
+                     i32 tilemap_cols)
 {
     u32 tilemap_id;
     
@@ -110,10 +110,10 @@ i32 tilemap_cols)
     i32 tiles = tilemap_rows * tilemap_cols;
     
     glTexStorage3D(
-        GL_TEXTURE_2D_ARRAY,
-        1, GL_RGBA8,
-        tile_width, tile_height,
-        tiles);
+                   GL_TEXTURE_2D_ARRAY,
+                   1, GL_RGBA8,
+                   tile_width, tile_height,
+                   tiles);
     
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   width);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, height);
@@ -127,14 +127,14 @@ i32 tilemap_cols)
         {
             
             glTexSubImage3D(
-                GL_TEXTURE_2D_ARRAY,
-                0, 0, 0,
-                //count,
-                y * tilemap_cols + x,
-                tile_width, tile_height, 1,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                data + (y * tile_width * width + x * tile_width) * 4);
+                            GL_TEXTURE_2D_ARRAY,
+                            0, 0, 0,
+                            //count,
+                            y * tilemap_cols + x,
+                            tile_width, tile_height, 1,
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE,
+                            data + (y * tile_width * width + x * tile_width) * 4);
             
             count++;
         }
@@ -152,15 +152,15 @@ i32 tilemap_cols)
 
 internal void
 gl_slow_tilemap_draw(
-GLTilemapTexture const* tm,
-glm::vec2 pos,
-glm::vec2 size,
-float rotate,
-i32 tm_index,
-b32 mirrorx,
-b32 mirrory,
-NRGBA tint,
-b32 account_for_offset)
+                     GLTilemapTexture const* tm,
+                     glm::vec2 pos,
+                     glm::vec2 size,
+                     float rotate,
+                     i32 tm_index,
+                     b32 mirrorx,
+                     b32 mirrory,
+                     NRGBA tint,
+                     b32 account_for_offset)
 {
     if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
@@ -204,12 +204,51 @@ b32 account_for_offset)
     
     GLuint loc = glGetUniformLocation(g_shd_2d.id, "model");
     glUniformMatrix4fv(
-        loc,
-        1,
-        GL_FALSE,
-        glm::value_ptr(model));
+                       loc,
+                       1,
+                       GL_FALSE,
+                       glm::value_ptr(model));
     loc = glGetUniformLocation(g_shd_2d.id, "tint");
     glUniform4f(loc, tint.r, tint.g, tint.b, tint.a);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+internal void gl_init() {
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
+    
+    g_shd_2d.create(g_2d_vs, g_2d_fs);
+    
+    GLuint sampler_loc = glGetUniformLocation(g_shd_2d.id, "sampler");
+    glUniform1i(sampler_loc, 0);
+    
+    GLuint VBO;
+    GLfloat vertices[] = {
+        // Pos      // Tex
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        
+        0.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 0.0f, 1.0f, 0.0f
+    };
+    
+    glGenVertexArrays(1, &g_quad_vao);
+    glGenBuffers(1, &VBO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)sizeof(vertices), vertices, GL_STATIC_DRAW);
+    
+    glBindVertexArray(g_quad_vao);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    
+    assert(glGetError() == GL_NO_ERROR);
+    
+    
+}

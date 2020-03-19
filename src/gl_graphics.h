@@ -22,23 +22,23 @@ struct GLShader
 
 internal GLTilemapTexture
 gl_load_rgba_tilemap(
-u8* data,
-i32 width,
-i32 height,
-i32 tilemap_rows,
-i32 tilemap_cols);
+                     u8* data,
+                     i32 width,
+                     i32 height,
+                     i32 tilemap_rows,
+                     i32 tilemap_cols);
 
 internal void
 gl_slow_tilemap_draw(
-GLTilemapTexture const* tm,
-glm::vec2 pos,
-glm::vec2 size,
-float rotate = 0.f,
-i32 tm_index = 0,
-b32 mirrorx = false,
-b32 mirrory = false,
-NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f},
-b32 account_for_offset = true);
+                     GLTilemapTexture const* tm,
+                     glm::vec2 pos,
+                     glm::vec2 size,
+                     float rotate = 0.f,
+                     i32 tm_index = 0,
+                     b32 mirrorx = false,
+                     b32 mirrory = false,
+                     NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f},
+                     b32 account_for_offset = true);
 
 const char* const g_2d_vs =
 R"EOS(
@@ -74,5 +74,9 @@ void main()
     }
     
 )EOS";
+
+global u32 g_quad_vao;
+global GLShader g_shd_2d;
+global glm::mat4 g_projection;
 
 #endif //! GL_GRAPHICS_H

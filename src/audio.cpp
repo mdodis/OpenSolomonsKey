@@ -65,7 +65,7 @@ Wave_next_chunk(RiffIterator iter)
     WaveChunk* chunk = (WaveChunk*)iter.at;
     u32 size = (chunk->size + 1) & ~1;
     iter.at += chunk->size + sizeof(WaveChunk);
-
+    
     return iter;
 }
 
@@ -101,8 +101,8 @@ Wave_load_from_file(const char* file)
     assert(data);
     header = (WaveHeader*)data;
     assert(header->id == WAVEChunkRiff && header->waveid == WAVEChunkWave);
-
-
+    
+    
     for (RiffIterator iter = Wave_parse_chunk(header + 1);
          *(u8*)iter.at != 0;
          iter = Wave_next_chunk(iter))
@@ -120,7 +120,7 @@ Wave_load_from_file(const char* file)
                 inform("Samples        : %d", fmt->samples_per_sec);
                 inform("BPP            : %d", fmt->bits_per_sample);
                 inform("Block/channels : %d", (fmt->block_align / fmt->nchannels) * 8);
-
+                
             }break;
             case WAVEChunkData:
             {
@@ -128,7 +128,7 @@ Wave_load_from_file(const char* file)
                 result.num_samples = RiffIterator_size(iter);
                 inform("NUM Samples    : %d", result.num_samples);
             }break;
-
+            
             default:
             {
                 puts("shit");
@@ -143,8 +143,8 @@ internal void audio_play_sound(const RESSound* resound, b32 looping = false, Sou
 {
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
-
-
+    
+    
     Sound new_sound =
     {
         .max_counter = resound->num_samples,
@@ -152,9 +152,9 @@ internal void audio_play_sound(const RESSound* resound, b32 looping = false, Sou
         .resource = resound,
         .type = sound_type
     };
-
+    
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
-
+    
 }
 
 internal void audio_toggle_playing(SoundType type)
@@ -167,18 +167,18 @@ internal void audio_toggle_playing(SoundType type)
             sound_ref->playing = !sound_ref->playing;
         }
     }
-
+    
 }
 
 internal void audio_update_all_sounds()
 {
     if (g_audio.all_sounds_size == 0) return;
-
+    
     u32 cached_size = g_audio.all_sounds_size;
     for (i32 i = 0; i < cached_size; ++i)
     {
         Sound* sound_ref = g_audio.all_sounds + i;
-
+        
         if (sound_ref->counter >= sound_ref->max_counter / 2)
         {
             sound_ref->counter = 0;
@@ -187,7 +187,7 @@ internal void audio_update_all_sounds()
                 sound_ref->resource = 0;
                 g_audio.all_sounds_size--;
                 if (g_audio.all_sounds_size == 0) return;
-
+                
                 b32 will_loop_inside = false;
                 // resize the sound array
                 i32 previous = i;
@@ -198,14 +198,14 @@ internal void audio_update_all_sounds()
                         draw_text("will_loop_inside", 3);
                         will_loop_inside = true;
                     }
-
+                    
                     Sound sound_copy = g_audio.all_sounds[j];
                     g_audio.all_sounds[previous] = sound_copy;
                     previous++;
                 }
-
+                
             }
-
+            
         }
     }
 }
@@ -213,25 +213,25 @@ internal void audio_update_all_sounds()
 internal void
 audio_update(const InputState* const istate, u64 samples_to_write)
 {
-
+    
     i16* out = (i16*)g_audio.buffer;
     //audio_update_all_sounds();
-
+    
     memset(g_audio.buffer, 0, AUDIO_BUFFER_SIZE);
     for (u32 i = 0; i < samples_to_write; i += 1)
     {
         i16 sample[AUDIO_CHANNELS] = {};
-
-
+        
+        
         for (i32 current_sound_idx = 0;
              current_sound_idx < g_audio.all_sounds_size;
              current_sound_idx++)
         {
             Sound* current_sound = g_audio.all_sounds + current_sound_idx;
             warn_unless(current_sound->resource, "");
-
+            
             if (!current_sound->playing) continue;
-
+            
             if (!(current_sound->resource))
             {
 #if 1
@@ -243,26 +243,26 @@ audio_update(const InputState* const istate, u64 samples_to_write)
                 exit(-1);
 #endif
                 continue;
-
+                
             }
-
+            
             u64 new_sound_counter = current_sound->counter;
             if (current_sound->counter >= current_sound->max_counter / 2)
                 continue;
-
-
+            
+            
             i32 current_sample[AUDIO_CHANNELS] =
             {
                 (i32)sample[0],
                 (i32)sample[1]
             };
-
+            
             i32 sample16[AUDIO_CHANNELS] = {0, 0};
-
+            
             i16* data = (i16*)current_sound->resource->data;
             sample16[0] = data[new_sound_counter++];
             sample16[1] = data[new_sound_counter++];
-
+            
             if ((current_sample[0] + sample16[0]) > SHRT_MAX ||
                 (current_sample[0] + sample16[0]) < SHRT_MIN ||
                 (current_sample[1] + sample16[1]) > SHRT_MAX ||
@@ -270,15 +270,15 @@ audio_update(const InputState* const istate, u64 samples_to_write)
             {
                 continue;
             }
-
+            
             sample[0] = current_sample[0] + sample16[0];
             sample[1] = current_sample[1] + sample16[1];
             current_sound->counter = new_sound_counter;
         }
-
-
+        
+        
         *out++ += sample[0] * g_audio.volume;
         *out++ += sample[1] * g_audio.volume;
     }
-
+    
 }
