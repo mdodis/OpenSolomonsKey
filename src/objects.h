@@ -189,68 +189,60 @@ struct Sprite
 #include <vector>
 typedef std::vector<Sprite> List_Sprite;
 
-global struct
-{
+global struct {
     
     EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     // TODO(miked): Hidden items
     u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     List_Sprite spritelist;
-    
     b32 playing = false;
+    
+    int startup_state = 0;
 } g_scene;
 
-inline internal Sprite make_goblin(fvec2 position)
-{
-    return Sprite
-    {
+inline internal Sprite make_goblin(fvec2 position) {
+    return Sprite {
         .tilemap = &GET_CHAR_TILEMAP(Goblin),
         .position = position,
         .collision_box = {5, 0, 45, 64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Goblin),
-        .entity =
-        {
+        .entity = {
             .type = eGoblin,
         }
     };
 }
 
-inline internal Sprite make_ghost(fvec2 position)
-{
-    return Sprite
-    {
+inline internal Sprite make_ghost(fvec2 position) {
+    return Sprite {
         .tilemap = &GET_CHAR_TILEMAP(Ghost),
         .position = position,
         .collision_box = {0, 0, 64, 64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Ghost),
-        .entity =
-        {
+        .entity = {
             .type = eGhost,
         }
     };
 }
 
-inline internal Sprite make_player(fvec2 position)
-{
-    const i32 player_height = 50;
-    return Sprite
-    {
+inline internal Sprite make_player(fvec2 position) {
+    Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(test_player),
-        .size = fvec2{64, player_height},
+        .size = fvec2{64, 50},
         .position = position,
         
-        .collision_box = {5, 0, 45, player_height},
+        .collision_box = {5, 0, 45, 50},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(test_player),
         
-        .entity =
-        {
+        .entity = {
             ePlayer,
             {0,0}
         }
     };
+    
+    return res;
 }
 
 inline internal Sprite make_dfireball(fvec2 position)

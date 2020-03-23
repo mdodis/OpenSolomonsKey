@@ -135,6 +135,7 @@ internal void level_load(char* data)
                         }break;
                     }
                     
+                    sprite_to_make.position.y += 64.f - sprite_to_make.collision_box.max_y;
                     scene_sprite_add(&sprite_to_make);
                     
                     g_scene.tilemap[counter_x][counter_y] = eEmptySpace;
@@ -240,37 +241,82 @@ internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void eStarRing_update(Sprite* spref, InputState* istate, float dt);
 
 internal void scene_startup_animation(float dt) {
-    static bool scene_started = false;
     
-    if (!scene_started) {
+    const int STATE_START = 0;
+    const int STATE_SHOW_KEY = 1;
+    const int STATE_SHOW_PLAYER = 2;
+    const int STATE_DONE = 3;
+    
+    const float anim_dur = 1.2f;
+    static float anim_time = 0.f;
+    
+    if (g_scene.startup_state < 1) {
+        g_scene.startup_state = 1;
         Sprite s = make_starring(fvec2{100.f, 100.f});
         scene_sprite_add(&s);
-        scene_started = true;
     }
     
     Sprite *ring = (Sprite*)scene_get_first_sprite(eStarRing);
     const Sprite *const player = scene_get_first_sprite(ePlayer);
     
-    if (distance(player->position, ring->position) < 0.00001f) {
-        g_scene.playing = true;
-        ring->mark_for_removal = true;
+    
+    // placeholder
+    const fvec2 DOOR = {64 * 6, 0};
+    const fvec2 KEY = {64 * 8, 64 * 6};
+    
+    switch (g_scene.startup_state) {
+        
+        case STATE_START: {
+            Sprite s = make_starring(DOOR);
+            scene_sprite_add(&s);
+            
+            g_scene.startup_state = STATE_SHOW_KEY;
+        } break;
+        
+        case STATE_SHOW_KEY: {
+            
+            draw(ring);
+            
+            if (anim_time < anim_dur) {
+                ring->position = lerp2(DOOR, KEY, (anim_time/anim_dur));
+                anim_time = fclamp(0.f, anim_dur, anim_time + dt);
+            } else {
+                g_scene.startup_state = STATE_SHOW_PLAYER;
+                anim_time = 0.f;
+            }
+            
+        } break;
+        
+        case STATE_SHOW_PLAYER: {
+            
+            if (anim_time < anim_dur) {
+                ring->position = lerp2(DOOR, player->position, (anim_time/anim_dur));
+                anim_time = fclamp(0.f, anim_dur, anim_time + dt);
+            } else {
+                g_scene.startup_state = 4;
+                ring->mark_for_removal = true;
+                g_scene.playing = true;
+            }
+            
+            if (anim_time < anim_dur) {
+                float radius = ((anim_dur - anim_time) / anim_dur) * 128.f;
+                radius = MAX(radius, 32.f);
+                float phase = ((anim_dur - anim_time) / anim_dur) * 90.f;
+                
+                for (int i = 0; i < 16; ++i) {
+                    Sprite tmp = *ring;
+                    
+                    float angle = (360.f / 16.f) * i;
+                    angle += phase;
+                    tmp.position += fvec2{cosf(angle * D2R), sinf(angle * D2R)} * radius;
+                    
+                    draw(&tmp);
+                }
+            }
+            
+        } break;
     }
     
-    eStarRing_update(ring, 0, dt);
-    //draw(ring);
-    
-    const int iter = 16;
-    for (int j = 0; j < iter; ++j) {
-        Sprite tmp = *ring;
-        
-        float r = ring->entity.params[0].as_f64;
-        float phase = ring->rotation;
-        float angle = (360.f / float(iter)) * j * D2R;
-        
-        tmp.position += fvec2{r * sinf(angle + phase), r * cosf(angle + phase)} ;
-        tmp.rotation = 0.f;
-        draw(&tmp);
-    }
     
 }
 
@@ -279,6 +325,24 @@ scene_update(InputState* istate, float dt) {
     scene_draw_tilemap();
     
     List_Sprite& l = g_scene.spritelist;
+    
+    
+    // remove marked elements
+    auto it = g_scene.spritelist.begin();
+    while (it != g_scene.spritelist.end())
+    {
+        Sprite& spref = (*it);
+        if (spref.mark_for_removal)
+        {
+            it = g_scene.spritelist.erase(it);
+        }
+        else
+        {
+            it++;
+        }
+    }
+    
+    
     
     for (int i = 0; i < l.size(); ++i) {
         Sprite* spref = &l[i];
@@ -305,10 +369,6 @@ scene_update(InputState* istate, float dt) {
             case eDFireball:
             {
                 eDFireball_update(spref, istate, dt);
-            }break;
-            
-            case eStarRing: {
-                eStarRing_update(spref, istate, dt);
             }break;
             
             default:
@@ -352,22 +412,6 @@ scene_update(InputState* istate, float dt) {
         }
         
         
-    }
-    
-    
-    // remove marked elements
-    auto it = g_scene.spritelist.begin();
-    while (it != g_scene.spritelist.end())
-    {
-        Sprite& spref = (*it);
-        if (spref.mark_for_removal)
-        {
-            it = g_scene.spritelist.erase(it);
-        }
-        else
-        {
-            it++;
-        }
     }
     
     

@@ -160,6 +160,13 @@ float iclamp(float a, float b, float x);
 float lerp(float v0, float v1, float t) {
     return (1 - t) * v0 + t * v1;
 }
+
+
+fvec2 lerp2(fvec2 a, fvec2 b, float t) {
+    fvec2 result = {lerp(a.x, b.x, t), lerp(a.y,b.y,t)};
+    return result;
+}
+
 inline fvec2 iclamp(fvec2 a, fvec2 b, fvec2 x);
 inline int highest_pow2(int n);
 
@@ -361,6 +368,7 @@ inline float length(fvec2 a)
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
+
 
 
 inline float osk__min(float a, float b, float on_zero) {

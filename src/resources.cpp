@@ -18,16 +18,17 @@ the extra required information. All of the rendering is done through
 tilemaps.
 */
 #define ALL_TILEMAPS \
-/*          NAME          PATH IN FOLDER                             rows cols*/\
-DEF_TILEMAP(test          ,"test_tilemap.png"                        ,6    ,5  )\
-DEF_TILEMAP(dana          ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
-DEF_TILEMAP(tmgoblin      ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
-DEF_TILEMAP(tmghost       ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
-DEF_TILEMAP(tmdana_fire   ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )\
-DEF_TILEMAP(font          ,"res/font.png"                            ,6    ,16 )\
-DEF_TILEMAP(misc          ,"res/misc.png"                            ,4    ,4  )\
-DEF_TILEMAP(background    ,"res/bg_room0.png"                        ,1    ,1  )\
-DEF_TILEMAP(tmstar_ring   ,"res/effects/rotate_star_all.png"         ,1    ,3  )\
+/*          NAME               PATH IN FOLDER                             rows cols*/\
+DEF_TILEMAP(test               ,"test_tilemap.png"                        ,6    ,5  )\
+DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
+DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
+DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
+DEF_TILEMAP(tmdana_fire        ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )\
+DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
+DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
+DEF_TILEMAP(background         ,"res/bg_room0.png"                        ,1    ,1  )\
+DEF_TILEMAP(tmstar_ring        ,"res/effects/rotate_star_all.png"         ,1    ,3  )\
+DEF_TILEMAP(TM_point_pickups   ,"res/point_pickups.png"                   ,1    ,3  )\
 
 struct RESTilemap
 {

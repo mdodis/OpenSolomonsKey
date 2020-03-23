@@ -98,44 +98,35 @@ get_tilescale_and_dimensions(
 }
 
 
-internal void draw_extra_stuff()
-{
+internal void draw_extra_stuff() {
     GLTilemapTexture* texture = &GET_TILEMAP_TEXTURE(misc);
     
     // Draw the horizontal bars
-    for (i32 i = 0; i < 9; ++i)
-    {
+    for (i32 i = 0; i < 9; ++i) {
         // top bars
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{i * 128, 24},
                              glm::vec2{64, 64},
                              0.f, 2 * 4 + 0,
                              true, true,
                              NRGBA{1,1,1,1},
                              false);
-        
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{i * 128 + 64, 24},
                              glm::vec2{64, 64},
                              0.f, 2 * 4 + 1,
                              true, true,
                              NRGBA{1,1,1,1},
                              false);
-        
         // bottom bars
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{i * 128, 12 * 64 + 32},
                              glm::vec2{64, 64},
                              0.f, 2 * 4 + 2,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
-        
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{i * 128 + 64, 12 * 64 + 32},
                              glm::vec2{64, 64},
                              0.f, 2 * 4 + 3,
@@ -147,36 +138,30 @@ internal void draw_extra_stuff()
     
     
     // draw the extra stuff:
-    for (i32 i = 0; i < 6; ++i)
-    {
+    for (i32 i = 0; i < 6; ++i) {
         // Draw the vertical bars
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{-32, i * 128 + 64},
                              glm::vec2{64, 64},
                              0.f, 1 * 4 + 2,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{-32, i * 128 + 64 + 64},
                              glm::vec2{64, 64},
                              0.f, 1 * 4 + 3,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
-        
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{15 * 64 + 32, i * 128 + 64},
                              glm::vec2{64, 64},
                              0.f, 1 * 4 + 0,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
-        gl_slow_tilemap_draw(
-                             texture,
+        gl_slow_tilemap_draw(texture,
                              glm::vec2{15 * 64 + 32, i * 128 + 64 + 64},
                              glm::vec2{64, 64},
                              0.f, 1 * 4 + 1,
@@ -191,8 +176,7 @@ internal void draw_extra_stuff()
 RESSound bg_sound;
 
 void
-cb_init()
-{
+cb_init() {
     player_jump_sound = Wave_load_from_file("res/bloop.wav");
     bg_sound = Wave_load_from_file("res/bgm1.wav");
     

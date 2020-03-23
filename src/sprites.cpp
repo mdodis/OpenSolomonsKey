@@ -716,7 +716,7 @@ internal void eStarRing_update(Sprite* spref, InputState* istate, float dt) {
     static const fvec2 initial_pos = spref->position;
     static float time = 0.f;
     
-    time = fclamp(0.f, 1.f, time + dt * 0.5f);
+    time = fclamp(0.f, 1.f, time + dt * 1.f);
     
     radius = 135.f - 128.f * time + 64.f;
     spref->rotation += dt * 1.f;
