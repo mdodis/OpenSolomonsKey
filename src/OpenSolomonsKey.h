@@ -105,7 +105,7 @@ platform_load_entire_file(const char* path)
 #define AUDIO_BYTESPERSAMPLE ((AUDIO_BPS / 8) * AUDIO_CHANNELS)
 #define AUDIO_FRAMES 1024
 #define AUDIO_BUFFER_SIZE (AUDIO_SAMPLERATE * AUDIO_BYTESPERSAMPLE)
-//#define AUDIO_BUFFER_SIZE 1000 
+//#define AUDIO_BUFFER_SIZE 1000
 #define AUDIO_MAX_SOUNDS 32
 
 struct RESSound

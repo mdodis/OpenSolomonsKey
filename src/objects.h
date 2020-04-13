@@ -3,21 +3,16 @@
 // eEmptySpace :: hidden item
 // eBlockFrail :: health, hidden item
 
-union CustomParameter
-{
-    i64    as_i64;
+union CustomParameter {
+    u64    as_u64;
     double as_f64;
 };
 
-/*
- NOTE: eEffect - scene_update _automatically_ marks
- any eEffect entity for removal once it's animation is finished
- 
- NOTE/TODO: Mixing scene entities with entities you can
- specify in the level format isn't a good idea.
+/* NOTE: eEffect - scene_update _automatically_ marks
+ * any eEffect entity for removal once it's animation is finished
 */
-enum EntityBaseType
-{
+
+enum EntityBaseType {
     eEmptySpace,
     eBlockFrail,
     eBlockSolid,
@@ -30,7 +25,7 @@ enum EntityBaseType
     
     eEffect,
     eDFireball,
-    eStarRing,
+    ePickup,
     EntityBaseType_Count,
 };
 
@@ -39,9 +34,6 @@ struct Entity
     EntityBaseType type;
     CustomParameter params[MAX_ENTITY_PARAMS];
 };
-
-
-#define ENTITY_CUSTOM_PARAM(type, name)
 
 struct Sprite
 {
@@ -110,8 +102,9 @@ struct Sprite
     }
     
     
-    void update_animation(float dt)
-    {
+    void update_animation(float dt) {
+        
+        if (!this->animation_set) return;
         // get animation ref
         Animation* anim_ref;
         anim_ref = &this->animation_set[this->current_animation];
@@ -187,14 +180,14 @@ struct Sprite
 };
 
 #include <vector>
+/* Thanks c++ stl! Now this'll speed up my productivity */
 typedef std::vector<Sprite> List_Sprite;
 
 global struct {
     
     EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    // TODO(miked): Hidden items
-    u64 hidden_tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
     List_Sprite spritelist;
+    List_Sprite pickup_list;
     b32 playing = false;
     
     int startup_state = 0;
@@ -218,7 +211,7 @@ inline internal Sprite make_ghost(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(Ghost),
         .position = position,
         .collision_box = {0, 0, 64, 64},
-        .mirror = {false, false},
+        .mirror = {true, false},
         .animation_set = GET_CHAR_ANIMSET(Ghost),
         .entity = {
             .type = eGhost,
@@ -280,15 +273,34 @@ inline internal Sprite make_starring(fvec2 position) {
         .current_animation = 0,
         .animation_set = GET_CHAR_ANIMSET(StarRing),
         .entity = {
-            eStarRing,
-            {0.f,0.f}
+            EntityBaseType_Count,
+            {u64(0.f),u64(0.f)}
         }
     };
     
-    res.entity.params[0].as_f64 = 128.f;
     return res;
     
 }
+
+inline internal Sprite make_pickup(fvec2 position, u64 type) {
+    Sprite res = {
+        
+        .tilemap = &GET_TILEMAP_TEXTURE(TM_pickups),
+        .size = {64,64},
+        .position = position,
+        .mirror = {false, false},
+        .animation_playing = false,
+        .current_animation = 0,
+        .animation_set = 0,
+        .entity = {
+            ePickup,
+            {type, 0}
+        }
+    };
+    
+    return res;
+}
+
 internal const char* goblin_parse_custom(Sprite* goblin, const char* c)
 {
     if (*c == ',')
@@ -311,9 +323,15 @@ internal void
 draw(Sprite const * sprite)
 {
     assert(sprite->tilemap);
-    Animation* anim_ref = &sprite->animation_set[sprite->current_animation];
-    i32 frame_to_render = anim_ref->start.y * sprite->tilemap->cols
-        + anim_ref->start.x + sprite->current_frame;
+    i32 frame_to_render = sprite->current_frame;
+    
+    if (sprite->animation_set) {
+        Animation* anim_ref = &sprite->animation_set[sprite->current_animation];
+        frame_to_render =
+            anim_ref->start.y * sprite->tilemap->cols
+            + anim_ref->start.x + sprite->current_frame;
+    }
+    
     
     gl_slow_tilemap_draw(
                          sprite->tilemap,

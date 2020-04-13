@@ -1,11 +1,9 @@
-void Sprite::move_and_collide(
-                              float dt,
+void Sprite::move_and_collide(float dt,
                               const float GRAVITY,
                               const float MAX_YSPEED,
                               const float JUMP_STRENGTH,
                               float XSPEED,
-                              b32 damage_tiles)
-{
+                              b32 damage_tiles) {
     this->velocity.x = XSPEED;
     
     this->velocity.y += GRAVITY * dt;
@@ -552,16 +550,12 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     ignore_player = is_dying;
     
     if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) ||
-        goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait))
-    {
+        goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait)) {
         // Switch direction and continue when either of these states ends
-        if (!goblin->animation_playing)
-        {
+        if (!goblin->animation_playing) {
             SET_ANIMATION(goblin, Goblin, Walk);
             goblin->mirror.x = !goblin->mirror.x;
-        }
-        else
-        {
+        } else {
             ignore_player = true;
         }
     }
@@ -610,8 +604,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     }
     
     // Stop at tile edges
-    if (!is_dying)
-    {
+    if (!is_dying) {
         const i32 block_stop_offset = 32;
         const ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
         ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
@@ -724,4 +717,36 @@ internal void eStarRing_update(Sprite* spref, InputState* istate, float dt) {
     
     spref->position.x = lerp(initial_pos.x, player->position.x, time);
     spref->position.y = lerp(initial_pos.y, player->position.y, time);
+}
+
+
+// eGhost
+// ==============================
+internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
+    const float ghost_turn_offset_amount = 64;
+    const float ghost_speed = 200;
+#define direction ((float)(ghost->mirror.x ? 1 : -1))
+    
+    float ghost_turn_offset =
+        direction * ghost_turn_offset_amount -
+        ghost_turn_offset_amount / 2;
+    
+    ivec2 ctile = map_position_to_tile_centered(ghost->position +
+                                                fvec2{ghost_turn_offset,0.f});
+    
+#ifndef NDEBUG
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+                         {ctile.x * 64, ctile.y * 64},
+                         {64, 64},
+                         0,5 * 5 + 0,
+                         false, false,
+                         NRGBA{1.f, 1.f, 1.f, 1.f});
+#endif
+    
+    if (scene_get_tile(ctile) != eEmptySpace) {
+        ghost->mirror.x = !ghost->mirror.x;
+    }
+    
+    ghost->position.x += direction * ghost_speed * dt;
+#undef direction
 }

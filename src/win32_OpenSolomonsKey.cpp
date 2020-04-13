@@ -32,7 +32,7 @@ struct Timer
         
         QueryPerformanceCounter(&now);
         
-        delta = g_performace_frequency.QuadPart != 0 
+        delta = g_performace_frequency.QuadPart != 0
             ? (float(now.QuadPart - time_last.QuadPart) * 1000.f) / g_performace_frequency.QuadPart
             : 0.f;
         
@@ -86,7 +86,7 @@ b32 wgl_is_extension_supported(char* extname,  char* ext_string)
     {
         if (!(*chay)) return (!(*csearch));
         
-        if (*csearch == *chay) 
+        if (*csearch == *chay)
             csearch++;
         else
             csearch = extname;
@@ -113,25 +113,25 @@ win32_init_gl_extensions()
         .lpszClassName = "Dummy_WGL_djuasiodwa",
     };
     
-    if (!RegisterClassA(&window_class)) 
+    if (!RegisterClassA(&window_class))
         inform("Failed to register dummy OpenGL window.");
     
     HWND dummy_window = CreateWindowExA(
-        0,
-        window_class.lpszClassName,
-        "Dummy OpenGL Window",
-        0,
-        CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
-        0,0,
-        window_class.hInstance,
-        0);
+                                        0,
+                                        window_class.lpszClassName,
+                                        "Dummy OpenGL Window",
+                                        0,
+                                        CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
+                                        0,0,
+                                        window_class.hInstance,
+                                        0);
     
-    if (!dummy_window) 
+    if (!dummy_window)
         inform("Failed to create dummy OpenGL window.");
     
     HDC dummy_dc = GetDC(dummy_window);
     
-    PIXELFORMATDESCRIPTOR pfd = 
+    PIXELFORMATDESCRIPTOR pfd =
     {
         .nSize = sizeof(pfd),
         .nVersion = 1,
@@ -145,17 +145,17 @@ win32_init_gl_extensions()
     };
     
     int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
-    if (!pixel_format) 
+    if (!pixel_format)
         inform("Failed to find a suitable pixel format.");
     
-    if (!SetPixelFormat(dummy_dc, pixel_format, &pfd)) 
+    if (!SetPixelFormat(dummy_dc, pixel_format, &pfd))
         inform("Failed to set the pixel format.");
     
     HGLRC dummy_context = wglCreateContext(dummy_dc);
-    if (!dummy_context) 
+    if (!dummy_context)
         inform("Failed to create a dummy OpenGL rendering context.");
     
-    if (!wglMakeCurrent(dummy_dc, dummy_context)) 
+    if (!wglMakeCurrent(dummy_dc, dummy_context))
         inform("Failed to activate dummy OpenGL rendering context.");
     
     wglCreateContextAttribsARB = (wglCreateContextAttribsARB_type*)wglGetProcAddress("wglCreateContextAttribsARB");
@@ -305,11 +305,11 @@ internal void win32_dsound_init(HWND window_handle)
     
     DWORD audio_thread_id;
     HANDLE audio_thread = CreateThread(
-        0,0, 
-        dsound_cb_audio,
-        0,
-        0,
-        &audio_thread_id);
+                                       0,0,
+                                       dsound_cb_audio,
+                                       0,
+                                       0,
+                                       &audio_thread_id);
     
     g_dsound_sem = CreateSemaphoreA(0,0,1,0);
     
@@ -364,9 +364,9 @@ internal void win32_dsound_copy_to_sound_buffer(DWORD byte_to_lock, DWORD bytes_
     if (bytes_to_write == 0) return;
     
     HRESULT error = g_secondary_buffer->Lock(
-        byte_to_lock, bytes_to_write,
-        &region1, &region1_size,
-        &region2, &region2_size, 0);
+                                             byte_to_lock, bytes_to_write,
+                                             &region1, &region1_size,
+                                             &region2, &region2_size, 0);
     
     assert(region1_size + region2_size == bytes_to_write);
     assert(bytes_to_write <= AUDIO_BUFFER_SIZE);
@@ -397,8 +397,8 @@ internal void win32_dsound_copy_to_sound_buffer(DWORD byte_to_lock, DWORD bytes_
     }
     
     fail_unless(SUCCEEDED(g_secondary_buffer->Unlock(
-        region1, region1_size,
-        region2, region2_size)), "");
+                                                     region1, region1_size,
+                                                     region2, region2_size)), "");
 }
 
 internal DWORD dsound_cb_audio(void *unused)
@@ -478,10 +478,10 @@ internal void win32_update_and_render(HDC dc)
 
 internal LRESULT CALLBACK
 win32_windproc(
-_In_ HWND   hwnd,
-_In_ UINT   msg,
-_In_ WPARAM wparam,
-_In_ LPARAM lparam)
+               _In_ HWND   hwnd,
+               _In_ UINT   msg,
+               _In_ WPARAM wparam,
+               _In_ LPARAM lparam)
 {
     LRESULT result = 0;
     
@@ -542,24 +542,24 @@ win32_init(HINSTANCE hInstance)
     };
     fail_unless(RegisterClassA(&window_class), "Failed to register class");
     
-    RECT rect = 
+    RECT rect =
     {
-        .right = 1024,
-        .bottom = 896
+        .right = 640,
+        .bottom = 480
     };
     // DWORD window_style = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME;
     DWORD window_style = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&rect, window_style, false);
     
     g_wind = CreateWindowExA(
-        0,
-        OSK_CLASS_NAME,
-        "Solomon's Key",
-        window_style,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        rect.right - rect.left,
-        rect.bottom - rect.top,
-        0, 0, hInstance, 0);
+                             0,
+                             OSK_CLASS_NAME,
+                             "Solomon's Key",
+                             window_style,
+                             CW_USEDEFAULT, CW_USEDEFAULT,
+                             rect.right - rect.left,
+                             rect.bottom - rect.top,
+                             0, 0, hInstance, 0);
     fail_unless(g_wind, "Failed to create window");
 }
 
@@ -573,24 +573,24 @@ internal void win32_update_all_keys()
 {
 #define KEYDOWN(name, _X, keysym) g_input_state.name = win32_get_key_state(keysym);
 #define KEYPRESS(name, _X, keysym) { \
-        b32 now = win32_get_key_state(keysym); \
-        g_input_state.name[1] = (now && !g_input_state.name[0]); \
-        g_input_state.name[0] = g_input_state.name[1] || now; \
-        \
-    } \
-    
-    KEYMAP
-    
+    b32 now = win32_get_key_state(keysym); \
+    g_input_state.name[1] = (now && !g_input_state.name[0]); \
+    g_input_state.name[0] = g_input_state.name[1] || now; \
+    \
+} \
+
+KEYMAP
+
 #undef KEYDOWN
 #undef KEYPRESS
 }
 
 
 int WinMain(
-HINSTANCE hInstance,
-HINSTANCE hPrevInstance,
-LPSTR     lpCmdLine,
-int       nShowCmd)
+            HINSTANCE hInstance,
+            HINSTANCE hPrevInstance,
+            LPSTR     lpCmdLine,
+            int       nShowCmd)
 {
     
 #if 0

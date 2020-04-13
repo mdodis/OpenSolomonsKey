@@ -1,23 +1,26 @@
-/* NOTE(miked):
-Attempting to switch to a non palleted level format.
+/*
+eBlocks + eEmptySpace
+> associate a pickup within that tile; if the tile
+> is occupied by a block, then breaking the block will reveal
+> the item. If it's not occupied then we read an extra param to say
+> whether or not you have to create & break a block there to reveal it,
+> or if it's there at startup
+
+
 */
 
 
 internal Sprite *scene_sprite_add(Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
-    //ca_push_array(Sprite, &g_scene.spritelist, sprite, 1);
-    g_scene.spritelist.push_back(*sprite);
-    return &g_scene.spritelist.back();
-}
-
-
-
-internal const char*
-string_trim(const char* c)
-{
-    while(*c == ' ' || *c == '\n') c++;
-    return c;
+    
+    if (sprite->entity.type == ePickup) {
+        g_scene.pickup_list.push_back(*sprite);
+        return &g_scene.pickup_list.back();
+    } else {
+        g_scene.spritelist.push_back(*sprite);
+        return &g_scene.spritelist.back();
+    }
 }
 
 internal const char* string_nextline(const char* c)
@@ -28,8 +31,7 @@ internal const char* string_nextline(const char* c)
 
 internal const char* string_parse(const char* c, const char* str)
 {
-    while (*str && *c && *c == *str)
-    {
+    while (*str && *c && *c == *str) {
         c++;
         str++;
     }
@@ -57,10 +59,33 @@ string_parse_uint(const char* c, u64* out_i)
 #undef IS_DIGIT
 }
 
-
 internal b32 is_valid_tilemap_object(EntityBaseType type)
 {
     return ((u64)type <= (u64)eBlockSolid);
+}
+
+internal const char* eat_whitepspace(const char *c) {
+    while(*c == ' ' || *c == '\t') c++;
+    return c;
+}
+
+
+internal const char *parse_custom(const char *c, fvec2 pos) {
+    c = eat_whitepspace(c);
+    
+    while (*c && *c == ',') {
+        u64 object_id;
+        c++;
+        
+        
+        c = string_parse_uint(c, &object_id);
+        
+        Sprite pickup = make_pickup(pos, object_id);
+        
+        scene_sprite_add(&pickup);
+        inform("Under Normal tile: %lld", object_id);
+    }
+    return c;
 }
 
 internal void level_load(char* data)
@@ -75,14 +100,12 @@ internal void level_load(char* data)
     u32 counter_x = 0;
     u32 counter_y = 0;
     
-    while (*c)
-    {
-        switch(*c)
-        {
-            case '#':
-            {
+    while (*c) {
+        switch(*c) {
+            
+            case '#': {
                 c = string_nextline(c);
-            }break;
+            } break;
             
             case '0':
             case '1':
@@ -93,8 +116,7 @@ internal void level_load(char* data)
             case '6':
             case '7':
             case '8':
-            case '9':
-            {
+            case '9': {
                 u64 res;
                 c = string_parse_uint(c, &res);
                 
@@ -108,29 +130,31 @@ internal void level_load(char* data)
                     counter_y++;
                 }
                 
-                if (is_valid_tilemap_object((EntityBaseType) res))
+                if (is_valid_tilemap_object((EntityBaseType) res)) {
                     g_scene.tilemap[counter_x][counter_y] = (EntityBaseType)res;
-                else
-                {
+                    
+                    c = parse_custom(c, fvec2{ (float)counter_x * 64, (float)counter_y * 64});
+                } else {
                     Sprite sprite_to_make;
                     fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
                     
                     
                     switch((EntityBaseType)res)
                     {
-                        case eGoblin:
-                        {
+                        case eGoblin:{
                             sprite_to_make = make_goblin(sprite_initial_pos);
                             c = goblin_parse_custom(&sprite_to_make, c);
                         }break;
                         
-                        case ePlayerSpawnPoint:
-                        {
+                        case ePlayerSpawnPoint:{
                             sprite_to_make = make_player(sprite_initial_pos);
                         }break;
                         
-                        default:
-                        {
+                        case eGhost:{
+                            sprite_to_make = make_ghost(sprite_initial_pos);
+                        }break;
+                        
+                        default:{
                             warn("sprite type not available for make_");
                         }break;
                     }
@@ -239,6 +263,7 @@ internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
 internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void eStarRing_update(Sprite* spref, InputState* istate, float dt);
+internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
 
 internal void scene_startup_animation(float dt) {
     
@@ -247,16 +272,13 @@ internal void scene_startup_animation(float dt) {
     const int STATE_SHOW_PLAYER = 2;
     const int STATE_DONE = 3;
     
-    const float anim_dur = 1.2f;
+    const float anim_dur = 0.8f;
     static float anim_time = 0.f;
+    static Sprite ring_static;
+    Sprite *ring;
     
-    if (g_scene.startup_state < 1) {
-        g_scene.startup_state = 1;
-        Sprite s = make_starring(fvec2{100.f, 100.f});
-        scene_sprite_add(&s);
-    }
+    ring = &ring_static;
     
-    Sprite *ring = (Sprite*)scene_get_first_sprite(eStarRing);
     const Sprite *const player = scene_get_first_sprite(ePlayer);
     
     
@@ -267,14 +289,14 @@ internal void scene_startup_animation(float dt) {
     switch (g_scene.startup_state) {
         
         case STATE_START: {
-            Sprite s = make_starring(DOOR);
-            scene_sprite_add(&s);
+            ring_static = make_starring(DOOR);
             
             g_scene.startup_state = STATE_SHOW_KEY;
         } break;
         
         case STATE_SHOW_KEY: {
             
+            ring->update_animation(dt);
             draw(ring);
             
             if (anim_time < anim_dur) {
@@ -299,6 +321,7 @@ internal void scene_startup_animation(float dt) {
             }
             
             if (anim_time < anim_dur) {
+                ring->update_animation(dt);
                 float radius = ((anim_dur - anim_time) / anim_dur) * 128.f;
                 radius = MAX(radius, 32.f);
                 float phase = ((anim_dur - anim_time) / anim_dur) * 90.f;
@@ -322,10 +345,14 @@ internal void scene_startup_animation(float dt) {
 
 internal void
 scene_update(InputState* istate, float dt) {
+    
     scene_draw_tilemap();
     
-    List_Sprite& l = g_scene.spritelist;
+    for (int i = 0; i < g_scene.pickup_list.size(); ++i) {
+        draw(&g_scene.pickup_list[i]);
+    }
     
+    List_Sprite& l = g_scene.spritelist;
     
     // remove marked elements
     auto it = g_scene.spritelist.begin();
@@ -342,33 +369,31 @@ scene_update(InputState* istate, float dt) {
         }
     }
     
-    
-    
     for (int i = 0; i < l.size(); ++i) {
         Sprite* spref = &l[i];
         spref->update_animation(dt);
         
         switch(spref->entity.type) {
-            case ePlayer:
-            {
+            case ePlayer:{
                 ePlayer_update(spref, istate, dt);
             }break;
             
-            case eGoblin:
-            {
+            case eGoblin:{
                 eGoblin_update(spref, istate, dt);
             } break;
             
-            case eEffect:
-            {
+            case eEffect:{
                 if (!spref->animation_playing) {
                     spref->mark_for_removal = true;
                 }
             }break;
             
-            case eDFireball:
-            {
+            case eDFireball:{
                 eDFireball_update(spref, istate, dt);
+            }break;
+            
+            case eGhost:{
+                eGhost_update(spref, istate,dt);
             }break;
             
             default:
@@ -388,28 +413,7 @@ scene_update(InputState* istate, float dt) {
                              NRGBA{1.f, 0, 1.f, 0.7f});
 #endif
         
-        if (l[i].entity.type == eStarRing) {
-            // draw 16 stars around position
-            // param[0] : time
-            const int iter = 16;
-            for (int j = 0; j < iter; ++j) {
-                Sprite tmp = l[i];
-                
-                float r = l[i].entity.params[0].as_f64;
-                float phase = l[i].rotation;
-                float angle = (360.f / float(iter)) * j * D2R;
-                
-                tmp.position += fvec2{r * sinf(angle + phase), r * cosf(angle + phase)} ;
-                tmp.rotation = 0.f;
-                draw(&tmp);
-            }
-            
-            
-            
-        } else {
-            
-            draw(&l[i]);
-        }
+        draw(&l[i]);
         
         
     }
