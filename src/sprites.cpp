@@ -591,8 +591,8 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 #ifndef NDEBUG
                 gl_slow_tilemap_draw(
                                      &GET_TILEMAP_TEXTURE(test),
-                                     {block_tile.x * 64, block_tile.y * 64},
-                                     {64, 64},
+                                     {block_tile.x * 64.f, block_tile.y * 64.f},
+                                     {64.f, 64.f},
                                      0,5 * 5 + 0,
                                      false, false,
                                      NRGBA{0.f, 1.f, 1.f, 1.f});
@@ -612,7 +612,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
                              &GET_TILEMAP_TEXTURE(test),
-                             {dir_tile_under.x * 64, dir_tile_under.y * 64},
+                             {dir_tile_under.x * 64.f, dir_tile_under.y * 64.f},
                              {64, 64},
                              0,5 * 5 + 1,
                              false, false,
@@ -641,7 +641,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
                              &GET_TILEMAP_TEXTURE(test),
-                             {tile_index.x * 64, tile_index.y * 64},
+                             {tile_index.x * 64.f, tile_index.y * 64.f},
                              {64, 64},
                              0,5 * 5 + 1,
                              false, false,
@@ -735,7 +735,7 @@ internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
     
 #ifndef NDEBUG
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
-                         {ctile.x * 64, ctile.y * 64},
+                         {ctile.x * 64.f, ctile.y * 64.f},
                          {64, 64},
                          0,5 * 5 + 0,
                          false, false,

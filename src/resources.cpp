@@ -19,7 +19,7 @@ tilemaps.
 */
 #define ALL_TILEMAPS \
 /*          NAME               PATH IN FOLDER                             rows cols*/\
-DEF_TILEMAP(test               ,"test_tilemap.png"                        ,6    ,5  )\
+DEF_TILEMAP(test               ,"res/test_tilemap.png"                    ,6    ,5  )\
 DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
 DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\

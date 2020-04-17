@@ -150,17 +150,16 @@ gl_load_rgba_tilemap(
 }
 
 
-internal void
-gl_slow_tilemap_draw(
-                     GLTilemapTexture const* tm,
-                     glm::vec2 pos,
-                     glm::vec2 size,
-                     float rotate,
-                     i32 tm_index,
-                     b32 mirrorx,
-                     b32 mirrory,
-                     NRGBA tint,
-                     b32 account_for_offset)
+// NOTE: maybe I should get rid of glm, since its only used here...
+internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm,
+                                   fvec2 _pos,
+                                   fvec2 _size,
+                                   float rotate,
+                                   i32 tm_index,
+                                   b32 mirrorx,
+                                   b32 mirrory,
+                                   NRGBA tint,
+                                   b32 account_for_offset)
 {
     if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
@@ -169,6 +168,9 @@ gl_slow_tilemap_draw(
     
     GLuint layer_loc = glGetUniformLocation(g_shd_2d.id, "layer");
     glUniform1i(layer_loc,tm_index );
+    
+    glm::vec2 pos = {_pos.x, _pos.y};
+    glm::vec2 size = {_size.x, _size.y};
     
     glm::mat4 model(1.0f);
     

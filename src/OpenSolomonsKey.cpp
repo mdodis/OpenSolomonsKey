@@ -102,33 +102,34 @@ internal void draw_extra_stuff() {
     GLTilemapTexture* texture = &GET_TILEMAP_TEXTURE(misc);
     
     // Draw the horizontal bars
-    for (i32 i = 0; i < 9; ++i) {
+    for (i32 idx = 0; idx < 9; ++idx) {
+        float i = float(idx);
         // top bars
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{i * 128, 24},
-                             glm::vec2{64, 64},
+                             fvec2{i * 128, 24},
+                             fvec2{64, 64},
                              0.f, 2 * 4 + 0,
                              true, true,
                              NRGBA{1,1,1,1},
                              false);
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{i * 128 + 64, 24},
-                             glm::vec2{64, 64},
+                             fvec2{i * 128 + 64, 24},
+                             fvec2{64, 64},
                              0.f, 2 * 4 + 1,
                              true, true,
                              NRGBA{1,1,1,1},
                              false);
         // bottom bars
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{i * 128, 12 * 64 + 32},
-                             glm::vec2{64, 64},
+                             fvec2{i * 128, 12 * 64 + 32},
+                             fvec2{64, 64},
                              0.f, 2 * 4 + 2,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{i * 128 + 64, 12 * 64 + 32},
-                             glm::vec2{64, 64},
+                             fvec2{i * 128 + 64, 12 * 64 + 32},
+                             fvec2{64, 64},
                              0.f, 2 * 4 + 3,
                              false, false,
                              NRGBA{1,1,1,1},
@@ -141,29 +142,29 @@ internal void draw_extra_stuff() {
     for (i32 i = 0; i < 6; ++i) {
         // Draw the vertical bars
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{-32, i * 128 + 64},
-                             glm::vec2{64, 64},
+                             fvec2{-32.f, i * 128.f + 64.f},
+                             fvec2{64.f, 64.f},
                              0.f, 1 * 4 + 2,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{-32, i * 128 + 64 + 64},
-                             glm::vec2{64, 64},
+                             fvec2{-32.f, i * 128.f + 64.f + 64.f},
+                             fvec2{64.f, 64.f},
                              0.f, 1 * 4 + 3,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{15 * 64 + 32, i * 128 + 64},
-                             glm::vec2{64, 64},
+                             fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f},
+                             fvec2{64, 64},
                              0.f, 1 * 4 + 0,
                              false, false,
                              NRGBA{1,1,1,1},
                              false);
         gl_slow_tilemap_draw(texture,
-                             glm::vec2{15 * 64 + 32, i * 128 + 64 + 64},
-                             glm::vec2{64, 64},
+                             fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f + 64.f},
+                             fvec2{64, 64},
                              0.f, 1 * 4 + 1,
                              false, false,
                              NRGBA{1,1,1,1},

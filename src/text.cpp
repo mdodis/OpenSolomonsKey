@@ -22,8 +22,8 @@ void draw_num(float num,
         {
             int c_to_font = (*c - 48) + (1 * 16);
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{xoffset * size + increment, line * size},
-                                 glm::vec2{size, size},
+                                 fvec2{xoffset * size + increment, line * size},
+                                 fvec2{size, size},
                                  0,
                                  c_to_font,
                                  false, false, tint,
@@ -33,8 +33,8 @@ void draw_num(float num,
         else if (*c == '.')
         {
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 glm::vec2{xoffset * size + increment, line * size},
-                                 glm::vec2{size, size},
+                                 fvec2{xoffset * size + increment, line * size},
+                                 fvec2{size, size},
                                  0,
                                  14,
                                  false, false, tint,
@@ -48,8 +48,8 @@ void draw_num(float num,
 }
 
 
-void draw_text(char* text, 
-               int line, 
+void draw_text(char* text,
+               int line,
                int xoffset = 0,
                bool account_for_offset = true,
                float size = 16.f,
@@ -64,7 +64,7 @@ void draw_text(char* text,
         
         if (*c >= 'a' && *c <= 'z')
             c_to_font = (*c - 65) + (2 * 16 + 1);
-        else if (*c >= 'A' && *c <= 'Z') 
+        else if (*c >= 'A' && *c <= 'Z')
             c_to_font = (*c - 97) + (4 * 16 + 1);
         else if (*c >= '0' && *c <= '?')
             c_to_font = (*c - 48) + (1 * 16);
@@ -72,11 +72,11 @@ void draw_text(char* text,
         if (c_to_font != -1)
         {
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
-                                 {xoffset * size + increment,line * size},
-                                 {size, size},
+                                 fvec2{xoffset * size + increment,line * size},
+                                 fvec2{size, size},
                                  0,
                                  c_to_font,
-                                 false, false, 
+                                 false, false,
                                  tint,
                                  account_for_offset);
         }

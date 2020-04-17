@@ -31,8 +31,8 @@ gl_load_rgba_tilemap(
 internal void
 gl_slow_tilemap_draw(
                      GLTilemapTexture const* tm,
-                     glm::vec2 pos,
-                     glm::vec2 size,
+                     fvec2 pos,
+                     fvec2 size,
                      float rotate = 0.f,
                      i32 tm_index = 0,
                      b32 mirrorx = false,

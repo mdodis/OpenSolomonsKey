@@ -398,6 +398,18 @@ struct NRGBA
     float r, g, b, a;
 };
 
+struct mat4 {
+    union {
+        float m[4][4];
+        struct {
+            float a00, a01, a02, a03,
+            a10, a11, a12, a13,
+            a20, a21, a22, a23,
+            a30, a31, a32, a33;
+        };
+    };
+};
+
 
 NRGBA rand_nrgb()
 {

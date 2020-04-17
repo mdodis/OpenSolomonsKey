@@ -203,8 +203,8 @@ scene_draw_tilemap()
             
             gl_slow_tilemap_draw(
                                  &GET_TILEMAP_TEXTURE(test),
-                                 {i * 64, j * 64},
-                                 {64, 64},
+                                 fvec2{float(i) * 64.f, j * 64.f},
+                                 fvec2{64, 64},
                                  0.f,
                                  id);
         }
