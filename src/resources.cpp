@@ -141,6 +141,8 @@ ALL_CHARACTERS
 #define GET_CHAR_TILEMAP(character) g_tilemap_textures[CHARACTER_TO_TILEMAP[ CHARACTER_##character ]]
 
 #define GET_CHAR_ANIMSET(character) CHARACTER_##character##_anims
+
+// Get the identifier of the animation
 #define GET_CHAR_ANIMENUM(character, name) CHARACTER_##character##_anim_##name
 
 ////////////////////////////////

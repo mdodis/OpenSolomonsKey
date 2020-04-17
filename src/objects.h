@@ -162,6 +162,10 @@ struct Sprite
     
     void collide_sprite(float dt);
     
+    float direction() {
+        return this->mirror.x ? 1 : -1;
+    }
+    
     b32 jump(i32 strength)
     {
         
@@ -211,7 +215,7 @@ inline internal Sprite make_ghost(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(Ghost),
         .position = position,
         .collision_box = {0, 0, 64, 64},
-        .mirror = {true, false},
+        .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Ghost),
         .entity = {
             .type = eGhost,

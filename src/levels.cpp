@@ -286,6 +286,12 @@ internal void scene_startup_animation(float dt) {
     const fvec2 DOOR = {64 * 6, 0};
     const fvec2 KEY = {64 * 8, 64 * 6};
     
+    if (GET_KEYPRESS(space_pressed)) {
+        g_scene.startup_state = 4;
+        ring->mark_for_removal = true;
+        g_scene.playing = true;
+    }
+    
     switch (g_scene.startup_state) {
         
         case STATE_START: {

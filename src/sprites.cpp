@@ -539,7 +539,6 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     so invert direction vector to get the axis-compliant direction in X.
     */
     
-#define direction ((float)(goblin->mirror.x ? 1 : -1))
     
     const float goblin_walk_speed = 80;
     const float goblin_run_speed = 120;
@@ -582,7 +581,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             {
                 persist i32 blocking_tiles = 0;
                 
-                if (tdiff == -direction)
+                if (tdiff == -goblin->direction())
                 {
                     SET_ANIMATION(goblin, Goblin, Chase);
                 }
@@ -607,7 +606,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     if (!is_dying) {
         const i32 block_stop_offset = 32;
         const ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
-        ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{direction * block_stop_offset, 0});
+        ivec2 dir_tile = map_position_to_tile_centered(goblin->position + fvec2{goblin->direction() * block_stop_offset, 0});
         ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
         
 #ifndef NDEBUG
@@ -631,11 +630,11 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     // Punching
     {
         const float punch_offset_amount = 32;
-        const float punch_offset = direction * (punch_offset_amount);
+        const float punch_offset = goblin->direction() * (punch_offset_amount);
         const ivec2 goblin_tile = map_position_to_tile(goblin->position);
         const b32 is_at_edge_of_map =
-            (goblin_tile.x == 14 && direction == 1) ||
-            (goblin->position.x <= 2 && direction == -1);
+            (goblin_tile.x == 14 && goblin->direction() == 1) ||
+            (goblin->position.x <= 2 && goblin->direction() == -1);
         
         
         ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
@@ -674,7 +673,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     }
     
     if (!is_dying)
-        goblin->move_and_collide(dt, 900, 450, 450, move_amount * direction);
+        goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
     else
     {
         goblin->velocity.y += 900 * dt;
@@ -698,7 +697,6 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         }
     }
     
-#undef direction
 }
 
 
@@ -721,18 +719,19 @@ internal void eStarRing_update(Sprite* spref, InputState* istate, float dt) {
 
 
 // eGhost
-// ==============================
 internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
     const float ghost_turn_offset_amount = 64;
     const float ghost_speed = 200;
-#define direction ((float)(ghost->mirror.x ? 1 : -1))
     
-    float ghost_turn_offset =
-        direction * ghost_turn_offset_amount -
-        ghost_turn_offset_amount / 2;
+    float ghost_turn_offset =ghost->direction()*ghost_turn_offset_amount - ghost->direction()*(ghost_turn_offset_amount/2);
     
-    ivec2 ctile = map_position_to_tile_centered(ghost->position +
-                                                fvec2{ghost_turn_offset,0.f});
+    ivec2 ctile = map_position_to_tile_centered(ghost->position +fvec2{ghost_turn_offset,0.f});
+    
+    // NOTE: Whenever map centered will add 32p to our current value
+    // so we'll always never be < 0; add a special case here
+    if (ghost->position.x < 0) {
+        ctile.x = -1;
+    }
     
 #ifndef NDEBUG
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
@@ -743,10 +742,22 @@ internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
                          NRGBA{1.f, 1.f, 1.f, 1.f});
 #endif
     
-    if (scene_get_tile(ctile) != eEmptySpace) {
-        ghost->mirror.x = !ghost->mirror.x;
-    }
+    EntityBaseType tile_front = (EntityBaseType)scene_get_tile(ctile);
     
-    ghost->position.x += direction * ghost_speed * dt;
-#undef direction
+    if (ghost->current_animation == GET_CHAR_ANIMENUM(Ghost, Fly)) {
+        
+        if (tile_front == eBlockFrail) {
+            SET_ANIMATION(ghost, Ghost, Punch);
+        } else if (tile_front == eBlockSolid) {
+            ghost->mirror.x = !ghost->mirror.x;
+        }
+        
+        ghost->position.x += ghost->direction() * ghost_speed * dt;
+    } else if (ghost->current_animation == GET_CHAR_ANIMENUM(Ghost, Punch)){
+        // destroy block if finished
+        if (!ghost->animation_playing) {
+            scene_set_tile(ctile, eEmptySpace);
+            SET_ANIMATION(ghost, Ghost, Fly);
+        }
+    }
 }
