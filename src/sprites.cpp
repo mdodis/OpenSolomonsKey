@@ -29,11 +29,9 @@ void Sprite::move_and_collide(float dt,
     
     b32 collided_on_bottom = false;
     
-    for (i32 j = 0; j < 3; ++j)
-    {
-        for (i32 i = 0; i < 3; ++i)
-        {
-            if (g_scene.tilemap[start_tile.x + i][start_tile.y + j] == eEmptySpace) continue;
+    for (i32 j = 0; j < 3; ++j) {
+        for (i32 i = 0; i < 3; ++i) {
+            if (scene_get_tile(ivec2{start_tile.x + i,start_tile.y + j}) == eEmptySpace) continue;
             
             fvec2 tile_coords =
             {

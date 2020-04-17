@@ -175,7 +175,8 @@ internal void draw_extra_stuff() {
 }
 
 RESSound bg_sound;
-
+// NOTE: cleanup
+global Map test_map;
 void
 cb_init() {
     player_jump_sound = Wave_load_from_file("res/bloop.wav");
@@ -185,7 +186,7 @@ cb_init() {
     gl_init();
     load_tilemap_textures();
     
-    scene_init("lvl1.osk");
+    load_map(&g_scene.loaded_map, "lvl1.osk");
     
     return;
 }

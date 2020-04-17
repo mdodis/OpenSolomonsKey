@@ -585,19 +585,12 @@ KEYMAP
 #undef KEYPRESS
 }
 
-
 int WinMain(
             HINSTANCE hInstance,
             HINSTANCE hPrevInstance,
             LPSTR     lpCmdLine,
             int       nShowCmd)
 {
-    
-#if 0
-    AllocConsole() ;
-    AttachConsole( GetCurrentProcessId() ) ;
-    freopen( "CON", "w", stdout ) ;
-#endif
     
     win32_init(hInstance);
     HDC dc = GetDC(g_wind);

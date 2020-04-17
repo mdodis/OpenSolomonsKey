@@ -8,42 +8,50 @@ eBlocks + eEmptySpace
 
 
 */
-
+// NOTE: change map to level (g_scene...)
+internal Sprite *map_add(Map *map, Sprite *sprite) {
+    fail_unless(sprite, "Passing null sprite to map_add");
+    
+    if (sprite->entity.type == ePickup) {
+        map->pickups.push_back(*sprite);
+        return &map->pickups.back();
+    } else {
+        map->sprites.push_back(*sprite);
+        return &map->sprites.back();
+    }
+}
 
 internal Sprite *scene_sprite_add(Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
     
     if (sprite->entity.type == ePickup) {
-        g_scene.pickup_list.push_back(*sprite);
-        return &g_scene.pickup_list.back();
+        g_scene.loaded_map.pickups.push_back(*sprite);
+        return &g_scene.loaded_map.pickups.back();
     } else {
-        g_scene.spritelist.push_back(*sprite);
-        return &g_scene.spritelist.back();
+        g_scene.loaded_map.sprites.push_back(*sprite);
+        return &g_scene.loaded_map.sprites.back();
     }
 }
 
-internal const char* string_nextline(const char* c)
+internal char* string_nextline(char* c)
 {
     while (*c != '\n') c++;
     return c + 1;
 }
 
-internal const char* string_parse(const char* c, const char* str)
+internal char* string_parse(char* c, const char *str)
 {
     while (*str && *c && *c == *str) {
         c++;
         str++;
     }
     
-    if (!(*str))
-        return c;
-    
+    if (!(*str)) return c;
     return 0;
 }
 
-internal const char*
-string_parse_uint(const char* c, u64* out_i)
+internal char* string_parse_uint(char* c, u64* out_i)
 {
 #define IS_DIGIT(x) (x >= '0' && x <= '9')
     u64 res = 0;
@@ -64,20 +72,18 @@ internal b32 is_valid_tilemap_object(EntityBaseType type)
     return ((u64)type <= (u64)eBlockSolid);
 }
 
-internal const char* eat_whitepspace(const char *c) {
+internal char* eat_whitepspace(char *c) {
     while(*c == ' ' || *c == '\t') c++;
     return c;
 }
 
 
-internal const char *parse_custom(const char *c, fvec2 pos) {
+internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
     c = eat_whitepspace(c);
     
     while (*c && *c == ',') {
         u64 object_id;
         c++;
-        
-        
         c = string_parse_uint(c, &object_id);
         
         Sprite pickup = make_pickup(pos, object_id);
@@ -88,14 +94,27 @@ internal const char *parse_custom(const char *c, fvec2 pos) {
     return c;
 }
 
-internal void level_load(char* data)
-{
-    const char* c = data;
-#define OSK_LEVEL_FMT_VERSION "V0.2"
-    fail_unless(string_parse(c, OSK_LEVEL_FMT_VERSION), "Version string does not match!");
+internal bool load_map(Map *const map, const char *path) {
+    const char *const loader_version = "V0.2";
+    char *data = platform_load_entire_file(path);
+    char *c = data;
+    // if no path is given use map's name for reloading
+    if (!path) path = map->name;
     
+    if (!data) {
+        error("Failed to load map %s!", path);
+        return false;
+    }
+    
+    map->sprites.clear();
+    map->pickups.clear();
+    
+    map->name = path;
+    if (!string_parse(c, loader_version)) {
+        warn("Map %s does not match loader version", path);
+    }
     c += 5;
-    inform("%s", "LOADING LEVEL...");
+    
     
     u32 counter_x = 0;
     u32 counter_y = 0;
@@ -120,27 +139,26 @@ internal void level_load(char* data)
                 u64 res;
                 c = string_parse_uint(c, &res);
                 
-                fail_unless(res < EntityBaseType_Count,
-                            "Entity index does not exist in version"
-                            OSK_LEVEL_FMT_VERSION);
+                if (res >= EntityBaseType_Count) {
+                    error("Entity type %lld does not exist in loader verison %s!", res, loader_version);
+                    return false;
+                }
                 
-                if (counter_x >= TILEMAP_COLS)
-                {
+                if (counter_x >= TILEMAP_COLS) {
                     counter_x = 0;
                     counter_y++;
                 }
                 
                 if (is_valid_tilemap_object((EntityBaseType) res)) {
-                    g_scene.tilemap[counter_x][counter_y] = (EntityBaseType)res;
+                    map->tiles[counter_x][counter_y] = (EntityBaseType)res;
                     
-                    c = parse_custom(c, fvec2{ (float)counter_x * 64, (float)counter_y * 64});
+                    c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f});
                 } else {
                     Sprite sprite_to_make;
                     fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
                     
                     
-                    switch((EntityBaseType)res)
-                    {
+                    switch((EntityBaseType)res) {
                         case eGoblin:{
                             sprite_to_make = make_goblin(sprite_initial_pos);
                             c = goblin_parse_custom(&sprite_to_make, c);
@@ -160,49 +178,50 @@ internal void level_load(char* data)
                     }
                     
                     sprite_to_make.position.y += 64.f - sprite_to_make.collision_box.max_y;
-                    scene_sprite_add(&sprite_to_make);
                     
-                    g_scene.tilemap[counter_x][counter_y] = eEmptySpace;
+                    map_add(map, &sprite_to_make);
+                    map->tiles[counter_x][counter_y] = eEmptySpace;
                 }
                 
                 counter_x++;
                 
             } break;
             
-            default:
-            {
+            default: {
                 c++;
             } break;
         }
     }
     
+    free(data);
+    return true;
 }
 
-internal void scene_init(const char* level_path)
-{
-    //assert(level_path);
-    char* lvl = platform_load_entire_file(level_path);
-    level_load(lvl);
-    free(lvl);
+inline EntityBaseType scene_get_tile(ivec2 p) {
     
+    if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
+        p.x < 0 || p.y < 0) return eBlockSolid;
+    
+    return g_scene.loaded_map.tiles[p.x][p.y];
+}
+inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.loaded_map.tiles[p.x][p.y] = t; }
+
+internal void scene_init(const char* level_path) {
 }
 
 internal void
-scene_draw_tilemap()
-{
-    for(int i = 0; i < 15; ++i )
-    {
-        for(int j = 0; j < 12; ++j )
-        {
+scene_draw_tilemap() {
+    for(int i = 0; i < 15; ++i ) {
+        for(int j = 0; j < 12; ++j ) {
             u32 id;
-            EntityBaseType type = (EntityBaseType)g_scene.tilemap[i][j];
+            
+            EntityBaseType type = (EntityBaseType)scene_get_tile(ivec2{i,j});
             
             if (type == eEmptySpace) continue;
             if (type == eBlockSolid) id = 2;
             if (type == eBlockFrail) id = 1;
             
-            gl_slow_tilemap_draw(
-                                 &GET_TILEMAP_TEXTURE(test),
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
                                  fvec2{float(i) * 64.f, j * 64.f},
                                  fvec2{64, 64},
                                  0.f,
@@ -212,24 +231,13 @@ scene_draw_tilemap()
 }
 
 
-inline u64 scene_get_tile(ivec2 p) {
-    
-    if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
-        p.x < 0 || p.y < 0) return eBlockSolid;
-    
-    return g_scene.tilemap[p.x][p.y];
-}
-inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.tilemap[p.x][p.y] = t; }
-
 
 
 // Finds first sprite of specific type
 // if not found; return 0
-internal const Sprite* const scene_get_first_sprite(EntityBaseType type)
-{
-    for (i32 i = 0; i < g_scene.spritelist.size(); i += 1)
-    {
-        Sprite* spref = &g_scene.spritelist[i];
+internal const Sprite* const scene_get_first_sprite(EntityBaseType type) {
+    for (i32 i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
+        Sprite* spref = &g_scene.loaded_map.sprites[i];
         
         if (spref->entity.type == type) return spref;
     }
@@ -354,23 +362,19 @@ scene_update(InputState* istate, float dt) {
     
     scene_draw_tilemap();
     
-    for (int i = 0; i < g_scene.pickup_list.size(); ++i) {
-        draw(&g_scene.pickup_list[i]);
+    for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
+        draw(&g_scene.loaded_map.pickups[i]);
     }
     
-    List_Sprite& l = g_scene.spritelist;
+    List_Sprite& l = g_scene.loaded_map.sprites;
     
     // remove marked elements
-    auto it = g_scene.spritelist.begin();
-    while (it != g_scene.spritelist.end())
-    {
+    auto it = l.begin();
+    while (it != l.end()) {
         Sprite& spref = (*it);
-        if (spref.mark_for_removal)
-        {
-            it = g_scene.spritelist.erase(it);
-        }
-        else
-        {
+        if (spref.mark_for_removal) {
+            it = l.erase(it);
+        } else {
             it++;
         }
     }
@@ -405,13 +409,10 @@ scene_update(InputState* istate, float dt) {
             default:
             break;
         }
-        
-        
 #ifndef NDEBUG
         // Draw the Bounding box sprite
         AABox box = spref->get_transformed_AABox();
-        gl_slow_tilemap_draw(
-                             &GET_TILEMAP_TEXTURE(test),
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
                              {box.min_x, box.min_y},
                              {box.max_x - box.min_x, box.max_y - box.min_y},
                              0,5 * 5 + 1,
@@ -423,6 +424,4 @@ scene_update(InputState* istate, float dt) {
         
         
     }
-    
-    
 }

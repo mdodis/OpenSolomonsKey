@@ -112,20 +112,16 @@ struct Sprite
             return;
         
         // increase time by dt
-        if (this->animation_playing)
-        {
+        if (this->animation_playing) {
             
             this->time_accumulator += dt;
-            if (this->time_accumulator >= anim_ref->duration)
-            {
+            if (this->time_accumulator >= anim_ref->duration) {
                 this->current_frame++;
-                if (this->current_frame >= anim_ref->size )
-                {
+                if (this->current_frame >= anim_ref->size ) {
                     // if its looping
-                    if (anim_ref->loop)
+                    if (anim_ref->loop) {
                         this->current_frame = 0;
-                    else
-                    {
+                    }else {
                         this->animation_playing = false;
                         this->current_frame--;
                     }
@@ -138,12 +134,10 @@ struct Sprite
     }
     
 #define SET_ANIMATION(spr, c, n) (spr)->set_animation_index(GET_CHAR_ANIMENUM(c, n))
-    void set_animation_index(u32 anim_idx)
-    {
+    void set_animation_index(u32 anim_idx) {
         fail_unless(this->current_animation >= 0, "set_animation_index, invalid animation index!");
         
-        if (this->current_animation != anim_idx)
-        {
+        if (this->current_animation != anim_idx) {
             this->animation_playing = true;
             this->current_animation = anim_idx;
             this->current_frame = 0;
@@ -152,8 +146,7 @@ struct Sprite
         
     }
     
-    void move_and_collide(
-                          float dt,
+    void move_and_collide(float dt,
                           const float GRAVITY,
                           const float MAX_YSPEED,
                           const float JUMP_STRENGTH,
@@ -162,7 +155,7 @@ struct Sprite
     
     void collide_sprite(float dt);
     
-    float direction() {
+    inline float direction() {
         return this->mirror.x ? 1 : -1;
     }
     
@@ -187,13 +180,16 @@ struct Sprite
 /* Thanks c++ stl! Now this'll speed up my productivity */
 typedef std::vector<Sprite> List_Sprite;
 
+struct Map{
+    const char *name; // path!!!
+    EntityBaseType tiles[TILEMAP_COLS][TILEMAP_ROWS];
+    List_Sprite sprites;
+    List_Sprite pickups;
+};
+
 global struct {
-    
-    EntityBaseType tilemap[TILEMAP_COLS][TILEMAP_ROWS] = {};
-    List_Sprite spritelist;
-    List_Sprite pickup_list;
+    Map loaded_map;
     b32 playing = false;
-    
     int startup_state = 0;
 } g_scene;
 
@@ -305,18 +301,15 @@ inline internal Sprite make_pickup(fvec2 position, u64 type) {
     return res;
 }
 
-internal const char* goblin_parse_custom(Sprite* goblin, const char* c)
-{
-    if (*c == ',')
-    {
+internal char* goblin_parse_custom(Sprite* goblin, char* c) {
+    if (*c == ',') {
         c++;
-        
         // parse initial direction
-        if (*c == 'R')
+        if (*c == 'R') {
             goblin->mirror.x = true;
-        else
+        } else {
             goblin->mirror.x = false;
-        
+        }
     }
     
     return c;
