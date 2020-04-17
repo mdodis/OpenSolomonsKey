@@ -30,9 +30,9 @@
 *.exe
 *.out
 *.app
-*.png
 build
 sprites
+res
 .gdb_history
 .vscode
 *.wav
