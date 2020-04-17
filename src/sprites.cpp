@@ -45,28 +45,24 @@ void Sprite::move_and_collide(float dt,
             
             fvec2 diff;
             b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
-            if (collided)
-            {
+            if (collided) {
                 this->position = this->position - (diff);
                 
                 // If we are moving up and diff moved us in the Y dir,
                 // then negate the collision.
                 // (fixes bouncing when hitting corner of a tile)
-                if (this->velocity.y < 0 && iabs(diff.y) < 5)
-                {
+                if (this->velocity.y < 0 && iabs(diff.y) < 5) {
                     this->position.y += diff.y;
                     continue;
                 }
                 
                 
-                if (j == 2 || (start_tile.y <= 1 && j == 1))
-                {
+                if (j == 2 || (start_tile.y <= 1 && j == 1)) {
                     // NOTE(miked): j == 2 is the bottom tile in most cases,
                     // but if y == 1 in tile space, then j will be 1 in that case
                     
                     collided_on_bottom = true;
-                    if (iabs(diff.y) > 0)
-                    {
+                    if (iabs(diff.y) > 0) {
                         this->is_on_air = false;
                         this->velocity.y = 0;
                     }
@@ -76,8 +72,8 @@ void Sprite::move_and_collide(float dt,
                 if (this->velocity.y < 0 &&
                     this->is_on_air &&
                     this_trans.min_x < collision.max_x &&
-                    diff.x >= 0)
-                {
+                    diff.x >= 0) {
+                    
                     this->velocity.y = -this->velocity.y * 0.737;
                     this->is_on_air = true;
                     

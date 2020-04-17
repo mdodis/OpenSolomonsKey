@@ -115,7 +115,6 @@ internal bool load_map(Map *const map, const char *path) {
     }
     c += 5;
     
-    
     u32 counter_x = 0;
     u32 counter_y = 0;
     
@@ -173,7 +172,8 @@ internal bool load_map(Map *const map, const char *path) {
                         }break;
                         
                         default:{
-                            warn("sprite type not available for make_");
+                            error("sprite type not available for make_");
+                            exit(0);
                         }break;
                     }
                     

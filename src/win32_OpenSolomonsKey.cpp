@@ -21,12 +21,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 global LARGE_INTEGER g_performace_frequency;
 global LARGE_INTEGER g_perf_last, g_perf_now = {};
-struct Timer
-{
+struct Timer {
     LARGE_INTEGER time_last;
     
-    double get_elapsed_secs(b32 should_reset = false)
-    {
+    double get_elapsed_secs(b32 should_reset = false) {
         LARGE_INTEGER now;
         float delta;
         
@@ -104,8 +102,7 @@ b32 wgl_is_extension_supported(char* extname,  char* ext_string)
 // that aren't available in PIXELFORMATDESCRIPTOR), but we can't load and use that before we
 // have a context.
 internal void
-win32_init_gl_extensions()
-{
+win32_init_gl_extensions() {
     WNDCLASSA window_class = {
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
         .lpfnWndProc = DefWindowProcA,
@@ -131,8 +128,7 @@ win32_init_gl_extensions()
     
     HDC dummy_dc = GetDC(dummy_window);
     
-    PIXELFORMATDESCRIPTOR pfd =
-    {
+    PIXELFORMATDESCRIPTOR pfd = {
         .nSize = sizeof(pfd),
         .nVersion = 1,
         .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
@@ -162,13 +158,11 @@ win32_init_gl_extensions()
     wglChoosePixelFormatARB = (wglChoosePixelFormatARB_type*)wglGetProcAddress("wglChoosePixelFormatARB");
     wglGetExtensionsStringARB = (PFNwglGetExtensionsStringARB*)wglGetProcAddress("wglGetExtensionsStringARB");
     
-    if (wglGetExtensionsStringARB)
-    {
+    if (wglGetExtensionsStringARB) {
         char* ext_string = (char*)wglGetExtensionsStringARB(dummy_dc);
         printf("WGL extensions: %s\n", ext_string);
         
-        if (wgl_is_extension_supported("WGL_EXT_swap_control", ext_string))
-        {
+        if (wgl_is_extension_supported("WGL_EXT_swap_control", ext_string)) {
             inform("wglSwapInterval is supported!");
             wglSwapIntervalEXT = (PFNwglSwapIntervalEXT*)wglGetProcAddress("wglSwapIntervalEXT");
             
@@ -179,13 +173,11 @@ win32_init_gl_extensions()
     wglDeleteContext(dummy_context);
     ReleaseDC(dummy_window, dummy_dc);
     DestroyWindow(dummy_window);
-    
 }
 
 
 internal void
-win32_init_gl(HDC real_dc)
-{
+win32_init_gl(HDC real_dc) {
     win32_init_gl_extensions();
     // Now we can choose a pixel format the modern way, using wglChoosePixelFormatARB.
     int pixel_format_attribs[] = {
@@ -236,7 +228,6 @@ win32_init_gl(HDC real_dc)
     
     gl_load();
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////// AUDIO
@@ -475,10 +466,26 @@ internal void win32_update_and_render(HDC dc)
     SwapBuffers(dc);
 }
 
+const LONG NORMAL_STYLE = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+
+
+internal void toggle_fullscreen(HWND hwnd) {
+    
+    if (GetWindowLongPtr(hwnd, GWL_STYLE) & WS_POPUP) {
+        // TODO(miked): maybe remember previous configuration?
+        SetWindowLongPtrA(hwnd, GWL_STYLE, NORMAL_STYLE);
+        SetWindowPos(hwnd, 0, 0, 0, 640, 480, SWP_FRAMECHANGED);
+        
+    } else {
+        int w = GetSystemMetrics(SM_CXSCREEN);
+        int h = GetSystemMetrics(SM_CYSCREEN);
+        SetWindowLongPtr(hwnd, GWL_STYLE, WS_VISIBLE | WS_POPUP);
+        SetWindowPos(hwnd, HWND_TOP, 0, 0, w, h, SWP_FRAMECHANGED);
+    }
+}
 
 internal LRESULT CALLBACK
-win32_windproc(
-               _In_ HWND   hwnd,
+win32_windproc(_In_ HWND   hwnd,
                _In_ UINT   msg,
                _In_ WPARAM wparam,
                _In_ LPARAM lparam)
@@ -511,6 +518,10 @@ win32_windproc(
             OutputDebugStringA("WM_SIZE\n");
             PostMessage(hwnd, WM_PAINT, 0, 0);
         } break;
+        
+        case WM_KEYDOWN: {
+            if (wparam == VK_F11) toggle_fullscreen(hwnd);
+        }break;
         
         case WM_ENTERSIZEMOVE:
         case WM_EXITSIZEMOVE:
@@ -551,8 +562,7 @@ win32_init(HINSTANCE hInstance)
     DWORD window_style = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&rect, window_style, false);
     
-    g_wind = CreateWindowExA(
-                             0,
+    g_wind = CreateWindowExA(0,
                              OSK_CLASS_NAME,
                              "Solomon's Key",
                              window_style,
