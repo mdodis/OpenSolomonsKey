@@ -224,11 +224,11 @@ inline internal Sprite make_player(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(test_player),
         .size = fvec2{64, 50},
         .position = position,
-        
         .collision_box = {5, 0, 45, 50},
         .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(test_player),
+        .mark_for_removal = false,
         
+        .animation_set = GET_CHAR_ANIMSET(test_player),
         .entity = {
             ePlayer,
             {0,0}
@@ -288,6 +288,7 @@ inline internal Sprite make_pickup(fvec2 position, u64 type) {
         .tilemap = &GET_TILEMAP_TEXTURE(TM_pickups),
         .size = {64,64},
         .position = position,
+        .collision_box = {10,10,54,54},
         .mirror = {false, false},
         .animation_playing = false,
         .current_animation = 0,

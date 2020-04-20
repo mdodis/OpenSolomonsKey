@@ -232,16 +232,12 @@ audio_update(const InputState* const istate, u64 samples_to_write)
             
             if (!current_sound->playing) continue;
             
-            if (!(current_sound->resource))
-            {
-#if 1
-                // TODO(miked): fixme
+            if (!(current_sound->resource)) {
                 fprintf(stderr, "no sound resource; idx %d sz %d\n",
                         current_sound_idx, g_audio.all_sounds_size);
                 puts("exiting...");
                 fflush(stdout);
                 exit(-1);
-#endif
                 continue;
                 
             }

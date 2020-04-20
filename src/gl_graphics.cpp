@@ -252,5 +252,4 @@ internal void gl_init() {
     
     assert(glGetError() == GL_NO_ERROR);
     
-    
 }

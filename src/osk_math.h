@@ -246,15 +246,12 @@ inline ivec2 get_tile_behind(ivec2 t, fvec2 tv) {
 }
 
 inline ivec2
-map_position_to_tile(fvec2 position)
-{
+map_position_to_tile(fvec2 position) {
     return ivec2{((i32)position.x) / 64, ((i32)position.y) / 64};
 }
 
-AABox AABox::translate(fvec2 position) const
-{
-    return AABox
-    {
+AABox AABox::translate(fvec2 position) const {
+    return AABox {
         min_x + position.x,
         min_y + position.y,
         min_x + position.x + max_x,
@@ -263,8 +260,7 @@ AABox AABox::translate(fvec2 position) const
 }
 
 internal b32
-intersect(const AABox* const a, const AABox* const b)
-{
+intersect(const AABox* const a, const AABox* const b) {
     AABox result;
     result.min_y = a->min_y - b->max_y;
     result.max_y = a->max_y - b->min_y;
@@ -279,11 +275,9 @@ intersect(const AABox* const a, const AABox* const b)
 }
 
 internal b32
-aabb_minkowski(
-               const AABox* const a,
+aabb_minkowski(const AABox* const a,
                const AABox* const b,
-               fvec2* const opt_pen)
-{
+               fvec2* const opt_pen) {
     AABox result;
     result.min_y = a->min_y - b->max_y;
     result.max_y = a->max_y - b->min_y;
@@ -294,32 +288,28 @@ aabb_minkowski(
     if (result.min_x <= 0 &&
         result.max_x >= 0 &&
         result.min_y <= 0 &&
-        result.max_y >= 0)
-    {
+        result.max_y >= 0) {
+        
         fvec2 penetration = {0,0};
         float min = FLT_MAX;
         /*NOTE(miked): prefer Y axis over X on collision*/
         
-        if (glm::abs(result.min_x) < min)
-        {
+        if (glm::abs(result.min_x) < min) {
             min = glm::abs(result.min_x);
             penetration = {result.min_x, 0};
         }
         
-        if (glm::abs(result.max_x) < min)
-        {
+        if (glm::abs(result.max_x) < min) {
             min = glm::abs(result.max_x);
             penetration = {result.max_x, 0};
         }
         
-        if (glm::abs(result.min_y) < min)
-        {
+        if (glm::abs(result.min_y) < min) {
             min = glm::abs(result.min_y);
             penetration = {0, result.min_y};
         }
         
-        if (glm::abs(result.max_y) < min)
-        {
+        if (glm::abs(result.max_y) < min) {
             min = glm::abs(result.max_y);
             penetration = {0, result.max_y};
         }
@@ -336,40 +326,31 @@ aabb_minkowski(
 
 
 
-inline float sgn(float a)
-{
+inline float sgn(float a) {
     if (a < 0) return -1;
     else return 1;
 }
 
 
-inline i32 sgn(i32 a)
-{
+inline i32 sgn(i32 a) {
     if (a < 0) return -1;
     else return 1;
 }
 
-inline float min(float a, float b)
-{
-    return a < b
-        ? a
-        : b;
+inline float min(float a, float b) {
+    return a < b ? a : b;
 }
 
-inline float dot(fvec2 a, fvec2 b)
-{
+inline float dot(fvec2 a, fvec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-inline float length(fvec2 a)
-{
+inline float length(fvec2 a) {
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
-
-
 
 inline float osk__min(float a, float b, float on_zero) {
     if (a < 0.f)
@@ -386,15 +367,13 @@ inline float deg_0_360(float a) {
     return (float)((int)a % 360);
 }
 
-inline float distance(fvec2 a, fvec2 b)
-{
+inline float distance(fvec2 a, fvec2 b) {
 #define SQ(x) ((x) * (x))
     return sqrtf( SQ(a.x - b.x) + SQ(a.y - b.y));
 #undef SQ
 }
 
-struct NRGBA
-{
+struct NRGBA {
     float r, g, b, a;
 };
 
@@ -411,10 +390,8 @@ struct mat4 {
 };
 
 
-NRGBA rand_nrgb()
-{
-    NRGBA result =
-    {
+NRGBA rand_nrgb() {
+    NRGBA result = {
         (float)rand() / (float)RAND_MAX,
         (float)rand() / (float)RAND_MAX,
         (float)rand() / (float)RAND_MAX,

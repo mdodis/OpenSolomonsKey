@@ -76,7 +76,6 @@ extern void cb_init();
 extern void cb_resize();
 extern void cb_render(InputState istate, u64 audio_sample_count, float dt);
 
-// TODO(miked): switch to platform specific functions
 internal char*
 platform_load_entire_file(const char* path)
 {

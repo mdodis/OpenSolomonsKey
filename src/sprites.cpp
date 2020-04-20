@@ -153,37 +153,30 @@ void Sprite::move_and_collide(float dt,
 
 RESSound player_jump_sound;
 
-internal void ePlayer_cast(Sprite* player, float dt)
-{
+internal void ePlayer_cast(Sprite* player, float dt) {
+    
+    
     // Get the upper left tile based on the center of the player sprite
     ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
     
-    if (player->mirror.x)
-    {
+    if (player->mirror.x) {
         if (player_tile.x >= 14) return;
         target_tile.x += 1;
-    }
-    else
-    {
+    } else {
         if (player_tile.x <= 0) return;
         target_tile.x -= 1;
     }
     
     // if we were crouching: special condition
-    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch))
-    {
+    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch)) {
         target_tile.y = iclamp(0, 14,target_tile.y + 1);
     }
     
-    // TODO(miked): Secrets in tiles and empty space!
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
-    if (type == eBlockFrail)
-    {
+    if (type == eBlockFrail) {
         scene_set_tile(target_tile, eEmptySpace);
-    }
-    else if (type == eEmptySpace)
-    {
+    } else if (type == eEmptySpace) {
         scene_set_tile(target_tile, eBlockFrail);
     }
     
@@ -193,8 +186,6 @@ internal void ePlayer_cast(Sprite* player, float dt)
 
 
 internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
-// TODO(miked): Test cases for different speeds
-// TODO(miked): Make ball rotate correctly (now its all over the place)
 {
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
@@ -461,10 +452,20 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     
     if (did_jump)  audio_play_sound(&player_jump_sound);
     
-    // Casting
-    if (GET_KEYPRESS(cast) &&
-        player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
+    // Item pickup
     {
+        List_Sprite &pickups = scene_get_pickup_list();
+        AABox *player_box = &player->get_transformed_AABox();
+        for (Sprite &s : pickups) {
+            AABox *s_box = &s.get_transformed_AABox();
+            if (intersect(player_box, s_box)) {
+                s.mark_for_removal = true;
+            }
+        }
+    }
+    
+    // Casting
+    if (GET_KEYPRESS(cast) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
         // save yspeed
         player_last_yspeed = player->velocity.y;
         // cast!
@@ -474,19 +475,14 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     }
     
     // Fireball Casting
-    if (GET_KEYPRESS(fireball) &&
-        player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast))
-    {
+    if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
-        // TODO(miked): FLIP SPRITE image
-        //f.mirror.x = player->mirror.x;
         f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
         
     }
     
-    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast))
-    {
+    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast)) {
         if (player->animation_playing)
             return;
         else
@@ -500,8 +496,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     const i32 jump_strength =
         (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
     
-    player->move_and_collide(
-                             dt,
+    player->move_and_collide(dt,
                              GRAVITY,
                              MAX_YSPEED,
                              jump_strength,
@@ -515,19 +510,12 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     }
     else if (is_crouching) SET_ANIMATION(player, test_player, Crouch);
     else                   SET_ANIMATION(player, test_player, Idle);
-    
 }
 
 
 internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 {
     /*
-    TODO: Goblin can live from a fall if it's falling and a block appears
-    near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
-
-    TODO: Goblin can only fall _IF_ its currently in the walking,
-    chasing, or waiting state. If it were in a punch state, it would have
-    to finish that first, and then proceed to die by gravity
 
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
     so invert direction vector to get the axis-compliant direction in X.

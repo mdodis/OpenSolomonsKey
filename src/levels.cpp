@@ -14,6 +14,7 @@ internal Sprite *map_add(Map *map, Sprite *sprite) {
     
     if (sprite->entity.type == ePickup) {
         map->pickups.push_back(*sprite);
+        inform("Added pickup!");
         return &map->pickups.back();
     } else {
         map->sprites.push_back(*sprite);
@@ -88,7 +89,7 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
         
         Sprite pickup = make_pickup(pos, object_id);
         
-        scene_sprite_add(&pickup);
+        map_add(map, &pickup);
         inform("Under Normal tile: %lld", object_id);
     }
     return c;
@@ -155,7 +156,6 @@ internal bool load_map(Map *const map, const char *path) {
                 } else {
                     Sprite sprite_to_make;
                     fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
-                    
                     
                     switch((EntityBaseType)res) {
                         case eGoblin:{
@@ -247,13 +247,10 @@ internal const Sprite* const scene_get_first_sprite(EntityBaseType type) {
 
 // Returns first view-blocking tile in search direction specified
 // otherwise, returns {-1, -1};
-internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile)
-{
+internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile) {
     i32 xdiff = sgn(end_tile.x - start_tile.x);
-    while (start_tile != end_tile)
-    {
-        if (scene_get_tile(start_tile) != eEmptySpace)
-        {
+    while (start_tile != end_tile) {
+        if (scene_get_tile(start_tile) != eEmptySpace) {
             return start_tile;
         }
         
@@ -264,6 +261,10 @@ internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile)
     
     
     return ivec2{-1 ,-1};
+}
+
+internal List_Sprite &scene_get_pickup_list() {
+    return g_scene.loaded_map.pickups;
 }
 
 
@@ -360,25 +361,41 @@ internal void scene_startup_animation(float dt) {
 internal void
 scene_update(InputState* istate, float dt) {
     
-    scene_draw_tilemap();
-    
     for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
         draw(&g_scene.loaded_map.pickups[i]);
     }
+    scene_draw_tilemap();
     
-    List_Sprite& l = g_scene.loaded_map.sprites;
     
-    // remove marked elements
-    auto it = l.begin();
-    while (it != l.end()) {
-        Sprite& spref = (*it);
-        if (spref.mark_for_removal) {
-            it = l.erase(it);
-        } else {
-            it++;
+    {
+        List_Sprite &l = g_scene.loaded_map.sprites;
+        // remove marked elements
+        auto it = l.begin();
+        while (it != l.end()) {
+            Sprite& spref = (*it);
+            if (spref.mark_for_removal) {
+                it = l.erase(it);
+            } else {
+                it++;
+            }
         }
     }
     
+    {
+        List_Sprite &l = g_scene.loaded_map.pickups;
+        // remove marked elements
+        auto it = l.begin();
+        while (it != l.end()) {
+            Sprite& spref = (*it);
+            if (spref.mark_for_removal) {
+                it = l.erase(it);
+            } else {
+                it++;
+            }
+        }
+    }
+    
+    List_Sprite &l = g_scene.loaded_map.sprites;
     for (int i = 0; i < l.size(); ++i) {
         Sprite* spref = &l[i];
         spref->update_animation(dt);
@@ -421,7 +438,5 @@ scene_update(InputState* istate, float dt) {
 #endif
         
         draw(&l[i]);
-        
-        
     }
 }
