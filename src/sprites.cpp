@@ -739,6 +739,7 @@ internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
         // destroy block if finished
         if (!ghost->animation_playing) {
             scene_set_tile(ctile, eEmptySpace);
+            ghost->mirror.x = !ghost->mirror.x;
             SET_ANIMATION(ghost, Ghost, Fly);
         }
     }
