@@ -182,6 +182,9 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     
     SET_ANIMATION(player, test_player, Cast);
     
+    // TODO(miked): use the actual effect (smoke is not the correct one)
+    Sprite smoke_thingy = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Smoke));
+    scene_sprite_add(&smoke_thingy);
 }
 
 

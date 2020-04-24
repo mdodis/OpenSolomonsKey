@@ -564,7 +564,7 @@ win32_init(HINSTANCE hInstance)
     
     g_wind = CreateWindowExA(0,
                              OSK_CLASS_NAME,
-                             "Solomon's Key",
+                             "Open Solomon's Key",
                              window_style,
                              CW_USEDEFAULT, CW_USEDEFAULT,
                              rect.right - rect.left,

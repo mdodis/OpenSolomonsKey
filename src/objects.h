@@ -18,7 +18,6 @@ enum EntityBaseType {
     eBlockSolid,
     ePlayerSpawnPoint,
     
-    
     ePlayer,
     eGoblin,
     eGhost,
@@ -192,6 +191,19 @@ global struct {
     b32 playing = false;
     int startup_state = 0;
 } g_scene;
+
+inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
+    return Sprite {
+        .tilemap = &GET_CHAR_TILEMAP(Effect),
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .current_animation = effect_type,
+        .animation_set = GET_CHAR_ANIMSET(Effect),
+        .entity = {
+            .type = eEffect,
+        }
+    };
+}
 
 inline internal Sprite make_goblin(fvec2 position) {
     return Sprite {

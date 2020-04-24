@@ -245,6 +245,11 @@ inline ivec2 get_tile_behind(ivec2 t, fvec2 tv) {
     return t + ivec2{(int)tv.x, (int)tv.y};
 }
 
+inline fvec2
+tile_to_position(ivec2 tile) {
+    return fvec2{tile.x * 64.f, tile.y * 64.f};
+}
+
 inline ivec2
 map_position_to_tile(fvec2 position) {
     return ivec2{((i32)position.x) / 64, ((i32)position.y) / 64};

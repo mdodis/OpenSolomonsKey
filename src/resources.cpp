@@ -24,6 +24,7 @@ DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    
 DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
 DEF_TILEMAP(tmdana_fire        ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )\
+DEF_TILEMAP(tmsmoke            ,"res/effects/smoke.png"                   ,1    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(background         ,"res/bg_room0.png"                        ,1    ,1  )\
@@ -83,9 +84,13 @@ DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \
 DEF_ANIM(DFireball,    Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(StarRing,    tmstar_ring,  1,                       \
+DEF_CHARACTER(Effect,       tmsmoke,  1,                                         \
+DEF_ANIM(Effect,       Smoke, .1f,      {0,0}, 4,      false)   \
+)                                                                 \
+DEF_CHARACTER(StarRing,    tmstar_ring,  1,                                     \
 DEF_ANIM(StarRing,     Default, .1f,      {0,0}, 3,      true )   \
 )                                                                 \
+
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \

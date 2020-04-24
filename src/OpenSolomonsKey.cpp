@@ -7,7 +7,7 @@ TODO:
 - Sound resource system (one of us...)
 - Player score and effect when pickup
 - Pickup secrets (add+destroy block in empty space)
-
+- Make effects into single tilemap!
 - WIN32: don't jump when maximizing through shortcut
 - Better pixel shader: see casey's video (handmade char on octopath traveller)
   NOTE:
