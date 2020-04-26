@@ -204,7 +204,6 @@ inline fvec2 fclamp(fvec2 a, fvec2 b, fvec2 x)
     };
 }
 
-
 inline i32  iclamp(i32  a, i32 b, i32 x)
 {
     if (x < a) return a;

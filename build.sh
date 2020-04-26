@@ -12,5 +12,5 @@ cd build > /dev/null
 time g++ $opts $opt_debug $code/x11_OpenSolomonsKey.cpp -lasound -o solomons_key
 
 # Release
-#time g++ $opts $opt_release $code/x11_OpenSolomonsKey.cpp -lasound -ljack /home/miked/Desktop/portaudio/lib/.libs/libportaudio.a -o solomons_key
+#time g++ $opts $opt_release $code/x11_OpenSolomonsKey.cpp -lasound -lasound /home/miked/Desktop/portaudio/lib/.libs/libportaudio.a -o solomons_key
 cd $code > /dev/null
