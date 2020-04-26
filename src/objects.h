@@ -21,12 +21,19 @@ enum EntityBaseType {
     ePlayer,
     eGoblin,
     eGhost,
+    eDoor,
     
+    ePickup,
     eEffect,
     eDFireball,
-    ePickup,
     EntityBaseType_Count,
 };
+
+inline bool tile_is_empty(EntityBaseType type) {
+    if (type == eDoor || type == eEmptySpace) return true;
+    
+    return false;
+}
 
 struct Entity
 {
@@ -184,6 +191,8 @@ struct Map{
     EntityBaseType tiles[TILEMAP_COLS][TILEMAP_ROWS];
     List_Sprite sprites;
     List_Sprite pickups;
+    
+    ivec2 exit_location;
 };
 
 global struct {

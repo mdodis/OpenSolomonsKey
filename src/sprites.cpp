@@ -31,7 +31,7 @@ void Sprite::move_and_collide(float dt,
     
     for (i32 j = 0; j < 3; ++j) {
         for (i32 i = 0; i < 3; ++i) {
-            if (scene_get_tile(ivec2{start_tile.x + i,start_tile.y + j}) == eEmptySpace) continue;
+            if (scene_tile_empty(ivec2{start_tile.x + i,start_tile.y + j})) continue;
             
             fvec2 tile_coords =
             {
@@ -428,9 +428,7 @@ should't be eEmptySpace
 }
 
 
-internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
-{
-    
+internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
@@ -467,6 +465,21 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
         }
     }
     
+    // Door
+    {
+        AABox box = get_tile_box(g_scene.loaded_map.exit_location);
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+                             {box.min_x, box.min_y},
+                             {box.max_x - box.min_x, box.max_y - box.min_y},
+                             0,5 * 5 + 1,
+                             false, false,
+                             NRGBA{1.f, 0, 1.f, 0.7f});
+        AABox player_box = player->get_transformed_AABox();
+        if (intersect(&player_box,&box)) {
+            // TODO(miked): win code here
+        }
+    }
+    
     // Casting
     if (GET_KEYPRESS(cast) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
         // save yspeed
@@ -479,6 +492,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     
     // Fireball Casting
     if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
+        
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
         f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
@@ -486,6 +500,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt)
     }
     
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast)) {
+        
         if (player->animation_playing)
             return;
         else

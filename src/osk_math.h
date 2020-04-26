@@ -264,6 +264,14 @@ AABox AABox::translate(fvec2 position) const {
     };
 }
 
+internal AABox
+get_tile_box(ivec2 t) {
+    return AABox{
+        t.x * 64.f, t.y * 64.f,
+        t.x * 64.f + 64.f, t.y * 64.f + 64.f
+    };
+}
+
 internal b32
 intersect(const AABox* const a, const AABox* const b) {
     AABox result;

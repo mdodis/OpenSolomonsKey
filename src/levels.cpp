@@ -70,7 +70,7 @@ internal char* string_parse_uint(char* c, u64* out_i)
 
 internal b32 is_valid_tilemap_object(EntityBaseType type)
 {
-    return ((u64)type <= (u64)eBlockSolid);
+    return ((u64)type <= (u64)eBlockSolid) || (type == eDoor);
 }
 
 internal char* eat_whitepspace(char *c) {
@@ -150,6 +150,10 @@ internal bool load_map(Map *const map, const char *path) {
                 }
                 
                 if (is_valid_tilemap_object((EntityBaseType) res)) {
+                    
+                    if (res == eDoor) {
+                        map->exit_location = ivec2{i32(counter_x), i32(counter_y)};
+                    }
                     map->tiles[counter_x][counter_y] = (EntityBaseType)res;
                     
                     c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f});
@@ -204,7 +208,14 @@ inline EntityBaseType scene_get_tile(ivec2 p) {
     
     return g_scene.loaded_map.tiles[p.x][p.y];
 }
-inline void scene_set_tile(ivec2 p, EntityBaseType t) { g_scene.loaded_map.tiles[p.x][p.y] = t; }
+
+inline bool scene_tile_empty(ivec2 p) {
+    return tile_is_empty(scene_get_tile(p));
+}
+
+inline void scene_set_tile(ivec2 p, EntityBaseType t) {
+    g_scene.loaded_map.tiles[p.x][p.y] = t;
+}
 
 internal void scene_init(const char* level_path) {
 }
@@ -220,6 +231,10 @@ scene_draw_tilemap() {
             if (type == eEmptySpace) continue;
             if (type == eBlockSolid) id = 2;
             if (type == eBlockFrail) id = 1;
+            if (type == eDoor) {
+                id = 4;
+                
+            }
             
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
                                  fvec2{float(i) * 64.f, j * 64.f},
