@@ -122,29 +122,29 @@ void Sprite::move_and_collide(float dt,
     
 #ifndef NDEBUG
     gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(test),
+                         &GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_bottom.min_x, bound_bottom.min_y},
                          {bound_bottom.max_x, bound_bottom.max_y},
                          0.f,
-                         5 * 5,
+                         1 * 5 + 1,
                          false, false,
                          NRGBA{0,1,1,.7f});
     
     gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(test),
+                         &GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_right.min_x, bound_right.min_y},
                          {bound_right.max_x, bound_right.max_y},
                          0.f,
-                         5 * 5,
+                         1* 5 + 1,
                          false, false,
                          NRGBA{0,1,1,.7f});
     
     gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(test),
+                         &GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_left.min_x + 32, bound_left.min_y},
                          {bound_left.max_x + 32, bound_left.max_y},
                          0.f,
-                         5 * 5,
+                         1* 5 + 1,
                          false, false,
                          NRGBA{0,1,1,.7f});
 #endif
@@ -468,10 +468,10 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     // Door
     {
         AABox box = get_tile_box(g_scene.loaded_map.exit_location);
-        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                              {box.min_x, box.min_y},
                              {box.max_x - box.min_x, box.max_y - box.min_y},
-                             0,5 * 5 + 1,
+                             0,1 * 5 + 1,
                              false, false,
                              NRGBA{1.f, 0, 1.f, 0.7f});
         AABox player_box = player->get_transformed_AABox();
@@ -590,10 +590,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
             {
 #ifndef NDEBUG
                 gl_slow_tilemap_draw(
-                                     &GET_TILEMAP_TEXTURE(test),
+                                     &GET_TILEMAP_TEXTURE(TM_essentials),
                                      {block_tile.x * 64.f, block_tile.y * 64.f},
                                      {64.f, 64.f},
-                                     0,5 * 5 + 0,
+                                     0,1 * 5 + 2,
                                      false, false,
                                      NRGBA{0.f, 1.f, 1.f, 1.f});
 #endif
@@ -611,10 +611,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
-                             &GET_TILEMAP_TEXTURE(test),
+                             &GET_TILEMAP_TEXTURE(TM_essentials),
                              {dir_tile_under.x * 64.f, dir_tile_under.y * 64.f},
                              {64, 64},
-                             0,5 * 5 + 1,
+                             0,1 * 5 + 1,
                              false, false,
                              NRGBA{1.f, 0.f, 0.f, 1.f});
 #endif
@@ -640,10 +640,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
 #ifndef NDEBUG
         gl_slow_tilemap_draw(
-                             &GET_TILEMAP_TEXTURE(test),
+                             &GET_TILEMAP_TEXTURE(TM_essentials),
                              {tile_index.x * 64.f, tile_index.y * 64.f},
                              {64, 64},
-                             0,5 * 5 + 1,
+                             0,1 * 5 + 1,
                              false, false,
                              NRGBA{0.f, 1.f, 0.f, 1.f});
 #endif
@@ -734,10 +734,10 @@ internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
     }
     
 #ifndef NDEBUG
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                          {ctile.x * 64.f, ctile.y * 64.f},
                          {64, 64},
-                         0,5 * 5 + 0,
+                         0,1 * 5 + 2,
                          false, false,
                          NRGBA{1.f, 1.f, 1.f, 1.f});
 #endif

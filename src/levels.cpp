@@ -70,7 +70,7 @@ internal char* string_parse_uint(char* c, u64* out_i)
 
 internal b32 is_valid_tilemap_object(EntityBaseType type)
 {
-    return ((u64)type <= (u64)eBlockSolid) || (type == eDoor);
+    return ((u64)type <= (u64)eBlockSolid);
 }
 
 internal char* eat_whitepspace(char *c) {
@@ -151,13 +151,15 @@ internal bool load_map(Map *const map, const char *path) {
                 
                 if (is_valid_tilemap_object((EntityBaseType) res)) {
                     
-                    if (res == eDoor) {
-                        map->exit_location = ivec2{i32(counter_x), i32(counter_y)};
-                    }
                     map->tiles[counter_x][counter_y] = (EntityBaseType)res;
                     
                     c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f});
                 } else {
+                    
+                    if (res == eDoor) {
+                        map->exit_location = ivec2{i32(counter_x), i32(counter_y)};
+                    }
+                    
                     Sprite sprite_to_make;
                     fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
                     
@@ -173,6 +175,10 @@ internal bool load_map(Map *const map, const char *path) {
                         
                         case eGhost:{
                             sprite_to_make = make_ghost(sprite_initial_pos);
+                        }break;
+                        
+                        case eDoor: {
+                            sprite_to_make = make_door(sprite_initial_pos);
                         }break;
                         
                         default:{
@@ -229,14 +235,11 @@ scene_draw_tilemap() {
             EntityBaseType type = (EntityBaseType)scene_get_tile(ivec2{i,j});
             
             if (type == eEmptySpace) continue;
-            if (type == eBlockSolid) id = 2;
-            if (type == eBlockFrail) id = 1;
-            if (type == eDoor) {
-                id = 4;
-                
-            }
+            else if (type == eBlockFrail) id = 0 * 5 + 0;
+            else if (type == eBlockSolid) id = 1 * 5 + 0;
+            else continue;
             
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                                  fvec2{float(i) * 64.f, j * 64.f},
                                  fvec2{64, 64},
                                  0.f,
@@ -250,7 +253,7 @@ scene_draw_tilemap() {
 
 // Finds first sprite of specific type
 // if not found; return 0
-internal const Sprite* const scene_get_first_sprite(EntityBaseType type) {
+internal Sprite* scene_get_first_sprite(EntityBaseType type) {
     for (i32 i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite* spref = &g_scene.loaded_map.sprites[i];
         
@@ -304,6 +307,7 @@ internal void scene_startup_animation(float dt) {
     ring = &ring_static;
     
     const Sprite *const player = scene_get_first_sprite(ePlayer);
+    Sprite *door = scene_get_first_sprite(eDoor);
     
     
     // placeholder
@@ -328,6 +332,8 @@ internal void scene_startup_animation(float dt) {
             
             ring->update_animation(dt);
             draw(ring);
+            door->update_animation(dt);
+            draw(door);
             
             if (anim_time < anim_dur) {
                 ring->position = lerp2(DOOR, KEY, (anim_time/anim_dur));
@@ -369,8 +375,6 @@ internal void scene_startup_animation(float dt) {
             
         } break;
     }
-    
-    
 }
 
 internal void
@@ -444,10 +448,10 @@ scene_update(InputState* istate, float dt) {
 #ifndef NDEBUG
         // Draw the Bounding box sprite
         AABox box = spref->get_transformed_AABox();
-        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(test),
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                              {box.min_x, box.min_y},
                              {box.max_x - box.min_x, box.max_y - box.min_y},
-                             0,5 * 5 + 1,
+                             0,1 * 5 + 1,
                              false, false,
                              NRGBA{1.f, 0, 1.f, 0.7f});
 #endif

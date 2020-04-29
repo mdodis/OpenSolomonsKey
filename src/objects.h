@@ -259,6 +259,22 @@ inline internal Sprite make_player(fvec2 position) {
     return res;
 }
 
+inline internal Sprite make_door(fvec2 position) {
+    return Sprite {
+        .tilemap = &GET_CHAR_TILEMAP(Door),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        .current_animation = GET_CHAR_ANIMENUM(Door, Close),
+        .animation_set = GET_CHAR_ANIMSET(Door),
+        .entity = {
+            eDoor,
+            {0,0}
+        }
+    };
+}
+
 inline internal Sprite make_dfireball(fvec2 position)
 {
     Sprite res =
