@@ -4,6 +4,8 @@ TODO:
 - Player score and effect when pickup
 - essentials.png: add key
 - finish startup
+- fireball will go through a block if u stand too close!
+- add animation of the key for the door (pause whole scene sim probably)
 
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
@@ -263,4 +265,9 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
     draw_num(1000, 1, 15 , false, 32, true);
+    
+    if (GET_KEYPRESS(restart)) {
+        startup_animation_reset();
+        load_map(&g_scene.loaded_map, "lvl1.osk");
+    }
 }

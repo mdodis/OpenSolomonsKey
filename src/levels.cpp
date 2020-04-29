@@ -14,7 +14,7 @@ internal Sprite *map_add(Map *map, Sprite *sprite) {
     
     if (sprite->entity.type == ePickup) {
         map->pickups.push_back(*sprite);
-        inform("Added pickup!");
+        //inform("Added pickup!");
         return &map->pickups.back();
     } else {
         map->sprites.push_back(*sprite);
@@ -90,7 +90,7 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
         Sprite pickup = make_pickup(pos, object_id);
         
         map_add(map, &pickup);
-        inform("Under Normal tile: %lld", object_id);
+        //inform("Under Normal tile: %lld", object_id);
     }
     return c;
 }
@@ -179,6 +179,10 @@ internal bool load_map(Map *const map, const char *path) {
                         
                         case eDoor: {
                             sprite_to_make = make_door(sprite_initial_pos);
+                        }break;
+                        
+                        case eKey: {
+                            sprite_to_make = make_key(sprite_initial_pos);
                         }break;
                         
                         default:{
@@ -292,6 +296,16 @@ internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void eStarRing_update(Sprite* spref, InputState* istate, float dt);
 internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
 
+global float startup_anim_time = 0.f;
+internal void startup_animation_reset() {
+    g_scene.startup_state = 0;
+    g_scene.playing = false;
+    startup_anim_time = 0.f;
+}
+
+// One star from door to key
+// show key
+// Circle star from key to player
 internal void scene_startup_animation(float dt) {
     
     const int STATE_START = 0;
@@ -300,7 +314,7 @@ internal void scene_startup_animation(float dt) {
     const int STATE_DONE = 3;
     
     const float anim_dur = 0.8f;
-    static float anim_time = 0.f;
+    
     static Sprite ring_static;
     Sprite *ring;
     
@@ -309,14 +323,13 @@ internal void scene_startup_animation(float dt) {
     const Sprite *const player = scene_get_first_sprite(ePlayer);
     Sprite *door = scene_get_first_sprite(eDoor);
     
-    
     // placeholder
     const fvec2 DOOR = {64 * 6, 0};
     const fvec2 KEY = {64 * 8, 64 * 6};
     
     if (GET_KEYPRESS(space_pressed)) {
         g_scene.startup_state = 4;
-        ring->mark_for_removal = true;
+        //ring->mark_for_removal = true;
         g_scene.playing = true;
     }
     
@@ -335,32 +348,32 @@ internal void scene_startup_animation(float dt) {
             door->update_animation(dt);
             draw(door);
             
-            if (anim_time < anim_dur) {
-                ring->position = lerp2(DOOR, KEY, (anim_time/anim_dur));
-                anim_time = fclamp(0.f, anim_dur, anim_time + dt);
+            if (startup_anim_time < anim_dur) {
+                ring->position = lerp2(DOOR, KEY, (startup_anim_time/anim_dur));
+                startup_anim_time = fclamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
                 g_scene.startup_state = STATE_SHOW_PLAYER;
-                anim_time = 0.f;
+                startup_anim_time = 0.f;
             }
             
         } break;
         
         case STATE_SHOW_PLAYER: {
             
-            if (anim_time < anim_dur) {
-                ring->position = lerp2(DOOR, player->position, (anim_time/anim_dur));
-                anim_time = fclamp(0.f, anim_dur, anim_time + dt);
+            if (startup_anim_time < anim_dur) {
+                ring->position = lerp2(DOOR, player->position, (startup_anim_time/anim_dur));
+                startup_anim_time = fclamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
                 g_scene.startup_state = 4;
                 ring->mark_for_removal = true;
                 g_scene.playing = true;
             }
             
-            if (anim_time < anim_dur) {
+            if (startup_anim_time < anim_dur) {
                 ring->update_animation(dt);
-                float radius = ((anim_dur - anim_time) / anim_dur) * 128.f;
+                float radius = ((anim_dur - startup_anim_time) / anim_dur) * 128.f;
                 radius = MAX(radius, 32.f);
-                float phase = ((anim_dur - anim_time) / anim_dur) * 90.f;
+                float phase = ((anim_dur - startup_anim_time) / anim_dur) * 90.f;
                 
                 for (int i = 0; i < 16; ++i) {
                     Sprite tmp = *ring;

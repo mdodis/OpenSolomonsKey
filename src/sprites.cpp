@@ -205,13 +205,19 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
     
     /*
+And tile-wise there are two general situations:
+     1) The tile in front is blocking the way.
+2) The tile in front(target_tile) is empty.
+What is important in every one of these, is
+knowing which tile we're going to be "attached"
+to (side_tile).
 =======================HORIZONTAL=========================
-============ROT 0===========||==========ROT 180===========   And tile-wise there are two general situations:
-|            |    [XX]      ||            |      [XX]    |     1) The tile in front is blocking the way.
-|   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |     2) The tile in front(target_tile) is empty.
-|[XX] | [XX] |[XX]          ||        [XX]|          [XX]|   What is important in every one of these, is
-|[XX]   [XX] |[XX]          ||        [XX]|          [XX]|   knowing which tile we're going to be "attached"
-|------------|--------------||------------|--------------|   to (side_tile).
+============ROT 0===========||==========ROT 180===========
+|            |    [XX]      ||            |      [XX]    |
+|   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |
+|[XX] | [XX] |[XX]          ||        [XX]|          [XX]|
+|[XX]   [XX] |[XX]          ||        [XX]|          [XX]|
+|------------|--------------||------------|--------------|
 |[XX]        |[XX]          ||        [XX]|          [XX]|
 |[XX]        |[XX]          ||        [XX]|          [XX]|
 |  o>   (-90)|  o>[XX] (+90)||(+90)   <o  |(-90) [XX]<o  |
@@ -330,15 +336,28 @@ should't be eEmptySpace
                 float col2 = dfire->rotation == 000.f
                     ? forward_tile.x * 64.f - aabb.max_x
                     : FLT_MAX;
+                
                 float col4 = dfire->rotation == 180.f
                     ? aabb.min_x - (forward_tile.x + 1) * 64.f
                     : FLT_MAX;
+                
+                printf("2 is %f 4 is %f\n", col2, col4);
+                
+                // NOTE(miked): when the fireball is spawned right next
+                // to a tile it could attach, it's basically already inside the
+                // tile, so special to case to make it behave
+                if (col2 < 0.f) {
+                    if (fabs(col2) < 15.f) {
+                        col2 = -col2 -10.f;
+                    }
+                }
                 
                 float comp = osk__min(col2, col4, FLT_MAX);
                 assert(comp >= 0 );
                 
                 if (comp <= proximity_thresh) {
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
+                    printf("DO\n");
                     goto END_ROT;
                 }
             }
@@ -494,6 +513,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
         
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
+        
         f.rotation = player->mirror.x ? 0.f  : 180.f;
         Sprite *p = scene_sprite_add(&f);
         

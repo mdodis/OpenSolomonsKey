@@ -22,6 +22,7 @@ enum EntityBaseType {
     eGoblin,
     eGhost,
     eDoor,
+    eKey,
     
     ePickup,
     eEffect,
@@ -246,7 +247,7 @@ inline internal Sprite make_player(fvec2 position) {
         .size = fvec2{64, 50},
         .position = position,
         .collision_box = {5, 0, 45, 50},
-        .mirror = {false, false},
+        .mirror = {true, false},
         .mark_for_removal = false,
         
         .animation_set = GET_CHAR_ANIMSET(test_player),
@@ -309,6 +310,30 @@ inline internal Sprite make_starring(fvec2 position) {
         .mirror = {false, false},
         .current_animation = 0,
         .animation_set = GET_CHAR_ANIMSET(StarRing),
+        .entity = {
+            EntityBaseType_Count,
+            {u64(0.f),u64(0.f)}
+        }
+    };
+    
+    return res;
+    
+}
+
+inline internal Sprite make_key(fvec2 position) {
+    Sprite res =
+    {
+        .tilemap = &GET_CHAR_TILEMAP(Key),
+        .size = {64,64},
+        .position = position,
+        .rotation = 45.f,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        
+        .animation_playing = false,
+        .current_animation = 0,
+        .animation_set = GET_CHAR_ANIMSET(Key),
+        
         .entity = {
             EntityBaseType_Count,
             {u64(0.f),u64(0.f)}
