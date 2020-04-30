@@ -405,6 +405,65 @@ internal void scene_startup_animation(float dt) {
     }
 }
 
+global float key_anim_time = 0.f;
+global int key_anim_state = 0;
+// rotate the key at first
+internal void scene_key_animation(float dt) {
+    const int KEYROT = 0;
+    const int STAR_DOOR = 1;
+    bool finished = false;
+    const float anim_dur = 2.f;
+    Sprite *key = scene_get_first_sprite(eKey);
+    static Sprite effect;
+    static Sprite star;
+    // update
+    const float t = key_anim_time / anim_dur;
+    
+    key_anim_time += dt;
+    if (key_anim_time >= anim_dur) {
+        key_anim_time = 0.f;
+        finished = true;
+    }
+    
+    switch(key_anim_state) {
+        case KEYROT: {
+            
+            key->rotation = lerp(0.f, 360.f, t);
+            fail_unless(key, "da key");
+            if (finished) {
+                key_anim_state = STAR_DOOR;
+                key->mark_for_removal = true;
+                
+                // initialize next state
+                effect = make_effect(key->position, GET_CHAR_ANIM_HANDLE(Effect, Smoke));
+                star = make_starring(key->position);
+            }
+        }break;
+        
+        case STAR_DOOR: {
+            Sprite *door = scene_get_first_sprite(eDoor);
+            fail_unless(door, "where is the door???");
+            
+            if (finished) {
+                key_anim_state = KEYROT;
+                g_scene.paused_for_key_animation = false;
+                
+                SET_ANIMATION(door, Door, Open);
+            }
+            star.update_animation(dt);
+            effect.update_animation(dt);
+            
+            Sprite temp = star;
+            temp.position = lerp2(star.position, tile_to_position(g_scene.loaded_map.exit_location),t);
+            
+            draw(&temp);
+            if (!effect.mark_for_removal)
+                draw(&effect);
+        } break;
+    }
+    
+}
+
 internal void
 scene_update(InputState* istate, float dt) {
     
@@ -412,7 +471,6 @@ scene_update(InputState* istate, float dt) {
         draw(&g_scene.loaded_map.pickups[i]);
     }
     scene_draw_tilemap();
-    
     
     {
         List_Sprite &l = g_scene.loaded_map.sprites;
@@ -445,33 +503,37 @@ scene_update(InputState* istate, float dt) {
     List_Sprite &l = g_scene.loaded_map.sprites;
     for (int i = 0; i < l.size(); ++i) {
         Sprite* spref = &l[i];
-        spref->update_animation(dt);
         
-        switch(spref->entity.type) {
-            case ePlayer:{
-                ePlayer_update(spref, istate, dt);
-            }break;
-            
-            case eGoblin:{
-                eGoblin_update(spref, istate, dt);
-            } break;
-            
-            case eEffect:{
-                if (!spref->animation_playing) {
-                    spref->mark_for_removal = true;
-                }
-            }break;
-            
-            case eDFireball:{
-                eDFireball_update(spref, istate, dt);
-            }break;
-            
-            case eGhost:{
-                eGhost_update(spref, istate,dt);
-            }break;
-            
-            default:
-            break;
+        if (g_scene.paused_for_key_animation) {
+            scene_key_animation(dt);
+        } else {
+            spref->update_animation(dt);
+            switch(spref->entity.type) {
+                case ePlayer:{
+                    ePlayer_update(spref, istate, dt);
+                }break;
+                
+                case eGoblin:{
+                    eGoblin_update(spref, istate, dt);
+                } break;
+                
+                case eEffect:{
+                    if (!spref->animation_playing) {
+                        spref->mark_for_removal = true;
+                    }
+                }break;
+                
+                case eDFireball:{
+                    eDFireball_update(spref, istate, dt);
+                }break;
+                
+                case eGhost:{
+                    eGhost_update(spref, istate,dt);
+                }break;
+                
+                default:
+                break;
+            }
         }
 #ifndef NDEBUG
         // Draw the Bounding box sprite

@@ -200,6 +200,7 @@ struct Map{
 global struct {
     Map loaded_map;
     b32 playing = false;
+    b32 paused_for_key_animation = false;
     int startup_state = 0;
 } g_scene;
 
@@ -327,7 +328,7 @@ inline internal Sprite make_key(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(Key),
         .size = {64,64},
         .position = position,
-        .rotation = 45.f,
+        .rotation = 0.f,
         .collision_box = {0,0,64,64},
         .mirror = {false, false},
         
@@ -336,7 +337,7 @@ inline internal Sprite make_key(fvec2 position) {
         .animation_set = GET_CHAR_ANIMSET(Key),
         
         .entity = {
-            EntityBaseType_Count,
+            eKey,
             {u64(0.f),u64(0.f)}
         }
     };

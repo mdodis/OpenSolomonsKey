@@ -341,7 +341,7 @@ should't be eEmptySpace
                     ? aabb.min_x - (forward_tile.x + 1) * 64.f
                     : FLT_MAX;
                 
-                printf("2 is %f 4 is %f\n", col2, col4);
+                //printf("2 is %f 4 is %f\n", col2, col4);
                 
                 // NOTE(miked): when the fireball is spawned right next
                 // to a tile it could attach, it's basically already inside the
@@ -357,7 +357,7 @@ should't be eEmptySpace
                 
                 if (comp <= proximity_thresh) {
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
-                    printf("DO\n");
+                    //printf("DO\n");
                     goto END_ROT;
                 }
             }

@@ -267,5 +267,8 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     if (GET_KEYPRESS(restart)) {
         startup_animation_reset();
         load_map(&g_scene.loaded_map, "lvl1.osk");
+    } else if (GET_KEYPRESS(space_pressed)) {
+        key_anim_time = 0.f;
+        g_scene.paused_for_key_animation = true;
     }
 }
