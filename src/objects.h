@@ -194,6 +194,7 @@ struct Map{
     List_Sprite pickups;
     
     ivec2 exit_location;
+    ivec2 key_location;
 };
 
 global struct {

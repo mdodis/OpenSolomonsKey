@@ -90,8 +90,8 @@ DEF_CHARACTER(StarRing,    tmstar_ring,  1,                                     
 DEF_ANIM(StarRing,     Default, .1f,      {0,0}, 3,      true )   \
 )                                                                 \
 DEF_CHARACTER(Door,        TM_essentials,2,                                     \
-DEF_ANIM(Door,         Close,   .2f,      {0,2}, 5,      false)   \
-DEF_ANIM(Door,         Open,    .2f,      {0,3}, 5,      false)   \
+DEF_ANIM(Door,         Close,   .1f,      {0,2}, 5,      false)   \
+DEF_ANIM(Door,         Open,    .1f,      {0,3}, 5,      false)   \
 )                                                                 \
 DEF_CHARACTER(Key,         TM_essentials,1,                                     \
 DEF_ANIM(Key,          Default,  .1f,     {0,4}, 1,      false)   \

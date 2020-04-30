@@ -2,9 +2,7 @@
 TODO:
 - eBlockFrail needs to have a health parameter
 - Player score and effect when pickup
-- essentials.png: add key
 - finish startup
-- fireball will go through a block if u stand too close!
 - add animation of the key for the door (pause whole scene sim probably)
 
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12

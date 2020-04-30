@@ -27,6 +27,8 @@ inline void _exit_with_message(char* message)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg "\n\t" #expr)
 #endif
 
+#define ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
+
 #if defined(OSK_PLATFORM_WIN32)
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", __VA_ARGS__)

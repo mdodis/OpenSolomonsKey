@@ -96,7 +96,9 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
 }
 
 internal bool load_map(Map *const map, const char *path) {
-    const char *const loader_version = "V0.2";
+    constexpr char * loader_version = "V0.2";
+    bool level_validity[] = {false, false};
+    
     char *data = platform_load_entire_file(path);
     char *c = data;
     // if no path is given use map's name for reloading
@@ -157,7 +159,11 @@ internal bool load_map(Map *const map, const char *path) {
                 } else {
                     
                     if (res == eDoor) {
+                        level_validity[0] = true;
                         map->exit_location = ivec2{i32(counter_x), i32(counter_y)};
+                    } else if (res == eKey) {
+                        level_validity[1] = true;
+                        map->key_location = ivec2{i32(counter_x), i32(counter_y)};
                     }
                     
                     Sprite sprite_to_make;
@@ -206,6 +212,11 @@ internal bool load_map(Map *const map, const char *path) {
             } break;
         }
     }
+    
+    for (int i = 0; i < ARRAY_COUNT(level_validity); i += 1) {
+        fail_unless(level_validity[i], "Level invalid");
+    }
+    
     
     free(data);
     return true;
@@ -324,8 +335,8 @@ internal void scene_startup_animation(float dt) {
     Sprite *door = scene_get_first_sprite(eDoor);
     
     // placeholder
-    const fvec2 DOOR = {64 * 6, 0};
-    const fvec2 KEY = {64 * 8, 64 * 6};
+    const fvec2 DOOR = tile_to_position(g_scene.loaded_map.exit_location);
+    const fvec2 KEY = tile_to_position(g_scene.loaded_map.key_location);
     
     if (GET_KEYPRESS(space_pressed)) {
         g_scene.startup_state = 4;
@@ -361,7 +372,7 @@ internal void scene_startup_animation(float dt) {
         case STATE_SHOW_PLAYER: {
             
             if (startup_anim_time < anim_dur) {
-                ring->position = lerp2(DOOR, player->position, (startup_anim_time/anim_dur));
+                ring->position = lerp2(KEY, player->position, (startup_anim_time/anim_dur));
                 startup_anim_time = fclamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
                 g_scene.startup_state = 4;
@@ -371,8 +382,10 @@ internal void scene_startup_animation(float dt) {
             
             if (startup_anim_time < anim_dur) {
                 ring->update_animation(dt);
-                float radius = ((anim_dur - startup_anim_time) / anim_dur) * 128.f;
-                radius = MAX(radius, 32.f);
+                
+                float progress = (anim_dur - startup_anim_time + anim_dur/4.f) / anim_dur;
+                float radius = (progress) * 128.f;
+                radius = MAX(radius, 44.f);
                 float phase = ((anim_dur - startup_anim_time) / anim_dur) * 90.f;
                 
                 for (int i = 0; i < 16; ++i) {
@@ -384,6 +397,8 @@ internal void scene_startup_animation(float dt) {
                     
                     draw(&tmp);
                 }
+                
+                draw(door);
             }
             
         } break;
