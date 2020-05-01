@@ -27,6 +27,15 @@ inline void _exit_with_message(char* message)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg "\n\t" #expr)
 #endif
 
+void exit_error(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    fprintf(stderr, "[ERROR]: ");
+    vfprintf(stderr, fmt, args);
+    fprintf(stderr, "\n");
+    exit(128);
+}
+
 #define ARRAY_COUNT(x) (sizeof(x)/sizeof(x[0]))
 
 #if defined(OSK_PLATFORM_WIN32)

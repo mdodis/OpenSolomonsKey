@@ -82,9 +82,9 @@ void Sprite::move_and_collide(float dt,
                     if ( i != 1 || j != 0 || !damage_tiles) continue;
                     
                     ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
-                    if ((EntityBaseType)scene_get_tile(current_tile) == eBlockFrail)
-                    {
-                        scene_set_tile(current_tile, eEmptySpace);
+                    if (is_frail_block(scene_get_tile(current_tile))) {
+                        
+                        scene_hit_frail_block(current_tile);
                     }
                     
                 }
@@ -174,7 +174,7 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     }
     
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
-    if (type == eBlockFrail) {
+    if (is_frail_block(type)) {
         scene_set_tile(target_tile, eEmptySpace);
     } else if (type == eEmptySpace) {
         scene_set_tile(target_tile, eBlockFrail);

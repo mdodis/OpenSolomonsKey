@@ -1,10 +1,12 @@
 /*
 TODO:
-- eBlockFrail needs to have a health parameter
+-> eBlockFrail needs to have a health parameter
+
+
+
 - Player score and effect when pickup
 - finish startup
 - add animation of the key for the door (pause whole scene sim probably)
-
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
 - Background selection from .osk format

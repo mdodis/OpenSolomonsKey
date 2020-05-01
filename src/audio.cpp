@@ -3,7 +3,6 @@
 /*
 NOTE: Using wave file format with 48000Hz sample-rate,
 2 channels, 16b/sample, anything other than that will break it
-
 NOTE: Thank you casey!
 */
 #pragma pack(push, 1)

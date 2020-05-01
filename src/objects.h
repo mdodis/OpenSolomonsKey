@@ -13,16 +13,17 @@ union CustomParameter {
 */
 
 enum EntityBaseType {
-    eEmptySpace,
-    eBlockFrail,
-    eBlockSolid,
-    ePlayerSpawnPoint,
+    eEmptySpace = 0,
+    eBlockFrail = 1,
+    eBlockFrailHalf = 2,
+    eBlockSolid = 3,
+    ePlayerSpawnPoint = 4,
     
-    ePlayer,
-    eGoblin,
-    eGhost,
-    eDoor,
-    eKey,
+    ePlayer = 5,
+    eGoblin = 6,
+    eGhost = 7,
+    eDoor = 8,
+    eKey = 9,
     
     ePickup,
     eEffect,

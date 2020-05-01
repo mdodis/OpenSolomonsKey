@@ -37,7 +37,8 @@ res
 .vscode
 *.wav
 *.ogg
-
+*.sln
 glm
 incl
 *pdb
+.vs

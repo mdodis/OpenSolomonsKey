@@ -97,7 +97,11 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
 
 internal bool load_map(Map *const map, const char *path) {
     constexpr char * loader_version = "V0.2";
-    bool level_validity[] = {false, false};
+    bool level_validity[] = {
+        false,  // Door exists
+        false,  // Key exists
+        false   // Player exists
+    };
     
     char *data = platform_load_entire_file(path);
     char *c = data;
@@ -176,6 +180,7 @@ internal bool load_map(Map *const map, const char *path) {
                         }break;
                         
                         case ePlayerSpawnPoint:{
+                            level_validity[2] = true;
                             sprite_to_make = make_player(sprite_initial_pos);
                         }break;
                         
@@ -251,6 +256,7 @@ scene_draw_tilemap() {
             
             if (type == eEmptySpace) continue;
             else if (type == eBlockFrail) id = 0 * 5 + 0;
+            else if (type == eBlockFrailHalf) id = 0 * 5 + 4;
             else if (type == eBlockSolid) id = 1 * 5 + 0;
             else continue;
             
@@ -276,6 +282,22 @@ internal Sprite* scene_get_first_sprite(EntityBaseType type) {
     }
     return 0;
     
+}
+
+inline internal bool is_frail_block(EntityBaseType type) {
+    return (type == eBlockFrail || type == eBlockFrailHalf);
+}
+
+
+// Decreases block's health properly
+inline internal void scene_hit_frail_block(ivec2 tile) {
+    EntityBaseType type = scene_get_tile(tile);
+    
+    if (type == eBlockFrail) scene_set_tile(tile, eBlockFrailHalf);
+    else if (type == eBlockFrailHalf) scene_set_tile(tile, eEmptySpace);
+    else {
+        exit_error("scene_hit_frail_block only takes eBlockFrail\\Half");
+    }
 }
 
 // Returns first view-blocking tile in search direction specified
