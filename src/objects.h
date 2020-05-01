@@ -306,13 +306,13 @@ inline internal Sprite make_dfireball(fvec2 position)
 inline internal Sprite make_starring(fvec2 position) {
     Sprite res =
     {
-        .tilemap = &GET_CHAR_TILEMAP(StarRing),
+        .tilemap = &GET_CHAR_TILEMAP(Effect),
         .size = {64,64},
         .position = position,
         .collision_box = {0,0,64,64},
         .mirror = {false, false},
-        .current_animation = 0,
-        .animation_set = GET_CHAR_ANIMSET(StarRing),
+        .current_animation = GET_CHAR_ANIMENUM(Effect, Star),
+        .animation_set = GET_CHAR_ANIMSET(Effect),
         .entity = {
             EntityBaseType_Count,
             {u64(0.f),u64(0.f)}

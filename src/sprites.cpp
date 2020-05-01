@@ -121,8 +121,7 @@ void Sprite::move_and_collide(float dt,
     this->collide_aabb(&bound_left);
     
 #ifndef NDEBUG
-    gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(TM_essentials),
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_bottom.min_x, bound_bottom.min_y},
                          {bound_bottom.max_x, bound_bottom.max_y},
                          0.f,
@@ -130,8 +129,7 @@ void Sprite::move_and_collide(float dt,
                          false, false,
                          NRGBA{0,1,1,.7f});
     
-    gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(TM_essentials),
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_right.min_x, bound_right.min_y},
                          {bound_right.max_x, bound_right.max_y},
                          0.f,
@@ -139,8 +137,7 @@ void Sprite::move_and_collide(float dt,
                          false, false,
                          NRGBA{0,1,1,.7f});
     
-    gl_slow_tilemap_draw(
-                         &GET_TILEMAP_TEXTURE(TM_essentials),
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                          {bound_left.min_x + 32, bound_left.min_y},
                          {bound_left.max_x + 32, bound_left.max_y},
                          0.f,
@@ -182,9 +179,8 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     
     SET_ANIMATION(player, test_player, Cast);
     
-    // TODO(miked): use the actual effect (smoke is not the correct one)
-    Sprite smoke_thingy = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Smoke));
-    scene_sprite_add(&smoke_thingy);
+    Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
+    scene_sprite_add(&flash);
 }
 
 

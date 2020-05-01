@@ -22,12 +22,11 @@ DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    
 DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
 DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
-DEF_TILEMAP(tmdana_fire        ,"res/effects/dana_fireball/fire.png"      ,3    ,1  )\
-DEF_TILEMAP(tmsmoke            ,"res/effects/smoke.png"                   ,1    ,4  )\
+DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    ,1  )\
+DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,3    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(background         ,"res/bg_room0.png"                        ,1    ,1  )\
-DEF_TILEMAP(tmstar_ring        ,"res/effects/rotate_star_all.png"         ,1    ,3  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,2    ,9  )\
 
 struct RESTilemap
@@ -83,11 +82,10 @@ DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \
 DEF_ANIM(DFireball,    Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Effect,      tmsmoke,      1,                                     \
-DEF_ANIM(Effect,       Smoke, .1f,        {0,0}, 4,      false)   \
-)                                                                 \
-DEF_CHARACTER(StarRing,    tmstar_ring,  1,                                     \
-DEF_ANIM(StarRing,     Default, .1f,      {0,0}, 3,      true )   \
+DEF_CHARACTER(Effect,      TM_effects,   3,                                     \
+DEF_ANIM(Effect,       Smoke,   .1f,      {0,0}, 4,      false)   \
+DEF_ANIM(Effect,       Star,    .1f,      {0,1}, 3,      true )   \
+DEF_ANIM(Effect,       Flash,   .1f,      {0,2}, 2,      false)   \
 )                                                                 \
 DEF_CHARACTER(Door,        TM_essentials,2,                                     \
 DEF_ANIM(Door,         Close,   .1f,      {0,2}, 5,      false)   \
