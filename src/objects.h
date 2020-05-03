@@ -22,10 +22,13 @@ enum EntityBaseType {
     ePlayer = 5,
     eGoblin = 6,
     eGhost = 7,
+    
     eDoor = 8,
     eKey = 9,
+    ePickup = 10,
     
-    ePickup,
+    eBlueFlame,
+    
     eEffect,
     eDFireball,
     EntityBaseType_Count,
@@ -367,7 +370,46 @@ inline internal Sprite make_pickup(fvec2 position, u64 type) {
     return res;
 }
 
-internal char* goblin_parse_custom(Sprite* goblin, char* c) {
+inline internal Sprite make_blueflame(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(BlueFlame),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {16, 0, 32, 64},
+        .animation_playing = true,
+        .current_animation = GET_CHAR_ANIMENUM(BlueFlame, Normal),
+        .animation_set = GET_CHAR_ANIMSET(BlueFlame),
+        .entity = {
+            eBlueFlame,
+            {0, 0}
+        }
+    };
+    
+    result.entity.params[0].as_f64 = +1.0;
+    result.entity.params[1].as_f64 = -FLT_MAX;
+    
+    return result;
+}
+
+internal char *parse_double(char *c, double *d) {
+    char *end;
+    *d = strtod(c, &end);
+    return end;
+}
+
+internal char* eBlueFlame_parse(Sprite *flame, char *c) {
+    if (*c == ',') {
+        c++;
+        double dur;
+        c = parse_double(c, &dur);
+        
+        flame->entity.params[0].as_f64 = dur;
+    }
+    
+    return c;
+}
+
+internal char* eGoblin_parse(Sprite* goblin, char* c) {
     if (*c == ',') {
         c++;
         // parse initial direction

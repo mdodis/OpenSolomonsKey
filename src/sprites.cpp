@@ -171,16 +171,31 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     }
     
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
+    bool should_spawn_flash_effect = true;
+    
     if (is_frail_block(type)) {
         scene_set_tile(target_tile, eEmptySpace);
+        
     } else if (type == eEmptySpace) {
-        scene_set_tile(target_tile, eBlockFrail);
+        
+        Sprite *blue_flame;
+        blue_flame = scene_find_first_sprite_on_tile(eBlueFlame, target_tile);
+        if (blue_flame) {
+            
+            eBlueFlame_cast(blue_flame);
+            should_spawn_flash_effect = false;
+        } else {
+            scene_set_tile(target_tile, eBlockFrail);
+        }
+        
     }
     
     SET_ANIMATION(player, test_player, Cast);
     
-    Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
-    scene_sprite_add(&flash);
+    if (should_spawn_flash_effect) {
+        Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
+        scene_sprite_add(&flash);
+    }
 }
 
 
@@ -715,25 +730,6 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     
 }
 
-
-internal void eStarRing_update(Sprite* spref, InputState* istate, float dt) {
-    double &radius = spref->entity.params[0].as_f64;
-    
-    const Sprite *const player = scene_get_first_sprite(ePlayer);
-    static const fvec2 initial_pos = spref->position;
-    static float time = 0.f;
-    
-    time = fclamp(0.f, 1.f, time + dt * 1.f);
-    
-    radius = 135.f - 128.f * time + 64.f;
-    spref->rotation += dt * 1.f;
-    
-    
-    spref->position.x = lerp(initial_pos.x, player->position.x, time);
-    spref->position.y = lerp(initial_pos.y, player->position.y, time);
-}
-
-
 // eGhost
 internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
     const float ghost_turn_offset_amount = 64;
@@ -775,6 +771,33 @@ internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
             scene_set_tile(ctile, eEmptySpace);
             ghost->mirror.x = !ghost->mirror.x;
             SET_ANIMATION(ghost, Ghost, Fly);
+        }
+    }
+}
+
+internal void eBlueFlame_cast(Sprite* flame) {
+    const double &flame_tame_dur   = flame->entity.params[0].as_f64;
+    double &flame_tame_timer       = flame->entity.params[1].as_f64;
+    
+    flame_tame_timer = 0;
+    if (flame->current_animation == GET_CHAR_ANIMENUM(BlueFlame, Normal)) {
+        SET_ANIMATION(flame, BlueFlame, Tame);
+    }
+}
+
+// eBlueFlame
+internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
+    const double &flame_tame_dur   = flame->entity.params[0].as_f64;
+    double &flame_tame_timer       = flame->entity.params[1].as_f64;
+    
+    if (flame_tame_timer != -FLT_MAX) {
+        
+        flame_tame_timer += dt;
+        
+        if (flame_tame_timer >= flame_tame_dur) {
+            // revert
+            flame_tame_timer = -FLT_MAX;
+            SET_ANIMATION(flame, BlueFlame, Normal);
         }
     }
 }

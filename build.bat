@@ -3,9 +3,10 @@
 
 if not exist build mkdir build
 
+REM NDEBUG to disable drawing collisions
 
 set incl=%cd%\incl
-set opts= -GR- -EHsc -nologo -Zi -Od -std:c++latest -I"%incl%" -DNDEBUG
+set opts= -GR- -EHsc -nologo -Zi -Od -std:c++latest -I"%incl%"
 set debug=-Od -MTd
 set release=-O2 -MT
 set code=%cd%\src

@@ -21,6 +21,7 @@ tilemaps.
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
 DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
+DEF_TILEMAP(TM_blueflame       ,"res/characters/blue_flame.png"           ,2    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
 DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    ,1  )\
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,4    ,4  )\
@@ -74,7 +75,11 @@ DEF_ANIM(Goblin,       Fall,    .1f,      {0,3}, 2,      true )   \
 DEF_CHARACTER(Ghost,       tmghost,      2,                                     \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Ghost,        Fly,     .1f,      {0,0}, 3,      true )   \
-DEF_ANIM(Ghost,        Punch ,  .1f,      {0,1}, 3,      false)   \
+DEF_ANIM(Ghost,        Punch,   .1f,      {0,1}, 3,      false)   \
+)                                                                 \
+DEF_CHARACTER(BlueFlame,   TM_blueflame, 2,                                     \
+DEF_ANIM(BlueFlame,    Normal,  .1f,      {0,0}, 7,      true)    \
+DEF_ANIM(BlueFlame,    Tame,    .1f,      {0,1}, 4,      true)    \
 )                                                                 \
 DEF_CHARACTER(DFireball,   tmdana_fire,  3,                                     \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \

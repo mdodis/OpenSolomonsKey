@@ -176,7 +176,7 @@ internal bool load_map(Map *const map, const char *path) {
                     switch((EntityBaseType)res) {
                         case eGoblin:{
                             sprite_to_make = make_goblin(sprite_initial_pos);
-                            c = goblin_parse_custom(&sprite_to_make, c);
+                            c = eGoblin_parse(&sprite_to_make, c);
                         }break;
                         
                         case ePlayerSpawnPoint:{
@@ -194,6 +194,11 @@ internal bool load_map(Map *const map, const char *path) {
                         
                         case eKey: {
                             sprite_to_make = make_key(sprite_initial_pos);
+                        }break;
+                        
+                        case eBlueFlame: {
+                            sprite_to_make = make_blueflame(sprite_initial_pos);
+                            c = eBlueFlame_parse(&sprite_to_make, c);
                         }break;
                         
                         default:{
@@ -284,6 +289,40 @@ internal Sprite* scene_get_first_sprite(EntityBaseType type) {
     
 }
 
+internal Sprite *scene_find_nthsprite(EntityBaseType type, int *n) {
+    for (i32 i = *n; i < g_scene.loaded_map.sprites.size(); i += 1) {
+        Sprite* spref = &g_scene.loaded_map.sprites[i];
+        
+        if (spref->entity.type == type) {
+            *n = i;
+            return spref;
+        }
+    }
+    
+    *n = -1;
+    return 0;
+}
+
+internal Sprite *scene_find_first_sprite_on_tile(EntityBaseType type, ivec2 tile) {
+    int n = 0;
+    
+    do {
+        Sprite *next = scene_find_nthsprite(type, &n);
+        
+        if (next) {
+            ivec2 tpos = map_position_to_tile_centered(next->position);
+            if (tpos == tile) {
+                return next;
+            }
+            n++;
+        }
+        
+    } while(n != -1);
+    
+    return 0;
+}
+
+
 inline internal bool is_frail_block(EntityBaseType type) {
     return (type == eBlockFrail || type == eBlockFrailHalf);
 }
@@ -321,13 +360,6 @@ internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile) {
 internal List_Sprite &scene_get_pickup_list() {
     return g_scene.loaded_map.pickups;
 }
-
-
-internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
-internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
-internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
-internal void eStarRing_update(Sprite* spref, InputState* istate, float dt);
-internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
 
 global float startup_anim_time = 0.f;
 internal void startup_animation_reset() {
@@ -486,6 +518,15 @@ internal void scene_key_animation(float dt) {
     
 }
 
+
+
+internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
+internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
+internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
+internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
+internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void eBlueFlame_cast(Sprite* flame);
+
 internal void
 scene_update(InputState* istate, float dt) {
     
@@ -551,6 +592,10 @@ scene_update(InputState* istate, float dt) {
                 
                 case eGhost:{
                     eGhost_update(spref, istate,dt);
+                }break;
+                
+                case eBlueFlame: {
+                    eBlueFlame_update(spref, istate,dt);
                 }break;
                 
                 default:
