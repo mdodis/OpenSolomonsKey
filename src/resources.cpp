@@ -19,10 +19,10 @@ tilemaps.
 #define ALL_TILEMAPS \
 /*          NAME               PATH IN FOLDER                             rows cols*/\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
-DEF_TILEMAP(dana               ,"res/characters/dana/dana_all.png"        ,4    ,6  )\
-DEF_TILEMAP(tmgoblin           ,"res/characters/goblin/goblin_all.png"    ,4    ,7  )\
-DEF_TILEMAP(TM_blueflame       ,"res/characters/blue_flame.png"           ,2    ,7  )\
-DEF_TILEMAP(tmghost            ,"res/characters/ghost/ghost_all.png"      ,2    ,3  )\
+DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,4    ,6  )\
+DEF_TILEMAP(tmgoblin           ,"res/goblin_all.png"                      ,4    ,7  )\
+DEF_TILEMAP(TM_blueflame       ,"res/blue_flame.png"                      ,2    ,7  )\
+DEF_TILEMAP(tmghost            ,"res/ghost_all.png"                       ,2    ,3  )\
 DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    ,1  )\
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,4    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
