@@ -806,6 +806,10 @@ internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
     pickup->mark_for_removal = true;
+    PickupType type = (PickupType)pickup->entity.params[0].as_u64;
+    long score_to_add = get_pickup_worth(type);
+    
+    g_scene.player_score += score_to_add;
     
     Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
     scene_sprite_add(&flash2);

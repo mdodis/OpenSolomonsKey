@@ -260,7 +260,7 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
                   sinf(text_1p_t) * 0.5f + cosf(text_1p_t) * 0.5f + 1,1});
     
     draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
-    draw_num(1000, 1, 15 , false, 32, true);
+    draw_num(g_scene.player_score, 1, 15 , false, 32, true);
     
     if (GET_KEYPRESS(restart)) {
         startup_animation_reset();

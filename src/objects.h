@@ -59,8 +59,60 @@ enum PickupType {
     Count
 };
 
+
 internal bool pickup_type_is_valid(PickupType type) {
     return(type >= 0 && type < PickupType::Count && type != PickupType::Invalid);
+}
+
+internal long get_pickup_worth(PickupType type) {
+    assert(pickup_type_is_valid(type));
+    
+    switch(type) {
+        case Bag100:
+        case Jewel100: {
+            return 100;
+        }break;
+        
+        case Bag200:
+        case Jewel200: {
+            return 200;
+        }break;
+        
+        case Bag500:
+        case Jewel500: {
+            return 500;
+        }break;
+        
+        case Bag1000:
+        case Jewel1000: {
+            return 1000;
+        }break;
+        
+        case Bag2000:
+        case Jewel2000: {
+            return 2000;
+        }break;
+        
+        case Bag5000:
+        case Jewel5000: {
+            return 5000;
+        }break;
+        
+        case Bag10000:
+        case Jewel10000: {
+            return 10000;
+        }break;
+        
+        case Bag20000:
+        case Jewel20000: {
+            return 20000;
+        }break;
+        case Jewel50000: {
+            return 50000;
+        }break;
+    }
+    assert(0);
+    return -1;
 }
 
 inline bool tile_is_empty(EntityBaseType type) {
@@ -235,6 +287,8 @@ global struct {
     b32 playing = false;
     b32 paused_for_key_animation = false;
     int startup_state = 0;
+    
+    long player_score = 0;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
