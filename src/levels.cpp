@@ -201,6 +201,11 @@ internal bool load_map(Map *const map, const char *path) {
                             c = eBlueFlame_parse(&sprite_to_make, c);
                         }break;
                         
+                        case ePickup: {
+                            sprite_to_make = make_pickup(sprite_initial_pos, 0);
+                            c = ePickup_parse(&sprite_to_make, c);
+                        }break;
+                        
                         default:{
                             error("sprite type not available for make_");
                             exit(0);
@@ -526,12 +531,13 @@ internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
 internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt);
 internal void eBlueFlame_cast(Sprite* flame);
+internal void player_pickup(Sprite *player, Sprite *pickup);
 
 internal void
 scene_update(InputState* istate, float dt) {
     
     for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
-        draw(&g_scene.loaded_map.pickups[i]);
+        draw_pickup(&g_scene.loaded_map.pickups[i]);
     }
     scene_draw_tilemap();
     
@@ -612,7 +618,7 @@ scene_update(InputState* istate, float dt) {
                              false, false,
                              NRGBA{1.f, 0, 1.f, 0.7f});
 #endif
-        
         draw(&l[i]);
     }
 }
+

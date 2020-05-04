@@ -34,6 +34,35 @@ enum EntityBaseType {
     EntityBaseType_Count,
 };
 
+enum PickupType {
+    Bag100,
+    Bag200,
+    Bag500,
+    Bag1000,
+    Bag2000,
+    Bag5000,
+    Bag10000,
+    Bag20000,
+    // NOTE(miked): watch out for this!
+    Invalid,
+    // -------------------------------
+    Jewel100,
+    Jewel200,
+    Jewel500,
+    Jewel1000,
+    Jewel2000,
+    Jewel5000,
+    Jewel10000,
+    Jewel20000,
+    Jewel50000,
+    
+    Count
+};
+
+internal bool pickup_type_is_valid(PickupType type) {
+    return(type >= 0 && type < PickupType::Count && type != PickupType::Invalid);
+}
+
 inline bool tile_is_empty(EntityBaseType type) {
     if (type == eDoor || type == eEmptySpace) return true;
     
@@ -397,6 +426,12 @@ internal char *parse_double(char *c, double *d) {
     return end;
 }
 
+internal char *parse_long(char *c, long *d) {
+    char *end;
+    *d = strtol(c, &end, 10);
+    return end;
+}
+
 internal char* eBlueFlame_parse(Sprite *flame, char *c) {
     if (*c == ',') {
         c++;
@@ -423,6 +458,19 @@ internal char* eGoblin_parse(Sprite* goblin, char* c) {
     return c;
 }
 
+internal char *ePickup_parse(Sprite* pickup, char* c) {
+    if (*c == ',') {
+        c++;
+        long type;
+        c = parse_long(c, &type);
+        
+        if (pickup_type_is_valid((PickupType)type)) {
+            pickup->entity.params[0].as_u64 = type;
+        }
+        
+    }
+    return c;
+}
 
 internal void
 draw(Sprite const * sprite)
@@ -438,11 +486,23 @@ draw(Sprite const * sprite)
     }
     
     
-    gl_slow_tilemap_draw(
-                         sprite->tilemap,
+    gl_slow_tilemap_draw(sprite->tilemap,
                          {(float)sprite->position.x, (float)sprite->position.y},
                          {(float)sprite->size.x, (float)sprite->size.y},
                          sprite->rotation,
                          frame_to_render,
+                         sprite->mirror.x, sprite->mirror.y);
+}
+
+internal void
+draw_pickup(Sprite const *sprite) {
+    assert(sprite->tilemap);
+    
+    
+    gl_slow_tilemap_draw(sprite->tilemap,
+                         {(float)sprite->position.x, (float)sprite->position.y},
+                         {(float)sprite->size.x, (float)sprite->size.y},
+                         sprite->rotation,
+                         sprite->entity.params[0].as_u64,
                          sprite->mirror.x, sprite->mirror.y);
 }

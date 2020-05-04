@@ -490,7 +490,8 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
         for (Sprite &s : pickups) {
             AABox *s_box = &s.get_transformed_AABox();
             if (intersect(player_box, s_box)) {
-                s.mark_for_removal = true;
+                player_pickup(player, &s);
+                
             }
         }
     }
@@ -800,4 +801,12 @@ internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
             SET_ANIMATION(flame, BlueFlame, Normal);
         }
     }
+}
+
+internal void player_pickup(Sprite *player, Sprite *pickup) {
+    
+    pickup->mark_for_removal = true;
+    
+    Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
+    scene_sprite_add(&flash2);
 }
