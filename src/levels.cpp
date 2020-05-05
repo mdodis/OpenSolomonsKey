@@ -12,7 +12,7 @@ eBlocks + eEmptySpace
 internal Sprite *map_add(Map *map, Sprite *sprite) {
     fail_unless(sprite, "Passing null sprite to map_add");
     
-    if (sprite->entity.type == ePickup) {
+    if (sprite->entity.type == ePickup || sprite->entity.type == eBell) {
         map->pickups.push_back(*sprite);
         //inform("Added pickup!");
         return &map->pickups.back();
@@ -26,7 +26,7 @@ internal Sprite *scene_sprite_add(Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
     
-    if (sprite->entity.type == ePickup) {
+    if (sprite->entity.type == ePickup || sprite->entity.type == eBell) {
         g_scene.loaded_map.pickups.push_back(*sprite);
         return &g_scene.loaded_map.pickups.back();
     } else {
@@ -204,6 +204,11 @@ internal bool load_map(Map *const map, const char *path) {
                         case ePickup: {
                             sprite_to_make = make_pickup(sprite_initial_pos, 0);
                             c = ePickup_parse(&sprite_to_make, c);
+                        }break;
+                        
+                        case eBell: {
+                            sprite_to_make = make_bell(sprite_initial_pos, 0);
+                            c = eBell_parse(&sprite_to_make, c);
                         }break;
                         
                         default:{

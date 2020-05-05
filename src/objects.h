@@ -28,6 +28,7 @@ enum EntityBaseType {
     ePickup = 10,
     
     eBlueFlame,
+    eBell,
     
     eEffect,
     eDFireball,
@@ -441,7 +442,7 @@ inline internal Sprite make_pickup(fvec2 position, u64 type) {
         .tilemap = &GET_TILEMAP_TEXTURE(TM_pickups),
         .size = {64,64},
         .position = position,
-        .collision_box = {10,10,54,54},
+        .collision_box = {0,0,64,64},
         .mirror = {false, false},
         .animation_playing = false,
         .current_animation = 0,
@@ -472,6 +473,25 @@ inline internal Sprite make_blueflame(fvec2 position) {
     
     result.entity.params[0].as_f64 = +1.0;
     result.entity.params[1].as_f64 = -FLT_MAX;
+    
+    return result;
+}
+
+inline internal Sprite make_bell(fvec2 position, u64 type) {
+    Sprite result = {
+        .tilemap = &GET_TILEMAP_TEXTURE(TM_essentials),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        .animation_playing = false,
+        .current_animation = 0,
+        .animation_set = 0,
+        .entity = {
+            eBell,
+            {type, 0}
+        }
+    };
     
     return result;
 }
@@ -528,6 +548,19 @@ internal char *ePickup_parse(Sprite* pickup, char* c) {
     return c;
 }
 
+internal char *eBell_parse(Sprite *bell, char *c) {
+    if (*c == ',') {
+        c++;
+        long type;
+        c = parse_long(c, &type);
+        
+        if (type == 0 || type == 1)
+            bell->entity.params[0].as_u64 = type;
+        
+    }
+    return c;
+}
+
 internal void
 draw(Sprite const * sprite)
 {
@@ -554,11 +587,16 @@ internal void
 draw_pickup(Sprite const *sprite) {
     assert(sprite->tilemap);
     
+    u64 index_to_draw;
+    if (sprite->entity.type == ePickup)
+        index_to_draw = sprite->entity.params[0].as_u64;
+    else // eBell
+        index_to_draw = sprite->entity.params[0].as_u64 + (4 * 5 + 3);
     
     gl_slow_tilemap_draw(sprite->tilemap,
                          {(float)sprite->position.x, (float)sprite->position.y},
                          {(float)sprite->size.x, (float)sprite->size.y},
                          sprite->rotation,
-                         sprite->entity.params[0].as_u64,
+                         index_to_draw,
                          sprite->mirror.x, sprite->mirror.y);
 }

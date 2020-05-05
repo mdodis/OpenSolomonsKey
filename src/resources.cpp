@@ -98,9 +98,8 @@ DEF_ANIM(Door,         Close,   .1f,      {0,2}, 5,      false)   \
 DEF_ANIM(Door,         Open,    .1f,      {0,3}, 5,      false)   \
 )                                                                 \
 DEF_CHARACTER(Key,         TM_essentials,1,                                     \
-DEF_ANIM(Key,          Default,  .1f,     {0,4}, 1,      false)   \
+DEF_ANIM(Key,          Default, .1f,     {0,4}, 1,      false)    \
 )                                                                 \
-
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \
