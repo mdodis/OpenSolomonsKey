@@ -20,6 +20,7 @@ tilemaps.
 /*          NAME               PATH IN FOLDER                             rows cols*/\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,4    ,6  )\
+DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
 DEF_TILEMAP(tmgoblin           ,"res/goblin_all.png"                      ,4    ,7  )\
 DEF_TILEMAP(TM_blueflame       ,"res/blue_flame.png"                      ,2    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/ghost_all.png"                       ,2    ,3  )\
@@ -98,8 +99,12 @@ DEF_ANIM(Door,         Close,   .1f,      {0,2}, 5,      false)   \
 DEF_ANIM(Door,         Open,    .1f,      {0,3}, 5,      false)   \
 )                                                                 \
 DEF_CHARACTER(Key,         TM_essentials,1,                                     \
-DEF_ANIM(Key,          Default, .1f,     {0,4}, 1,      false)    \
+DEF_ANIM(Key,          Default, .1f,      {0,4}, 1,      false)   \
 )                                                                 \
+DEF_CHARACTER(Fairie,      TM_fairies,   1,                                     \
+DEF_ANIM(Fairie,       Default, .1f,      {0,0}, 1,      true )   \
+)                                                                 \
+
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \

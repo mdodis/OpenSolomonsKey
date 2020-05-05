@@ -30,6 +30,7 @@ enum EntityBaseType {
     eBlueFlame,
     eBell,
     
+    eFairie,
     eEffect,
     eDFireball,
     EntityBaseType_Count,
@@ -410,6 +411,24 @@ inline internal Sprite make_starring(fvec2 position) {
     
     return res;
     
+}
+
+inline internal Sprite make_fairie(fvec2 position, u64 type) {
+    Sprite res = {
+        .tilemap = &GET_CHAR_TILEMAP(Fairie),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        .current_animation = GET_CHAR_ANIMENUM(Fairie, Default),
+        .animation_set = GET_CHAR_ANIMSET(Fairie),
+        .entity = {
+            eFairie,
+            {0,0}
+        }
+    };
+    
+    return res;
 }
 
 inline internal Sprite make_key(fvec2 position) {

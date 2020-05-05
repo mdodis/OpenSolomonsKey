@@ -803,14 +803,60 @@ internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
     }
 }
 
+internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
+    double &time_passed = fairie->entity.params[1].as_f64;
+    
+    // get player location
+    Sprite *player = scene_get_first_sprite(ePlayer);
+    if (!player) return;
+    
+    fvec2 f_to_player = normalize(fairie->position - player->position) * sinf(time_passed);
+    
+    fairie->position.x += (100.f * dt * f_to_player.x);
+    fairie->position.y += (100.f * dt * f_to_player.y);
+    
+    fvec2 ipos = {fairie->position.x, fairie->position.y};
+    ivec2 start_tile = map_position_to_tile_centered(ipos) - 1;
+    
+    for (i32 j = 0; j < 3; ++j) {
+        for (i32 i = 0; i < 3; ++i) {
+            if (scene_tile_empty(ivec2{start_tile.x + i,start_tile.y + j})) continue;
+            
+            fvec2 tile_coords =
+            {
+                (start_tile.x + i) * 64.f,
+                (start_tile.y + j) * 64.f
+            };
+            
+            AABox collision = {0, 0, 64, 64};
+            collision = collision.translate(tile_coords);
+            AABox this_trans = fairie->get_transformed_AABox();
+            
+            fvec2 diff;
+            b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
+            if (collided) {
+                fairie->position = fairie->position - (diff);
+            }
+        }
+    }
+    
+    time_passed += dt;
+}
+
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
     pickup->mark_for_removal = true;
-    PickupType type = (PickupType)pickup->entity.params[0].as_u64;
-    long score_to_add = get_pickup_worth(type);
     
-    g_scene.player_score += score_to_add;
-    
-    Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
-    scene_sprite_add(&flash2);
+    if (pickup->entity.type == ePickup) {
+        PickupType type = (PickupType)pickup->entity.params[0].as_u64;
+        long score_to_add = get_pickup_worth(type);
+        
+        g_scene.player_score += score_to_add;
+        
+        Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
+        scene_sprite_add(&flash2);
+    } else if (pickup->entity.type == eBell) {
+        Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+        scene_sprite_add(&fairie);
+    }
 }

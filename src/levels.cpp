@@ -535,6 +535,7 @@ internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
 internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
 internal void eBlueFlame_cast(Sprite* flame);
 internal void player_pickup(Sprite *player, Sprite *pickup);
 
@@ -607,6 +608,10 @@ scene_update(InputState* istate, float dt) {
                 
                 case eBlueFlame: {
                     eBlueFlame_update(spref, istate,dt);
+                }break;
+                
+                case eFairie: {
+                    eFairie_update(spref, istate,dt);
                 }break;
                 
                 default:

@@ -379,6 +379,11 @@ inline float deg_0_360(float a) {
     return (float)((int)a % 360);
 }
 
+inline fvec2 normalize(fvec2 a) {
+    float l = length(a);
+    return (l == 0.f ? fvec2{0,0} : fvec2{a.x / l, a.y / l});
+}
+
 inline float distance(fvec2 a, fvec2 b) {
 #define SQ(x) ((x) * (x))
     return sqrtf( SQ(a.x - b.x) + SQ(a.y - b.y));
