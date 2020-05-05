@@ -1,8 +1,6 @@
 /*
 TODO:
--> Player score and effect when pickup
-
-- finish startup
+- make text drawing be more accurate
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
 - Background selection from .osk format
@@ -260,7 +258,11 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
                   sinf(text_1p_t) * 0.5f + cosf(text_1p_t) * 0.5f + 1,1});
     
     draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
-    draw_num(g_scene.player_score, 1, 15 , false, 32, true);
+    draw_num(g_scene.player_score, 0, 5 , false, 32, true);
+    draw_num(long(g_scene.player_time * 100), 1, 13 , false, 40, true);
+    
+    if (g_scene.playing && !g_scene.paused_for_key_animation)
+        g_scene.player_time -= dt;
     
     if (GET_KEYPRESS(restart)) {
         startup_animation_reset();

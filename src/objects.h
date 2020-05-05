@@ -289,6 +289,8 @@ global struct {
     int startup_state = 0;
     
     long player_score = 0;
+    
+    float player_time = 80.f;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
