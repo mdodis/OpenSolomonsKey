@@ -148,8 +148,6 @@ void Sprite::move_and_collide(float dt,
 }
 
 
-RESSound player_jump_sound;
-
 internal void ePlayer_cast(Sprite* player, float dt) {
     
     
@@ -491,7 +489,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     if (GET_KEYPRESS(move_up) && !is_crouching)
         did_jump = player->jump(JUMP_STRENGTH);
     
-    if (did_jump)  audio_play_sound(&player_jump_sound);
+    if (did_jump)  audio_play_sound(GET_SOUND(SND_jump));
     
     // Item pickup
     {

@@ -221,5 +221,35 @@ internal void load_tilemap_textures()
     
 }
 
+////////////////////////////////
+// AUDIO
+internal RESSound Wave_load_from_file(const char* file);
+
+#define ALL_SOUNDS \
+DEF_SOUND(SND_background, "res/bgm1.wav" ) \
+DEF_SOUND(SND_jump,       "res/bloop.wav") \
+
+
+#define DEF_SOUND(name, path) name,
+enum E_ALL_SOUNDS {
+    ALL_SOUNDS
+        ALL_SOUNDS_COUNT
+};
+#undef DEF_SOUND
+
+#define DEF_SOUND(name, path) path,
+const char *ALL_SOUND_PATHS[ALL_SOUNDS_COUNT] = {
+    ALL_SOUNDS
+};
+#undef DEF_SOUND
+
+RESSound ALL_SOUND_RES[ALL_SOUNDS_COUNT];
+#define GET_SOUND(name) ((RESSound *)&ALL_SOUND_RES[name])
+
+internal void load_sound_resources() {
+    for (u32 i = 0; i < ALL_SOUNDS_COUNT; ++i) {
+        ALL_SOUND_RES[i] = Wave_load_from_file(ALL_SOUND_PATHS[i]);
+    }
+}
 
 #endif //!OSK_RES_H

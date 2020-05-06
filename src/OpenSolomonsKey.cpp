@@ -40,8 +40,6 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include "score.cpp"
 #include "sprites.cpp"
 
-RESSound bg_sound;
-
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
  of dimensions (1024x896) will get a tilescale of 64 pixels
@@ -171,12 +169,10 @@ internal void draw_extra_stuff() {
 
 void cb_init() {
     srand(time(0));
-    player_jump_sound = Wave_load_from_file("res/bloop.wav");
-    bg_sound = Wave_load_from_file("res/bgm1.wav");
-    
     srand(time(0));
     gl_init();
     load_tilemap_textures();
+    load_sound_resources();
     
     load_map(&g_scene.loaded_map, "lvl1.osk");
     
@@ -261,7 +257,7 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     if (initial)
     {
         initial = false;
-        audio_play_sound(&bg_sound, true, Music);
+        audio_play_sound(GET_SOUND(SND_background), true, Music);
     }
     
     if (dt > 0.13f) dt = 0.13f;
