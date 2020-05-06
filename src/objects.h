@@ -29,8 +29,6 @@ enum EntityBaseType {
     ePickup = 10,
     
     eBlueFlame,
-    eBell,
-    
     eFairie,
     eEffect,
     eDFireball,
@@ -59,12 +57,24 @@ enum PickupType {
     Jewel20000,
     Jewel50000,
     
+    Bell,
+    Bell2,
+    
+    // effect stuff
     Count
 };
 
 
 internal bool pickup_type_is_valid(PickupType type) {
     return(type >= 0 && type < PickupType::Count && type != PickupType::Invalid);
+}
+
+internal bool pickup_type_is_non_effect(PickupType type) {
+    return pickup_type_is_valid(type) && (type < Jewel50000);
+}
+
+internal bool pickup_is_bell(PickupType type) {
+    return pickup_type_is_valid(type) && (type == Bell || type == Bell2);
 }
 
 internal long get_pickup_worth(PickupType type) {
@@ -294,6 +304,7 @@ global struct {
     long player_score = 0;
     
     float player_time = 80.f;
+    int player_lives = 3;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
@@ -499,25 +510,6 @@ inline internal Sprite make_blueflame(fvec2 position) {
     return result;
 }
 
-inline internal Sprite make_bell(fvec2 position, u64 type) {
-    Sprite result = {
-        .tilemap = &GET_TILEMAP_TEXTURE(TM_essentials),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        .animation_playing = false,
-        .current_animation = 0,
-        .animation_set = 0,
-        .entity = {
-            eBell,
-            {type, 0}
-        }
-    };
-    
-    return result;
-}
-
 internal char *parse_double(char *c, double *d) {
     char *end;
     *d = strtod(c, &end);
@@ -564,20 +556,11 @@ internal char *ePickup_parse(Sprite* pickup, char* c) {
         
         if (pickup_type_is_valid((PickupType)type)) {
             pickup->entity.params[0].as_u64 = type;
+            
+            if (pickup_is_bell((PickupType)type)) {
+                pickup->tilemap = &GET_TILEMAP_TEXTURE(TM_essentials);
+            }
         }
-        
-    }
-    return c;
-}
-
-internal char *eBell_parse(Sprite *bell, char *c) {
-    if (*c == ',') {
-        c++;
-        long type;
-        c = parse_long(c, &type);
-        
-        if (type == 0 || type == 1)
-            bell->entity.params[0].as_u64 = type;
         
     }
     return c;
@@ -608,12 +591,16 @@ draw(Sprite const * sprite)
 internal void
 draw_pickup(Sprite const *sprite) {
     assert(sprite->tilemap);
+    PickupType type = (PickupType)sprite->entity.params[0].as_u64;
     
     u64 index_to_draw;
-    if (sprite->entity.type == ePickup)
+    
+    
+    if (pickup_type_is_non_effect(type)) {
         index_to_draw = sprite->entity.params[0].as_u64;
-    else // eBell
+    } else if (type == PickupType::Bell) {
         index_to_draw = sprite->entity.params[0].as_u64 + (4 * 5 + 3);
+    }
     
     gl_slow_tilemap_draw(sprite->tilemap,
                          {(float)sprite->position.x, (float)sprite->position.y},

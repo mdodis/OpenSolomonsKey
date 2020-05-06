@@ -222,6 +222,19 @@ cb_resize()
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
+void draw_ui() {
+    
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(dana), {0, 13 * 64 + 8}, {1024, 64}, 0, 2,
+                         false, false, NRGBA{0,0,0,1}, false);
+    for (int i = 0; i < g_scene.player_lives; ++i) {
+        
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(dana), {i * 32.f, 13 * 64}, {64, 64}, 0, 5,
+                             false, false, NRGBA{1,1,1,1}, false);
+        
+    }
+    draw_text("ROUND..", 27, 24, false, 32.f);
+}
+
 void cb_render(InputState istate, u64 audio_sample_count, float dt)
 {
     glClearColor( 0.0, 0.0,  0.0, 1.0);
@@ -263,6 +276,7 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     draw_num(g_scene.player_score, 0, 5 , false, 32, true);
     draw_num(long(g_scene.player_time * 100), 1, 13 , false, 40, true);
     
+    draw_ui();
     if (g_scene.playing && !g_scene.paused_for_key_animation)
         g_scene.player_time -= dt;
     

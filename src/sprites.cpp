@@ -868,9 +868,6 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
         state = iclamp(0, 5, state + 1);
         if (state != 5) {
             fairie->velocity = normalize({f_to_player.x * random11(), f_to_player.y * random11()});
-        } else {
-            // circle
-            
         }
     }
     
@@ -885,17 +882,22 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
     pickup->mark_for_removal = true;
+    PickupType type = (PickupType)pickup->entity.params[0].as_u64;
     
-    if (pickup->entity.type == ePickup) {
-        PickupType type = (PickupType)pickup->entity.params[0].as_u64;
+    
+    if (pickup_type_is_non_effect(type)) {
         long score_to_add = get_pickup_worth(type);
         
         g_scene.player_score += score_to_add;
         
         Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
         scene_sprite_add(&flash2);
-    } else if (pickup->entity.type == eBell) {
-        Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
-        scene_sprite_add(&fairie);
+    } else if (pickup_type_is_valid(type)) {
+        
+        if (type == PickupType::Bell) {
+            Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+            scene_sprite_add(&fairie);
+        }
+        
     }
 }
