@@ -37,36 +37,33 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include "objects.h"
 #include "audio.cpp"
 #include "levels.cpp"
+#include "score.cpp"
 #include "sprites.cpp"
+
+RESSound bg_sound;
 
 /* Calculate aspect ratio from current window dimensions.
  Returns the size of a tile in pixels. For example, a window
  of dimensions (1024x896) will get a tilescale of 64 pixels
 */
 internal double
-get_tilescale_and_dimensions(
-                             u32 current_w, u32 current_h,
-                             u32* out_w, u32* out_h)
-{
+get_tilescale_and_dimensions(u32 current_w, u32 current_h, u32* out_w, u32* out_h) {
     i32 vw, vh;
     int leftover;
-    if (((double)current_w / (double)current_h) == W_2_H)
-    {
+    if (((double)current_w / (double)current_h) == W_2_H) {
         vw = current_w;
         vh = current_h;
         glViewport(0,0,current_w, current_h);
         
     } else {
         
-        if (current_w > current_h)
-        {
+        if (current_w > current_h) {
             vh = current_h;
             vw = (i32)((double)(vh) * W_2_H);
             vw = ftrunc(vw);
             
             leftover = (i32)current_w - (i32)vw;
-            if (leftover < 0)
-            {
+            if (leftover < 0) {
                 // if the new one is bigger than what we show
                 vh += leftover;
                 vw = (i32)((double)(vh) * W_2_H);
@@ -172,11 +169,7 @@ internal void draw_extra_stuff() {
     
 }
 
-RESSound bg_sound;
-// NOTE: cleanup
-global Map test_map;
-void
-cb_init() {
+void cb_init() {
     srand(time(0));
     player_jump_sound = Wave_load_from_file("res/bloop.wav");
     bg_sound = Wave_load_from_file("res/bgm1.wav");
@@ -222,7 +215,19 @@ cb_resize()
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
-void draw_ui() {
+void draw_ui(float dt) {
+    
+    // 1p
+    persist float text_1p_t = 0.f;
+    text_1p_t += dt;
+    
+    draw_text("1p", 0, 0, false, 32,NRGBA{
+                  sinf(text_1p_t) + 1,
+                  cosf(text_1p_t) + 1,
+                  sinf(text_1p_t) * 0.5f + cosf(text_1p_t) * 0.5f + 1,1});
+    
+    draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
+    draw_num(long(g_scene.player_time * 100), 1, 13 , false, 40, true);
     
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(dana), {0, 13 * 64 + 8}, {1024, 64}, 0, 2,
                          false, false, NRGBA{0,0,0,1}, false);
@@ -232,7 +237,10 @@ void draw_ui() {
                              false, false, NRGBA{1,1,1,1}, false);
         
     }
+    
     draw_text("ROUND..", 27, 24, false, 32.f);
+    
+    draw_score(dt);
 }
 
 void cb_render(InputState istate, u64 audio_sample_count, float dt)
@@ -263,20 +271,7 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     else
         scene_startup_animation(dt);
     
-    // 1p
-    persist float text_1p_t = 0.f;
-    text_1p_t += dt;
-    
-    draw_text("1p", 0, 0, false, 32,NRGBA{
-                  sinf(text_1p_t) + 1,
-                  cosf(text_1p_t) + 1,
-                  sinf(text_1p_t) * 0.5f + cosf(text_1p_t) * 0.5f + 1,1});
-    
-    draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
-    draw_num(g_scene.player_score, 0, 5 , false, 32, true);
-    draw_num(long(g_scene.player_time * 100), 1, 13 , false, 40, true);
-    
-    draw_ui();
+    draw_ui(dt);
     if (g_scene.playing && !g_scene.paused_for_key_animation)
         g_scene.player_time -= dt;
     

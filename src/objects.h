@@ -302,6 +302,8 @@ global struct {
     int startup_state = 0;
     
     long player_score = 0;
+    float last_score_timer = 0.f;
+    u32 last_score_num = 0u;
     
     float player_time = 80.f;
     int player_lives = 3;

@@ -216,6 +216,16 @@ internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
     
     /*
+NOTE: when revisiting think about this:
+
+while (there is a wall in front of us)
+    -    turn left
+move forward
+if (there is no wall to our right)
+    -    turn right
+
+Wall follower algorithm
+
 And tile-wise there are two general situations:
      1) The tile in front is blocking the way.
 2) The tile in front(target_tile) is empty.
@@ -888,7 +898,7 @@ internal void player_pickup(Sprite *player, Sprite *pickup) {
     if (pickup_type_is_non_effect(type)) {
         long score_to_add = get_pickup_worth(type);
         
-        g_scene.player_score += score_to_add;
+        add_score(score_to_add);
         
         Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
         scene_sprite_add(&flash2);

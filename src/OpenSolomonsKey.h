@@ -154,6 +154,9 @@ global struct
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;
+
 #define M_PI 3.14159265359
+#define LAST_SCORE_TIME 1.5f
+
 
 #endif //! OSK_HH

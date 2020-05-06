@@ -102,7 +102,7 @@ DEF_CHARACTER(Key,         TM_essentials,1,                                     
 DEF_ANIM(Key,          Default, .1f,      {0,4}, 1,      false)   \
 )                                                                 \
 DEF_CHARACTER(Fairie,      TM_fairies,   1,                                     \
-DEF_ANIM(Fairie,       Default, .1f,      {0,0}, 1,      true )   \
+DEF_ANIM(Fairie,       Default, .1f,      {0,0}, 2,      true )   \
 )                                                                 \
 
 
