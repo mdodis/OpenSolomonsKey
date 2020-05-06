@@ -6,6 +6,7 @@
 union CustomParameter {
     u64    as_u64;
     double as_f64;
+    i64    as_i64;
 };
 
 /* NOTE: eEffect - scene_update _automatically_ marks
@@ -337,9 +338,9 @@ inline internal Sprite make_ghost(fvec2 position) {
 inline internal Sprite make_player(fvec2 position) {
     Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(test_player),
-        .size = fvec2{64, 50},
+        .size = fvec2{64, 64},
         .position = position,
-        .collision_box = {5, 0, 45, 50},
+        .collision_box = {5, 14, 45, 50},
         .mirror = {true, false},
         .mark_for_removal = false,
         
@@ -420,6 +421,8 @@ inline internal Sprite make_fairie(fvec2 position, u64 type) {
         .position = position,
         .collision_box = {0,0,64,64},
         .mirror = {false, false},
+        
+        // type will go here!!!! and not in custom params
         .current_animation = GET_CHAR_ANIMENUM(Fairie, Default),
         .animation_set = GET_CHAR_ANIMSET(Fairie),
         .entity = {

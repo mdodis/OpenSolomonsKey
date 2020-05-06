@@ -804,26 +804,48 @@ internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
 }
 
 internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
+    u64 &state          = fairie->entity.params[0].as_u64;
     double &time_passed = fairie->entity.params[1].as_f64;
+    
+    // Try to move towards the player diagonally, making \/ shapes at most 2 times
+    // Then perform a half circle movement around the player on a specific radius.
+    // DIAG1, one whole diagonal movement?
+    //
+    //
     
     // get player location
     Sprite *player = scene_get_first_sprite(ePlayer);
     if (!player) return;
     
-    fvec2 f_to_player = normalize(fairie->position - player->position) * sinf(time_passed);
+    fvec2 f_to_player = normalize(player->position - fairie->position);
+    fvec2 dir = {0,0};
     
-    fairie->position.x += (100.f * dt * f_to_player.x);
-    fairie->position.y += (100.f * dt * f_to_player.y);
+    if (state == 0) {
+        dir = f_to_player;
+        fairie->velocity = dir;
+    } else if (state < 4) {
+        dir = fairie->velocity;
+    } else {
+        // circle
+        float angle = time_passed;
+        dir = direction_from_rotation(angle)* 512.f + player->position;
+        
+        dir = normalize(dir - fairie->position);
+    }
     
+    draw_num(state, 5);
+    
+    fairie->position.x += (100.f * dt * dir.x);
+    fairie->position.y += (100.f * dt * dir.y);
+    
+    bool switch_state = false;
     fvec2 ipos = {fairie->position.x, fairie->position.y};
     ivec2 start_tile = map_position_to_tile_centered(ipos) - 1;
-    
     for (i32 j = 0; j < 3; ++j) {
         for (i32 i = 0; i < 3; ++i) {
             if (scene_tile_empty(ivec2{start_tile.x + i,start_tile.y + j})) continue;
             
-            fvec2 tile_coords =
-            {
+            fvec2 tile_coords = {
                 (start_tile.x + i) * 64.f,
                 (start_tile.y + j) * 64.f
             };
@@ -835,12 +857,29 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
             fvec2 diff;
             b32 collided = aabb_minkowski(&this_trans, &collision, &diff);
             if (collided) {
+                switch_state = true;
+                
                 fairie->position = fairie->position - (diff);
             }
         }
     }
     
-    time_passed += dt;
+    if (switch_state) {
+        state = iclamp(0, 5, state + 1);
+        if (state != 5) {
+            fairie->velocity = normalize({f_to_player.x * random11(), f_to_player.y * random11()});
+        } else {
+            // circle
+            
+        }
+    }
+    
+    if (state == 5) time_passed += dt;
+    
+    if (time_passed > 2.f) {
+        time_passed = 0.f;
+        state = 0;
+    }
 }
 
 internal void player_pickup(Sprite *player, Sprite *pickup) {

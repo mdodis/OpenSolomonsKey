@@ -177,6 +177,7 @@ RESSound bg_sound;
 global Map test_map;
 void
 cb_init() {
+    srand(time(0));
     player_jump_sound = Wave_load_from_file("res/bloop.wav");
     bg_sound = Wave_load_from_file("res/bgm1.wav");
     

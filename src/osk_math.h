@@ -130,7 +130,19 @@ union fvec2
         return {nx, ny};
     }
     
+    fvec2 operator-() {
+        return fvec2{-x, -y};
+    }
 };
+
+
+fvec2 operator*(float other, fvec2 v)
+{
+    float nx = (float)( (float)v.x * other);
+    float ny = (float)( (float)v.y * other);
+    return {nx, ny};
+}
+
 
 /*
 Box in sprite space (i.e 64 over 64)
@@ -218,6 +230,13 @@ inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
         iclamp(a.x, b.x, x.x),
         iclamp(a.y, b.y, x.y)
     };
+}
+
+inline float mirror_x_axis(float x) {
+    float ratio = ((x/960.f)*2.f) - 1.f;
+    
+    float result = ((-ratio + 1.f)/2.f) * 960.f;
+    return result;
 }
 
 inline int highest_pow2(int n)
@@ -388,6 +407,14 @@ inline float distance(fvec2 a, fvec2 b) {
 #define SQ(x) ((x) * (x))
     return sqrtf( SQ(a.x - b.x) + SQ(a.y - b.y));
 #undef SQ
+}
+
+inline float random11() {
+    return ((float)rand()/RAND_MAX) * 2.f - 1.f;
+}
+
+inline float random01() {
+    return ((float)rand()/RAND_MAX);
 }
 
 struct NRGBA {
