@@ -1,10 +1,11 @@
 /*
 TODO:
 - level timer sound change when close to stop
-- make text drawing be more accurate
+- Background selection from .osk format
+- level 2
+
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
-- Background selection from .osk format
 - Pickup secrets (add+destroy block in empty space)
 - Sound resource system
 - Make effects into single tilemap!
@@ -252,13 +253,6 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     draw_text("MS per frame", 0);
     draw_num(dt * 1000.f, 1);
-    
-    persist b32 initial = true;
-    if (initial)
-    {
-        initial = false;
-        audio_play_sound(GET_SOUND(SND_background), true, Music);
-    }
     
     if (dt > 0.13f) dt = 0.13f;
     

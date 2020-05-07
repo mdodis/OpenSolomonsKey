@@ -174,18 +174,27 @@ internal bool load_map(Map *const map, const char *path) {
                     fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
                     
                     switch((EntityBaseType)res) {
-                        case eGoblin:{
-                            sprite_to_make = make_goblin(sprite_initial_pos);
-                            c = eGoblin_parse(&sprite_to_make, c);
-                        }break;
                         
                         case ePlayerSpawnPoint:{
                             level_validity[2] = true;
                             sprite_to_make = make_player(sprite_initial_pos);
                         }break;
                         
-                        case eGhost:{
-                            sprite_to_make = make_ghost(sprite_initial_pos);
+                        case eEnemy: {
+                            EnemyType type;
+                            c = eEnemy_parse(c, &type);
+                            
+                            switch(type) {
+                                case EnemyType::Goblin: {
+                                    sprite_to_make = make_goblin(sprite_initial_pos);
+                                    c = Goblin_custom(&sprite_to_make, c);
+                                }break;
+                                
+                                case EnemyType::Ghost: {
+                                    sprite_to_make = make_ghost(sprite_initial_pos);
+                                    c = Ghost_custom(&sprite_to_make, c);
+                                }break;
+                            }
                         }break;
                         
                         case eDoor: {
@@ -526,9 +535,9 @@ internal void scene_key_animation(float dt) {
 
 
 internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
-internal void eGoblin_update(Sprite* spref, InputState* istate, float dt);
+internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
-internal void eGhost_update(Sprite* spref, InputState* istate, float dt);
+internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
 internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt);
 internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
 internal void eBlueFlame_cast(Sprite* flame);
@@ -583,8 +592,17 @@ scene_update(InputState* istate, float dt) {
                     ePlayer_update(spref, istate, dt);
                 }break;
                 
-                case eGoblin:{
-                    eGoblin_update(spref, istate, dt);
+                case eEnemy: {
+                    
+                    switch(spref->entity.params[0].as_etype) {
+                        case EnemyType::Goblin: {
+                            Goblin_update(spref, istate, dt);
+                        }break;
+                        
+                        case EnemyType::Ghost: {
+                            Ghost_update(spref, istate,dt);
+                        }break;
+                    }
                 } break;
                 
                 case eEffect:{
@@ -595,10 +613,6 @@ scene_update(InputState* istate, float dt) {
                 
                 case eDFireball:{
                     eDFireball_update(spref, istate, dt);
-                }break;
-                
-                case eGhost:{
-                    eGhost_update(spref, istate,dt);
                 }break;
                 
                 case eBlueFlame: {

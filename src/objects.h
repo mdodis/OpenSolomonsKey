@@ -3,36 +3,34 @@
 // eEmptySpace :: hidden item
 // eBlockFrail :: health, hidden item
 
-union CustomParameter {
-    u64    as_u64;
-    double as_f64;
-    i64    as_i64;
-};
-
 /* NOTE: eEffect - scene_update _automatically_ marks
  * any eEffect entity for removal once it's animation is finished
 */
 
 enum EntityBaseType {
-    eEmptySpace = 0,
-    eBlockFrail = 1,
-    eBlockFrailHalf = 2,
-    eBlockSolid = 3,
-    ePlayerSpawnPoint = 4,
-    
-    ePlayer = 5,
-    eGoblin = 6,
-    eGhost = 7,
-    
-    eDoor = 8,
-    eKey = 9,
-    ePickup = 10,
+    eEmptySpace,
+    eBlockFrail,
+    eBlockFrailHalf,
+    eBlockSolid,
+    ePlayerSpawnPoint,
+    ePlayer,
+    eEnemy,
+    eDoor,
+    eKey,
+    ePickup,
     
     eBlueFlame,
     eFairie,
     eEffect,
     eDFireball,
     EntityBaseType_Count,
+};
+
+enum class EnemyType {
+    Goblin,
+    Ghost,
+    
+    Count
 };
 
 enum PickupType {
@@ -64,6 +62,13 @@ enum PickupType {
     Count
 };
 
+
+union CustomParameter {
+    u64    as_u64;
+    double as_f64;
+    i64    as_i64;
+    EnemyType as_etype;
+};
 
 internal bool pickup_type_is_valid(PickupType type) {
     return(type >= 0 && type < PickupType::Count && type != PickupType::Invalid);
@@ -134,14 +139,12 @@ inline bool tile_is_empty(EntityBaseType type) {
     return false;
 }
 
-struct Entity
-{
+struct Entity {
     EntityBaseType type;
     CustomParameter params[MAX_ENTITY_PARAMS];
 };
 
-struct Sprite
-{
+struct Sprite {
     GLTilemapTexture const * tilemap = 0;
     fvec2 size = {64, 64};
     fvec2 position = {0,0};
@@ -309,6 +312,7 @@ global struct {
     int player_lives = 3;
 } g_scene;
 
+
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
     return Sprite {
         .tilemap = &GET_CHAR_TILEMAP(Effect),
@@ -323,29 +327,37 @@ inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
 }
 
 inline internal Sprite make_goblin(fvec2 position) {
-    return Sprite {
+    Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Goblin),
         .position = position,
         .collision_box = {5, 0, 45, 64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Goblin),
         .entity = {
-            .type = eGoblin,
+            .type = eEnemy,
         }
     };
+    
+    res.entity.params[0].as_etype = EnemyType::Goblin;
+    
+    return res;
 }
 
 inline internal Sprite make_ghost(fvec2 position) {
-    return Sprite {
+    Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Ghost),
         .position = position,
         .collision_box = {0, 0, 64, 64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Ghost),
         .entity = {
-            .type = eGhost,
+            .type = eEnemy,
         }
     };
+    
+    res.entity.params[0].as_etype = EnemyType::Ghost;
+    
+    return res;
 }
 
 inline internal Sprite make_player(fvec2 position) {
@@ -524,6 +536,57 @@ internal char *parse_long(char *c, long *d) {
     return end;
 }
 
+internal char *eEnemy_parse(char *c, EnemyType *type) {
+    *type = EnemyType::Goblin;
+    
+    if (*c == ',') {
+        c++;
+        long tl;
+        c = parse_long(c, &tl);
+        assert(tl < long(EnemyType::Count));
+        
+        *type = (EnemyType)tl;
+    }
+    
+    return c;
+}
+
+internal char *parse_custom_double(Sprite *s, char *c, int index, double default_val) {
+    s->entity.params[index].as_f64 = default_val;
+    
+    if (*c == ',') {
+        c++;
+        double cval;
+        c = parse_double(c, &cval);
+        s->entity.params[index].as_f64 = cval;
+    }
+    return c;
+}
+
+internal char *parse_custom_bool32(i32 *dst, char *c, bool default_val) {
+    *dst = default_val;
+    if (*c == ',') {
+        c++;
+        long cval;
+        c = parse_long(c, &cval);
+        *dst = (cval == 0) ? false : true;
+    }
+    return c;
+}
+
+internal char *Goblin_custom(Sprite *goblin, char *c) {
+    c = parse_custom_double(goblin, c, 1, 80.f);
+    c = parse_custom_bool32(&goblin->mirror.x, c, false);
+    
+    return c;
+}
+
+internal char *Ghost_custom(Sprite *ghost, char *c) {
+    c = parse_custom_double(ghost, c, 1, 200.f);
+    c = parse_custom_bool32(&ghost->mirror.x, c, false);
+    return c;
+}
+
 internal char* eBlueFlame_parse(Sprite *flame, char *c) {
     if (*c == ',') {
         c++;
@@ -531,20 +594,6 @@ internal char* eBlueFlame_parse(Sprite *flame, char *c) {
         c = parse_double(c, &dur);
         
         flame->entity.params[0].as_f64 = dur;
-    }
-    
-    return c;
-}
-
-internal char* eGoblin_parse(Sprite* goblin, char* c) {
-    if (*c == ',') {
-        c++;
-        // parse initial direction
-        if (*c == 'R') {
-            goblin->mirror.x = true;
-        } else {
-            goblin->mirror.x = false;
-        }
     }
     
     return c;

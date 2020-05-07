@@ -403,17 +403,14 @@ internal DWORD dsound_cb_audio(void *unused)
         win32_dsound_get_bytes_to_output(&byte_to_lock, &bytes_to_write);
         
         u64 samples_to_write = bytes_to_write / AUDIO_BYTESPERSAMPLE;
-        if (samples_to_write > 0)
-        {
+        if (samples_to_write > 0) {
             
             audio_update_all_sounds();
             audio_update(0, samples_to_write);
             
             win32_dsound_copy_to_sound_buffer(byte_to_lock, bytes_to_write);
             
-        }
-        else
-        {
+        } else {
             // Wait for our target framerate in ms
             WaitForSingleObjectEx(g_dsound_sem, u64(0.0166f * 1000), FALSE);
         }

@@ -571,25 +571,21 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
 }
 
 
-internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
-{
+internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
     /*
 
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
     so invert direction vector to get the axis-compliant direction in X.
     */
     
-    
-    const float goblin_walk_speed = 80;
+    double &goblin_walk_speed = goblin->entity.params[1].as_f64;
     const float goblin_run_speed = 120;
     b32 ignore_player = false;
     b32 is_dying = goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Fall);
     
-    
     ignore_player = is_dying;
     
-    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) ||
-        goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait)) {
+    if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) || goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait)) {
         // Switch direction and continue when either of these states ends
         if (!goblin->animation_playing) {
             SET_ANIMATION(goblin, Goblin, Walk);
@@ -609,28 +605,21 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         
         ivec2 goblin_tile = map_position_to_tile_centered(goblin->position);
         
-        if (goblin_tile.y == ppos_tile.y &&
-            !ignore_player)
-        {
+        if (goblin_tile.y == ppos_tile.y && !ignore_player) {
             // search in the direction of the goblin to see if there is
             // an obstacle blocking its view of the player
             i32 tdiff = sgn(goblin_tile.x - ppos_tile.x);
             
             ivec2 block_tile = scene_get_first_nonempty_tile(goblin_tile, ppos_tile);
-            if (block_tile == ivec2{-1, -1})
-            {
+            if (block_tile == ivec2{-1, -1}) {
                 persist i32 blocking_tiles = 0;
                 
-                if (tdiff == -goblin->direction())
-                {
+                if (tdiff == -goblin->direction()) {
                     SET_ANIMATION(goblin, Goblin, Chase);
                 }
-            }
-            else
-            {
+            } else {
 #ifndef NDEBUG
-                gl_slow_tilemap_draw(
-                                     &GET_TILEMAP_TEXTURE(TM_essentials),
+                gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                                      {block_tile.x * 64.f, block_tile.y * 64.f},
                                      {64.f, 64.f},
                                      0,1 * 5 + 2,
@@ -658,10 +647,7 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
                              false, false,
                              NRGBA{1.f, 0.f, 0.f, 1.f});
 #endif
-        if (scene_get_tile(dir_tile_under) == eEmptySpace &&
-            scene_get_tile(dir_tile) == eEmptySpace &&
-            goblin_tile.y != 11)
-        {
+        if (scene_get_tile(dir_tile_under) == eEmptySpace && scene_get_tile(dir_tile) == eEmptySpace && goblin_tile.y != 11) {
             SET_ANIMATION(goblin, Goblin, Wait);
             goblin->velocity.x = 0;
         }
@@ -687,17 +673,14 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
                              false, false,
                              NRGBA{0.f, 1.f, 0.f, 1.f});
 #endif
-        if ((scene_get_tile(tile_index) != eEmptySpace || is_at_edge_of_map) &&
-            !(goblin->is_on_air))
-        {
+        if ((scene_get_tile(tile_index) != eEmptySpace || is_at_edge_of_map) && !(goblin->is_on_air)) {
             SET_ANIMATION(goblin, Goblin, Punch);
         }
     }
     
     // Movement
     i32 move_amount;
-    switch(goblin->current_animation)
-    {
+    switch(goblin->current_animation) {
         case GET_CHAR_ANIMENUM(Goblin, Walk):
         move_amount = goblin_walk_speed;
         break;
@@ -712,10 +695,9 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
         
     }
     
-    if (!is_dying)
+    if (!is_dying) {
         goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
-    else
-    {
+    } else {
         goblin->velocity.y += 900 * dt;
         goblin->velocity.y = fclamp(-450, 450, goblin->velocity.y);
         
@@ -724,14 +706,10 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
     
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
-    if (goblin->is_on_air && !is_dying)
-    {
+    if (goblin->is_on_air && !is_dying) {
         SET_ANIMATION(goblin, Goblin, Fall);
-    }
-    else if (is_dying)
-    {
-        if (goblin->position.y > (12 * 64))
-        {
+    } else if (is_dying) {
+        if (goblin->position.y > (12 * 64)) {
             goblin->mark_for_removal = true;
             inform("You killed a Goblin, ouchie!");
         }
@@ -740,9 +718,9 @@ internal void eGoblin_update(Sprite* goblin, InputState* _istate, float dt)
 }
 
 // eGhost
-internal void eGhost_update(Sprite* ghost, InputState* istate, float dt) {
+internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
     const float ghost_turn_offset_amount = 64;
-    const float ghost_speed = 200;
+    double &ghost_speed = ghost->entity.params[1].as_f64;
     
     float ghost_turn_offset =ghost->direction()*ghost_turn_offset_amount - ghost->direction()*(ghost_turn_offset_amount/2);
     
