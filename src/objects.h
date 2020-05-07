@@ -42,9 +42,6 @@ enum PickupType {
     Bag5000,
     Bag10000,
     Bag20000,
-    // NOTE(miked): watch out for this!
-    Invalid,
-    // -------------------------------
     Jewel100,
     Jewel200,
     Jewel500,
@@ -71,7 +68,7 @@ union CustomParameter {
 };
 
 internal bool pickup_type_is_valid(PickupType type) {
-    return(type >= 0 && type < PickupType::Count && type != PickupType::Invalid);
+    return(type >= 0 && type < PickupType::Count);
 }
 
 internal bool pickup_type_is_non_effect(PickupType type) {
