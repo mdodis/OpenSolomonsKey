@@ -194,6 +194,12 @@ internal bool load_map(Map *const map, const char *path) {
                                     sprite_to_make = make_ghost(sprite_initial_pos);
                                     c = Ghost_custom(&sprite_to_make, c);
                                 }break;
+                                
+                                
+                                case EnemyType::KMirror: {
+                                    sprite_to_make = make_ghost(sprite_initial_pos);
+                                    c = Ghost_custom(&sprite_to_make, c);
+                                }break;
                             }
                         }break;
                         
@@ -265,8 +271,7 @@ inline void scene_set_tile(ivec2 p, EntityBaseType t) {
 internal void scene_init(const char* level_path) {
 }
 
-internal void
-scene_draw_tilemap() {
+internal void scene_draw_tilemap() {
     for(int i = 0; i < 15; ++i ) {
         for(int j = 0; j < 12; ++j ) {
             u32 id;
@@ -287,8 +292,6 @@ scene_draw_tilemap() {
         }
     }
 }
-
-
 
 
 // Finds first sprite of specific type
@@ -380,6 +383,9 @@ internal void startup_animation_reset() {
     g_scene.startup_state = 0;
     g_scene.playing = false;
     startup_anim_time = 0.f;
+    
+    audio_stop(SoundType::Music);
+    audio_reset(SoundType::Music);
 }
 
 // One star from door to key
@@ -392,7 +398,7 @@ internal void scene_startup_animation(float dt) {
     const int STATE_SHOW_PLAYER = 2;
     const int STATE_DONE = 3;
     
-    const float anim_dur = 0.8f;
+    const float anim_dur = 1.5f;
     
     static Sprite ring_static;
     Sprite *ring;
@@ -418,6 +424,7 @@ internal void scene_startup_animation(float dt) {
             ring_static = make_starring(DOOR);
             
             g_scene.startup_state = STATE_SHOW_KEY;
+            audio_play_sound(GET_SOUND(SND_show_key));
         } break;
         
         case STATE_SHOW_KEY: {
@@ -433,6 +440,7 @@ internal void scene_startup_animation(float dt) {
             } else {
                 g_scene.startup_state = STATE_SHOW_PLAYER;
                 startup_anim_time = 0.f;
+                audio_play_sound(GET_SOUND(SND_show_player));
             }
             
         } break;
@@ -446,6 +454,7 @@ internal void scene_startup_animation(float dt) {
                 g_scene.startup_state = 4;
                 ring->mark_for_removal = true;
                 g_scene.playing = true;
+                audio_start(SoundType::Music);
             }
             
             if (startup_anim_time < anim_dur) {
@@ -602,6 +611,7 @@ scene_update(InputState* istate, float dt) {
                         case EnemyType::Ghost: {
                             Ghost_update(spref, istate,dt);
                         }break;
+                        
                     }
                 } break;
                 
@@ -638,6 +648,17 @@ scene_update(InputState* istate, float dt) {
                              NRGBA{1.f, 0, 1.f, 0.7f});
 #endif
         draw(&l[i]);
+    }
+    
+    if (!g_scene.paused_for_key_animation) {
+        g_scene.player_time -= dt;
+        
+        if ((g_scene.player_time * 100) < 2000u && !g_scene.time_is_low_enough) {
+            audio_remove(SoundType::Music);
+            audio_play_sound(GET_SOUND(SND_hurry), false, SoundType::Music);
+            g_scene.time_is_low_enough = true;
+            
+        }
     }
 }
 

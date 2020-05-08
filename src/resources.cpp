@@ -104,7 +104,9 @@ DEF_ANIM(Key,          Default, .1f,      {0,4}, 1,      false)   \
 DEF_CHARACTER(Fairie,      TM_fairies,   1,                                     \
 DEF_ANIM(Fairie,       Default, .1f,      {0,0}, 2,      true )   \
 )                                                                 \
-
+DEF_CHARACTER(KMirror,     TM_essentials,1,                                     \
+DEF_ANIM(KMirror,      Default, .1f,      {3,1}, 1,      false)   \
+)                                                                 \
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,
 #define DEF_CHARACTER(name, tilemap, anim_count, ...) enum E_##name##_anims{   \
@@ -228,7 +230,9 @@ internal RESSound Wave_load_from_file(const char* file);
 #define ALL_SOUNDS \
 DEF_SOUND(SND_background, "res/bgm1.wav" ) \
 DEF_SOUND(SND_jump,       "res/bloop.wav") \
-
+DEF_SOUND(SND_show_key,   "res/audio/key_appear.wav") \
+DEF_SOUND(SND_show_player,"res/audio/player_appear.wav") \
+DEF_SOUND(SND_hurry,      "res/audio/hurry.wav") \
 
 #define DEF_SOUND(name, path) name,
 enum E_ALL_SOUNDS {

@@ -117,19 +117,19 @@ internal RESSound Wave_load_from_file(const char* file) {
     return result;
 }
 
-internal void audio_play_sound(const RESSound* resound, b32 looping = false, SoundType sound_type = SoundEffect) {
+internal void audio_play_sound(const RESSound* resound, b32 looping = false, SoundType sound_type = SoundEffect, bool play = true) {
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
     Sound new_sound = {
         .max_counter = resound->num_samples,
         .looping = looping,
+        .playing = play,
         .resource = resound,
         .type = sound_type
     };
     
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
-    
 }
 
 internal void audio_toggle_playing(SoundType type) {
@@ -139,7 +139,62 @@ internal void audio_toggle_playing(SoundType type) {
             sound_ref->playing = !sound_ref->playing;
         }
     }
-    
+}
+
+internal void audio_reset(SoundType type) {
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i) {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        if (sound_ref->type == type) {
+            sound_ref->counter = 0;
+        }
+    }
+}
+
+internal void audio_stop(SoundType type) {
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i) {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        if (sound_ref->type == type) {
+            sound_ref->playing = false;
+        }
+    }
+}
+
+internal void audio_start(SoundType type) {
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i) {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        if (sound_ref->type == type) {
+            sound_ref->playing = true;
+        }
+    }
+}
+
+internal void audio_remove(SoundType type) {
+    if (g_audio.all_sounds_size == 0) return;
+    u32 cached_size = g_audio.all_sounds_size;
+    for (i32 i = 0; i < cached_size; ++i) {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        
+        if (sound_ref->type == type) {
+            sound_ref->resource = 0;
+            g_audio.all_sounds_size--;
+            if (g_audio.all_sounds_size == 0) return;
+            
+            b32 will_loop_inside = false;
+            // resize the sound array
+            i32 previous = i;
+            for (i32 j = i + 1; j < cached_size; j++) {
+                if (!will_loop_inside) {
+                    draw_text("will_loop_inside", 3);
+                    will_loop_inside = true;
+                }
+                
+                Sound sound_copy = g_audio.all_sounds[j];
+                g_audio.all_sounds[previous] = sound_copy;
+                previous++;
+            }
+            
+        }
+    }
 }
 
 internal void audio_update_all_sounds() {
@@ -176,8 +231,7 @@ internal void audio_update_all_sounds() {
     }
 }
 
-internal void
-audio_update(const InputState* const istate, u64 samples_to_write) {
+internal void audio_update(const InputState* const istate, u64 samples_to_write) {
     
     i16* out = (i16*)g_audio.buffer;
     //audio_update_all_sounds();

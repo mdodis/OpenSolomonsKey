@@ -10,8 +10,8 @@
 enum EntityBaseType {
     eEmptySpace,
     eBlockFrail,
-    eBlockFrailHalf,
     eBlockSolid,
+    eBlockFrailHalf,
     ePlayerSpawnPoint,
     ePlayer,
     eEnemy,
@@ -29,7 +29,7 @@ enum EntityBaseType {
 enum class EnemyType {
     Goblin,
     Ghost,
-    
+    KMirror,
     Count
 };
 
@@ -307,6 +307,8 @@ global struct {
     
     float player_time = 80.f;
     int player_lives = 3;
+    
+    bool time_is_low_enough = false;
 } g_scene;
 
 

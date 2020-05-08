@@ -177,15 +177,14 @@ void cb_init() {
     
     load_map(&g_scene.loaded_map, "lvl1.osk");
     
+    audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;
 }
 
 void
 cb_resize()
 {
-    g_tile_scale = get_tilescale_and_dimensions(
-                                                g_wind_width, g_wind_height,
-                                                &g_view_width, &g_view_height);
+    g_tile_scale = get_tilescale_and_dimensions(g_wind_width, g_wind_height, &g_view_width, &g_view_height);
     
 #ifdef OSK_ROUND_TO_POW_2
     g_tile_scale = highest_pow2((u64)g_tile_scale);
@@ -262,14 +261,5 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
         scene_startup_animation(dt);
     
     draw_ui(dt);
-    if (g_scene.playing && !g_scene.paused_for_key_animation)
-        g_scene.player_time -= dt;
     
-    if (GET_KEYPRESS(restart)) {
-        startup_animation_reset();
-        load_map(&g_scene.loaded_map, "lvl1.osk");
-    } else if (GET_KEYPRESS(space_pressed)) {
-        key_anim_time = 0.f;
-        g_scene.paused_for_key_animation = true;
-    }
 }
