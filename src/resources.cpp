@@ -29,7 +29,7 @@ DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,4    
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(background         ,"res/bg_room0.png"                        ,1    ,1  )\
-DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,1    ,17  )\
+DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,1    ,19 )\
 
 struct RESTilemap
 {

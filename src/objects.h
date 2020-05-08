@@ -8,18 +8,18 @@
 */
 
 enum EntityBaseType {
-    eEmptySpace,
-    eBlockFrail,
-    eBlockSolid,
-    eBlockFrailHalf,
-    ePlayerSpawnPoint,
-    ePlayer,
-    eEnemy,
-    eDoor,
-    eKey,
-    ePickup,
+    eEmptySpace = 0,
+    eBlockFrail = 1,
+    eBlockSolid = 2,
+    eBlockFrailHalf = 3,
+    ePlayerSpawnPoint = 4,
+    ePlayer = 5,
+    eEnemy = 6,
+    eDoor = 7,
+    eKey = 8,
+    ePickup = 9,
+    eBlueFlame = 10,
     
-    eBlueFlame,
     eFairie,
     eEffect,
     eDFireball,
@@ -27,8 +27,19 @@ enum EntityBaseType {
 };
 
 enum class EnemyType {
-    Goblin,
+    Chimera,
+    Demonhead,
+    Dragon,
+    Gargoyle,
     Ghost,
+    Goblin,
+    Nuel,
+    Salamander,
+    Wyvern,
+    PanelMonster,
+    EarthMage,
+    SparkBall,
+    BlueFlame,
     KMirror,
     Count
 };
@@ -51,14 +62,12 @@ enum PickupType {
     Jewel10000,
     Jewel20000,
     Jewel50000,
-    
     Bell,
     Bell2,
     
     // effect stuff
     Count
 };
-
 
 union CustomParameter {
     u64    as_u64;
@@ -285,9 +294,11 @@ struct Sprite {
 /* Thanks c++ stl! Now this'll speed up my productivity */
 typedef std::vector<Sprite> List_Sprite;
 
-struct Map{
+struct Map {
     const char *name; // path!!!
     EntityBaseType tiles[TILEMAP_COLS][TILEMAP_ROWS];
+    Sprite *hidden_pickups[TILEMAP_COLS][TILEMAP_ROWS];
+    
     List_Sprite sprites;
     List_Sprite pickups;
     
@@ -542,7 +553,8 @@ internal char *eEnemy_parse(char *c, EnemyType *type) {
         c++;
         long tl;
         c = parse_long(c, &tl);
-        assert(tl < long(EnemyType::Count));
+        printf("%d aa\n", tl);
+        //assert(tl < long(EnemyType::Count));
         
         *type = (EnemyType)tl;
     }
@@ -575,14 +587,19 @@ internal char *parse_custom_bool32(i32 *dst, char *c, bool default_val) {
 
 internal char *Goblin_custom(Sprite *goblin, char *c) {
     c = parse_custom_double(goblin, c, 1, 80.f);
-    c = parse_custom_bool32(&goblin->mirror.x, c, false);
+    c = parse_custom_double(goblin, c, 1, 80.f);
     
+    //c = parse_custom_bool32(&goblin->mirror.x, c, false);
+    goblin->entity.params[1].as_f64 = 80.f;
     return c;
 }
 
 internal char *Ghost_custom(Sprite *ghost, char *c) {
     c = parse_custom_double(ghost, c, 1, 200.f);
-    c = parse_custom_bool32(&ghost->mirror.x, c, false);
+    c = parse_custom_double(ghost, c, 1, 200.f);
+    
+    ghost->entity.params[1].as_f64 = 200.f;
+    //c = parse_custom_bool32(&ghost->mirror.x, c, false);
     return c;
 }
 
@@ -607,9 +624,6 @@ internal char *ePickup_parse(Sprite* pickup, char* c) {
         if (pickup_type_is_valid((PickupType)type)) {
             pickup->entity.params[0].as_u64 = type;
             
-            if (pickup_is_bell((PickupType)type)) {
-                pickup->tilemap = &GET_TILEMAP_TEXTURE(TM_essentials);
-            }
         }
         
     }
@@ -644,18 +658,14 @@ draw_pickup(Sprite const *sprite) {
     PickupType type = (PickupType)sprite->entity.params[0].as_u64;
     
     u64 index_to_draw;
+    index_to_draw = sprite->entity.params[0].as_u64;
     
-    
-    if (pickup_type_is_non_effect(type)) {
-        index_to_draw = sprite->entity.params[0].as_u64;
-    } else if (type == PickupType::Bell) {
-        index_to_draw = sprite->entity.params[0].as_u64 + (4 * 5 + 3);
+    if (sprite->entity.params[1].as_u64 == 0) {
+        gl_slow_tilemap_draw(sprite->tilemap,
+                             {(float)sprite->position.x, (float)sprite->position.y},
+                             {(float)sprite->size.x, (float)sprite->size.y},
+                             sprite->rotation,
+                             index_to_draw,
+                             sprite->mirror.x, sprite->mirror.y);
     }
-    
-    gl_slow_tilemap_draw(sprite->tilemap,
-                         {(float)sprite->position.x, (float)sprite->position.y},
-                         {(float)sprite->size.x, (float)sprite->size.y},
-                         sprite->rotation,
-                         index_to_draw,
-                         sprite->mirror.x, sprite->mirror.y);
 }

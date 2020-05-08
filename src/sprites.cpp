@@ -170,22 +170,28 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
     bool should_spawn_flash_effect = true;
+    bool put_frail_block;
     
     if (is_frail_block(type)) {
         scene_set_tile(target_tile, eEmptySpace);
-        
+        put_frail_block = false;
     } else if (type == eEmptySpace) {
         
         Sprite *blue_flame;
         blue_flame = scene_find_first_sprite_on_tile(eBlueFlame, target_tile);
         if (blue_flame) {
-            
             eBlueFlame_cast(blue_flame);
             should_spawn_flash_effect = false;
         } else {
+            put_frail_block = true;
             scene_set_tile(target_tile, eBlockFrail);
         }
         
+    }
+    
+    Sprite *pref = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
+    if (pref) {
+        pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
     }
     
     SET_ANIMATION(player, test_player, Cast);
@@ -867,23 +873,25 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
 
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
-    pickup->mark_for_removal = true;
-    PickupType type = (PickupType)pickup->entity.params[0].as_u64;
-    
-    
-    if (pickup_type_is_non_effect(type)) {
-        long score_to_add = get_pickup_worth(type);
+    if (pickup->entity.params[1].as_u64 == 0) {
         
-        add_score(score_to_add);
+        pickup->mark_for_removal = true;
+        PickupType type = (PickupType)pickup->entity.params[0].as_u64;
         
-        Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
-        scene_sprite_add(&flash2);
-    } else if (pickup_type_is_valid(type)) {
-        
-        if (type == PickupType::Bell) {
-            Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
-            scene_sprite_add(&fairie);
+        if (pickup_type_is_non_effect(type)) {
+            long score_to_add = get_pickup_worth(type);
+            
+            add_score(score_to_add);
+            
+            Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
+            scene_sprite_add(&flash2);
+        } else if (pickup_type_is_valid(type)) {
+            
+            if (type == PickupType::Bell) {
+                Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+                scene_sprite_add(&fairie);
+            }
+            
         }
-        
     }
 }

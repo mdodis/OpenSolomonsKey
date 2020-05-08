@@ -78,8 +78,7 @@ internal char* eat_whitepspace(char *c) {
     return c;
 }
 
-
-internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
+internal char *parse_custom(Map *const map, char *c, fvec2 pos, ivec2 tpos) {
     c = eat_whitepspace(c);
     
     while (*c && *c == ',') {
@@ -88,8 +87,11 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos) {
         c = string_parse_uint(c, &object_id);
         
         Sprite pickup = make_pickup(pos, object_id);
+        Sprite *ref = map_add(map, &pickup);
         
-        map_add(map, &pickup);
+        ref->entity.params[1].as_u64 = 1;
+        
+        map->hidden_pickups[tpos.x][tpos.y] = ref;
         //inform("Under Normal tile: %lld", object_id);
     }
     return c;
@@ -116,14 +118,20 @@ internal bool load_map(Map *const map, const char *path) {
     map->sprites.clear();
     map->pickups.clear();
     
+    for (int c = 0; c < TILEMAP_COLS; ++c) {
+        for (int r = 0; r < TILEMAP_ROWS; ++r) {
+            map->hidden_pickups[c][r] = 0;
+        }
+    }
+    
     map->name = path;
     if (!string_parse(c, loader_version)) {
         warn("Map %s does not match loader version", path);
     }
     c += 5;
     
-    u32 counter_x = 0;
-    u32 counter_y = 0;
+    i32 counter_x = 0;
+    i32 counter_y = 0;
     
     while (*c) {
         switch(*c) {
@@ -159,7 +167,7 @@ internal bool load_map(Map *const map, const char *path) {
                     
                     map->tiles[counter_x][counter_y] = (EntityBaseType)res;
                     
-                    c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f});
+                    c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f}, ivec2{counter_x, counter_y});
                 } else {
                     
                     if (res == eDoor) {
@@ -194,7 +202,6 @@ internal bool load_map(Map *const map, const char *path) {
                                     sprite_to_make = make_ghost(sprite_initial_pos);
                                     c = Ghost_custom(&sprite_to_make, c);
                                 }break;
-                                
                                 
                                 case EnemyType::KMirror: {
                                     sprite_to_make = make_ghost(sprite_initial_pos);
