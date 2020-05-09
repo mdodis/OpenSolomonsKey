@@ -178,9 +178,9 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     } else if (type == eEmptySpace) {
         
         Sprite *blue_flame;
-        blue_flame = scene_find_first_sprite_on_tile(eBlueFlame, target_tile);
+        blue_flame = find_first_enemy_on_tile(EnemyType::BlueFlame, target_tile);
         if (blue_flame) {
-            eBlueFlame_cast(blue_flame);
+            BlueFlame_cast(blue_flame);
             should_spawn_flash_effect = false;
         } else {
             put_frail_block = true;
@@ -576,10 +576,8 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     else                   SET_ANIMATION(player, test_player, Idle);
 }
 
-
 internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
     /*
-
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
     so invert direction vector to get the axis-compliant direction in X.
     */
@@ -768,7 +766,7 @@ internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
     }
 }
 
-internal void eBlueFlame_cast(Sprite* flame) {
+internal void BlueFlame_cast(Sprite* flame) {
     const double &flame_tame_dur   = flame->entity.params[0].as_f64;
     double &flame_tame_timer       = flame->entity.params[1].as_f64;
     
@@ -779,9 +777,9 @@ internal void eBlueFlame_cast(Sprite* flame) {
 }
 
 // eBlueFlame
-internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt) {
-    const double &flame_tame_dur   = flame->entity.params[0].as_f64;
-    double &flame_tame_timer       = flame->entity.params[1].as_f64;
+internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt) {
+    const double &flame_tame_dur   = flame->entity.params[1].as_f64;
+    double &flame_tame_timer       = flame->entity.params[2].as_f64;
     
     if (flame_tame_timer != -FLT_MAX) {
         

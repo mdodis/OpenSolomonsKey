@@ -1,4 +1,4 @@
-#define MAX_ENTITY_PARAMS 2
+#define MAX_ENTITY_PARAMS 3
 // Custom Parameters
 // eEmptySpace :: hidden item
 // eBlockFrail :: health, hidden item
@@ -18,7 +18,6 @@ enum EntityBaseType {
     eDoor = 7,
     eKey = 8,
     ePickup = 9,
-    eBlueFlame = 10,
     
     eFairie,
     eEffect,
@@ -523,18 +522,20 @@ inline internal Sprite make_blueflame(fvec2 position) {
         .current_animation = GET_CHAR_ANIMENUM(BlueFlame, Normal),
         .animation_set = GET_CHAR_ANIMSET(BlueFlame),
         .entity = {
-            eBlueFlame,
-            {0, 0}
+            eEnemy,
+            {0, 0, 0}
         }
     };
     
-    result.entity.params[0].as_f64 = +1.0;
-    result.entity.params[1].as_f64 = -FLT_MAX;
+    // TODO(miked): impl this
+    result.entity.params[0].as_etype = EnemyType::BlueFlame;
+    result.entity.params[1].as_f64 = +1.0;
+    result.entity.params[2].as_f64 = -FLT_MAX;
     
     return result;
 }
 
-internal char *parse_double(char *c, double *d) {
+internal char *parse_double(char *c, double *d){
     char *end;
     *d = strtod(c, &end);
     return end;
@@ -603,13 +604,13 @@ internal char *Ghost_custom(Sprite *ghost, char *c) {
     return c;
 }
 
-internal char* eBlueFlame_parse(Sprite *flame, char *c) {
+internal char* BlueFlame_custom(Sprite *flame, char *c) {
     if (*c == ',') {
         c++;
         double dur;
         c = parse_double(c, &dur);
         
-        flame->entity.params[0].as_f64 = dur;
+        flame->entity.params[1].as_f64 = dur;
     }
     
     return c;

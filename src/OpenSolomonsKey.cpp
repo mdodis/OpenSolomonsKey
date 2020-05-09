@@ -177,7 +177,7 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     
-    load_map(&g_scene.loaded_map, "lvl1.osk");
+    load_map(&g_scene.loaded_map, "test1.txt");
     
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;
@@ -239,6 +239,9 @@ void draw_ui(float dt) {
     draw_text("ROUND..", 27, 24, false, 32.f);
     
     draw_score(dt);
+    
+    draw_text("MS per frame", 0);
+    draw_num(dt * 1000.f, 1);
 }
 
 void cb_render(InputState istate, u64 audio_sample_count, float dt)
@@ -251,9 +254,6 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(background),
                          {0,0}, {15 * 64, 768},
                          0);
-    
-    draw_text("MS per frame", 0);
-    draw_num(dt * 1000.f, 1);
     
     if (dt > 0.13f) dt = 0.13f;
     

@@ -207,6 +207,12 @@ internal bool load_map(Map *const map, const char *path) {
                                     sprite_to_make = make_ghost(sprite_initial_pos);
                                     c = Ghost_custom(&sprite_to_make, c);
                                 }break;
+                                
+                                case EnemyType::BlueFlame: {
+                                    sprite_to_make = make_blueflame(sprite_initial_pos);
+                                    c = BlueFlame_custom(&sprite_to_make, c);
+                                }break;
+                                
                             }
                         }break;
                         
@@ -218,18 +224,13 @@ internal bool load_map(Map *const map, const char *path) {
                             sprite_to_make = make_key(sprite_initial_pos);
                         }break;
                         
-                        case eBlueFlame: {
-                            sprite_to_make = make_blueflame(sprite_initial_pos);
-                            c = eBlueFlame_parse(&sprite_to_make, c);
-                        }break;
-                        
                         case ePickup: {
                             sprite_to_make = make_pickup(sprite_initial_pos, 0);
                             c = ePickup_parse(&sprite_to_make, c);
                         }break;
                         
                         default:{
-                            error("sprite type not available for make_");
+                            error("sprite type %Iu not available for make_", res);
                             exit(0);
                         }break;
                     }
@@ -327,7 +328,25 @@ internal Sprite *scene_find_nthsprite(EntityBaseType type, int *n) {
     return 0;
 }
 
-internal Sprite *scene_find_first_sprite_on_tile(EntityBaseType type, ivec2 tile) {
+internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile) {
+    int n = 0;
+    
+    do {
+        Sprite *next = scene_find_nthsprite(EntityBaseType::eEnemy, &n);
+        
+        if (next) {
+            ivec2 tpos = map_position_to_tile_centered(next->position);
+            if (tpos == tile && next->entity.params[0].as_etype == type) {
+                return next;
+            }
+            n++;
+        }
+        
+    } while(n != -1);
+    return 0;
+}
+
+internal Sprite *find_first_sprite_on_tile(EntityBaseType type, ivec2 tile) {
     int n = 0;
     
     do {
@@ -554,9 +573,9 @@ internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
 internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
-internal void eBlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
 internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
-internal void eBlueFlame_cast(Sprite* flame);
+internal void BlueFlame_cast(Sprite* flame);
 internal void player_pickup(Sprite *player, Sprite *pickup);
 
 internal void
@@ -619,6 +638,10 @@ scene_update(InputState* istate, float dt) {
                             Ghost_update(spref, istate,dt);
                         }break;
                         
+                        case EnemyType::BlueFlame: {
+                            BlueFlame_update(spref, istate,dt);
+                        }break;
+                        
                     }
                 } break;
                 
@@ -630,10 +653,6 @@ scene_update(InputState* istate, float dt) {
                 
                 case eDFireball:{
                     eDFireball_update(spref, istate, dt);
-                }break;
-                
-                case eBlueFlame: {
-                    eBlueFlame_update(spref, istate,dt);
                 }break;
                 
                 case eFairie: {

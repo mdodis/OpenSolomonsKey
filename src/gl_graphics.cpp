@@ -85,14 +85,7 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     return result;
 }
 
-internal GLTilemapTexture
-gl_load_rgba_tilemap(
-                     u8* data,
-                     i32 width,
-                     i32 height,
-                     i32 tilemap_rows,
-                     i32 tilemap_cols)
-{
+internal GLTilemapTexture gl_load_rgba_tilemap(u8* data, i32 width, i32 height, i32 tilemap_rows, i32 tilemap_cols) {
     u32 tilemap_id;
     
     glGenTextures(1, &tilemap_id);
@@ -109,11 +102,7 @@ gl_load_rgba_tilemap(
     i32 tile_height = height / tilemap_rows;
     i32 tiles = tilemap_rows * tilemap_cols;
     
-    glTexStorage3D(
-                   GL_TEXTURE_2D_ARRAY,
-                   1, GL_RGBA8,
-                   tile_width, tile_height,
-                   tiles);
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY,1, GL_RGBA8, tile_width, tile_height, tiles);
     
     glPixelStorei(GL_UNPACK_ROW_LENGTH,   width);
     glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, height);
@@ -121,13 +110,10 @@ gl_load_rgba_tilemap(
     u8* c = data;
     
     i32 count = 0;
-    for (i32 y = 0; y < tilemap_rows; y++)
-    {
-        for (i32 x = 0; x < tilemap_cols; x++)
-        {
+    for (i32 y = 0; y < tilemap_rows; y++) {
+        for (i32 x = 0; x < tilemap_cols; x++) {
             
-            glTexSubImage3D(
-                            GL_TEXTURE_2D_ARRAY,
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
                             0, 0, 0,
                             //count,
                             y * tilemap_cols + x,
