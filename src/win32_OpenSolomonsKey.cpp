@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <GL/GL.h>
@@ -15,7 +14,6 @@
 #define OSK_CLASS_NAME "OSK Class"
 
 #include "gl_funcs.h"
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////// TIMING
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -580,14 +578,14 @@ internal void win32_update_all_keys()
 {
 #define KEYDOWN(name, _X, keysym) g_input_state.name = win32_get_key_state(keysym);
 #define KEYPRESS(name, _X, keysym) { \
-    b32 now = win32_get_key_state(keysym); \
-    g_input_state.name[1] = (now && !g_input_state.name[0]); \
-    g_input_state.name[0] = g_input_state.name[1] || now; \
+b32 now = win32_get_key_state(keysym); \
+g_input_state.name[1] = (now && !g_input_state.name[0]); \
+g_input_state.name[0] = g_input_state.name[1] || now; \
     \
 } \
-
-KEYMAP
-
+    
+    KEYMAP
+        
 #undef KEYDOWN
 #undef KEYPRESS
 }

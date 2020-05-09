@@ -573,22 +573,6 @@ internal char *parse_long(char *c, long *d) {
     return end;
 }
 
-internal char *eEnemy_parse(char *c, EnemyType *type) {
-    *type = EnemyType::Goblin;
-    
-    if (*c == ',') {
-        c++;
-        long tl;
-        c = parse_long(c, &tl);
-        printf("%d aa\n", tl);
-        //assert(tl < long(EnemyType::Count));
-        
-        *type = (EnemyType)tl;
-    }
-    
-    return c;
-}
-
 internal char *parse_custom_double(Sprite *s, char *c, int index, double default_val) {
     s->entity.params[index].as_f64 = default_val;
     
@@ -612,12 +596,14 @@ internal char *parse_custom_bool32(i32 *dst, char *c, bool default_val) {
     return c;
 }
 
+internal char *parse_enemy(Sprite *enemy, char *c, fvec2 sprite_initial_pos);
+internal char *parse_enemy_type(char *c, EnemyType *type);
+internal char *parse_enemy_custom(Sprite *s, char *c, EnemyType type, fvec2 sprite_initial_pos);
+
 internal char *Goblin_custom(Sprite *goblin, char *c) {
     c = parse_custom_double(goblin, c, 1, 80.f);
-    c = parse_custom_double(goblin, c, 1, 80.f);
+    c = parse_custom_bool32(&goblin->mirror.x, c, false);
     
-    //c = parse_custom_bool32(&goblin->mirror.x, c, false);
-    goblin->entity.params[1].as_f64 = 80.f;
     return c;
 }
 
@@ -642,23 +628,82 @@ internal char* BlueFlame_custom(Sprite *flame, char *c) {
     return c;
 }
 
-internal char *parse_custom_enemy(Sprite *mirror, char *c, int idx, void *def) {
+internal char *parse_kmirror_enemy(Sprite *mirror, char *c, int index, void *def, fvec2 pos) {
+    
+    mirror->entity.params[index].as_ptr = (void*)0;
     if (*c == ',') {
         c++;
-        if (*c == '{') {
-            c++;
-            
+        assert(*c == '{');
+        c++;
+        
+        EnemyType type;
+        {
+            long tl;
+            c = parse_long(c, &tl);
+            type = (EnemyType)tl;
+            assert(type < EnemyType::Count);
         }
+        Sprite *spr = (Sprite *)malloc(sizeof(Sprite));
+        c = parse_enemy_custom(spr, c, type, pos);
+        mirror->entity.params[index].as_ptr = (void*)spr;
+        assert(*c == '}');
+        c++;
     }
+    return c;
+}
+
+internal char *KMirror_custom(Sprite *mirror, char *c, fvec2 pos) {
+    // NOTE(miked): we dont store exact enemy info in the params
+    // (we'd have to add a lot of custom params then). Instead we malloc a Sprite,
+    // parse the params for it and add a pointer to it in the mirror. Whenever its
+    // spawned we just clone that pointer with map_add
+    c = parse_custom_double(mirror, c, 1, 1.f);
+    c = parse_custom_double(mirror, c, 2, 1.f);
+    c = parse_kmirror_enemy(mirror, c, 3, 0, pos);
+    c = parse_kmirror_enemy(mirror, c, 4, 0, pos);
+    return c;
+}
+
+internal char *parse_enemy(Sprite *enemy, char *c, fvec2 sprite_initial_pos) {
+    EnemyType type;
+    c = parse_enemy_type(c, &type);
+    c = parse_enemy_custom(enemy, c, type, sprite_initial_pos);
     
     return c;
 }
 
-internal char *KMirror_custom(Sprite *mirror, char *c) {
-    c = parse_custom_double(mirror, c, 1, 1.f);
-    c = parse_custom_double(mirror, c, 2, 1.f);
-    c = parse_custom_enemy(mirror, c, 3, 0);
-    c = parse_custom_enemy(mirror, c, 4, 0);
+internal char *parse_enemy_type(char *c, EnemyType *type) {
+    long tl;
+    assert(*c == ',');
+    c++;
+    
+    c = parse_long(c, &tl);
+    *type = (EnemyType)tl;
+    return c;
+}
+
+internal char *parse_enemy_custom(Sprite *s, char *c, EnemyType type, fvec2 sprite_initial_pos) {
+    switch(type) {
+        case EnemyType::Goblin: {
+            *s = make_goblin(sprite_initial_pos);
+            c = Goblin_custom(s, c);
+        }break;
+        
+        case EnemyType::Ghost: {
+            *s = make_ghost(sprite_initial_pos);
+            c = Ghost_custom(s, c);
+        }break;
+        
+        case EnemyType::BlueFlame: {
+            *s = make_blueflame(sprite_initial_pos);
+            c = BlueFlame_custom(s, c);
+        }break;
+        
+        case EnemyType::KMirror: {
+            *s = make_kmirror(sprite_initial_pos);
+            c = KMirror_custom(s, c, sprite_initial_pos);
+        }break;
+    }
     return c;
 }
 

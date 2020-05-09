@@ -191,30 +191,7 @@ internal bool load_map(Map *const map, const char *path) {
                         }break;
                         
                         case eEnemy: {
-                            EnemyType type;
-                            c = eEnemy_parse(c, &type);
-                            
-                            switch(type) {
-                                case EnemyType::Goblin: {
-                                    sprite_to_make = make_goblin(sprite_initial_pos);
-                                    c = Goblin_custom(&sprite_to_make, c);
-                                }break;
-                                
-                                case EnemyType::Ghost: {
-                                    sprite_to_make = make_ghost(sprite_initial_pos);
-                                    c = Ghost_custom(&sprite_to_make, c);
-                                }break;
-                                
-                                case EnemyType::BlueFlame: {
-                                    sprite_to_make = make_blueflame(sprite_initial_pos);
-                                    c = BlueFlame_custom(&sprite_to_make, c);
-                                }break;
-                                
-                                case EnemyType::KMirror: {
-                                    sprite_to_make = make_kmirror(sprite_initial_pos);
-                                    c = KMirror_custom(&sprite_to_make, c);
-                                }break;
-                            }
+                            c = parse_enemy(&sprite_to_make, c, sprite_initial_pos);
                         }break;
                         
                         case eDoor: {
@@ -586,12 +563,12 @@ internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
 internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
 internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
 internal void BlueFlame_cast(Sprite* flame);
 internal void player_pickup(Sprite *player, Sprite *pickup);
 
-internal void
-scene_update(InputState* istate, float dt) {
+internal void scene_update(InputState* istate, float dt) {
     
     for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
         draw_pickup(&g_scene.loaded_map.pickups[i]);
@@ -652,6 +629,10 @@ scene_update(InputState* istate, float dt) {
                         
                         case EnemyType::BlueFlame: {
                             BlueFlame_update(spref, istate,dt);
+                        }break;
+                        
+                        case EnemyType::KMirror: {
+                            KMirror_update(spref, istate,dt);
                         }break;
                         
                     }

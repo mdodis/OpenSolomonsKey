@@ -900,3 +900,7 @@ internal void player_pickup(Sprite *player, Sprite *pickup) {
         }
     }
 }
+
+internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
+    
+}
