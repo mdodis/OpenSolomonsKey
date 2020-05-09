@@ -177,7 +177,7 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     
-    load_map(&g_scene.loaded_map, "test1.txt");
+    load_map(&g_scene.loaded_map, "lvl1.osk");
     
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;

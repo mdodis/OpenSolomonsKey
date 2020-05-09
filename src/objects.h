@@ -527,7 +527,6 @@ inline internal Sprite make_blueflame(fvec2 position) {
         }
     };
     
-    // TODO(miked): impl this
     result.entity.params[0].as_etype = EnemyType::BlueFlame;
     result.entity.params[1].as_f64 = +1.0;
     result.entity.params[2].as_f64 = -FLT_MAX;

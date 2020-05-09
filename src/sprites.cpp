@@ -767,8 +767,8 @@ internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
 }
 
 internal void BlueFlame_cast(Sprite* flame) {
-    const double &flame_tame_dur   = flame->entity.params[0].as_f64;
-    double &flame_tame_timer       = flame->entity.params[1].as_f64;
+    const double &flame_tame_dur   = flame->entity.params[1].as_f64;
+    double &flame_tame_timer       = flame->entity.params[2].as_f64;
     
     flame_tame_timer = 0;
     if (flame->current_animation == GET_CHAR_ANIMENUM(BlueFlame, Normal)) {
