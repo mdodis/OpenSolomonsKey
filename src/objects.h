@@ -1,4 +1,4 @@
-#define MAX_ENTITY_PARAMS 3
+#define MAX_ENTITY_PARAMS (3 + 2)
 // Custom Parameters
 // eEmptySpace :: hidden item
 // eBlockFrail :: health, hidden item
@@ -73,6 +73,7 @@ union CustomParameter {
     double as_f64;
     i64    as_i64;
     EnemyType as_etype;
+    void *as_ptr;
 };
 
 internal bool pickup_type_is_valid(PickupType type) {
@@ -296,7 +297,7 @@ typedef std::vector<Sprite> List_Sprite;
 struct Map {
     const char *name; // path!!!
     EntityBaseType tiles[TILEMAP_COLS][TILEMAP_ROWS];
-    Sprite *hidden_pickups[TILEMAP_COLS][TILEMAP_ROWS];
+    int hidden_pickups[TILEMAP_COLS][TILEMAP_ROWS];
     
     List_Sprite sprites;
     List_Sprite pickups;
@@ -492,7 +493,7 @@ inline internal Sprite make_key(fvec2 position) {
     
 }
 
-inline internal Sprite make_pickup(fvec2 position, u64 type) {
+inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
     Sprite res = {
         
         .tilemap = &GET_TILEMAP_TEXTURE(TM_pickups),
@@ -508,6 +509,8 @@ inline internal Sprite make_pickup(fvec2 position, u64 type) {
             {type, 0}
         }
     };
+    
+    res.entity.params[2].as_u64 = id;
     
     return res;
 }
@@ -530,6 +533,30 @@ inline internal Sprite make_blueflame(fvec2 position) {
     result.entity.params[0].as_etype = EnemyType::BlueFlame;
     result.entity.params[1].as_f64 = +1.0;
     result.entity.params[2].as_f64 = -FLT_MAX;
+    
+    return result;
+}
+
+inline internal Sprite make_kmirror(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(KMirror),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .animation_playing = false,
+        .current_animation = GET_CHAR_ANIMENUM(KMirror, Default),
+        .animation_set = GET_CHAR_ANIMSET(KMirror),
+        .entity = {
+            eEnemy,
+            {0,0,0, 0, 0,}
+        }
+    };
+    
+    result.entity.params[0].as_etype = EnemyType::KMirror;
+    result.entity.params[1].as_f64 = 1.f;
+    result.entity.params[2].as_f64 = 1.f;
+    result.entity.params[3].as_ptr = 0;
+    result.entity.params[4].as_ptr = 0;
     
     return result;
 }
@@ -615,6 +642,26 @@ internal char* BlueFlame_custom(Sprite *flame, char *c) {
     return c;
 }
 
+internal char *parse_custom_enemy(Sprite *mirror, char *c, int idx, void *def) {
+    if (*c == ',') {
+        c++;
+        if (*c == '{') {
+            c++;
+            
+        }
+    }
+    
+    return c;
+}
+
+internal char *KMirror_custom(Sprite *mirror, char *c) {
+    c = parse_custom_double(mirror, c, 1, 1.f);
+    c = parse_custom_double(mirror, c, 2, 1.f);
+    c = parse_custom_enemy(mirror, c, 3, 0);
+    c = parse_custom_enemy(mirror, c, 4, 0);
+    return c;
+}
+
 internal char *ePickup_parse(Sprite* pickup, char* c) {
     if (*c == ',') {
         c++;
@@ -630,10 +677,12 @@ internal char *ePickup_parse(Sprite* pickup, char* c) {
     return c;
 }
 
-internal void
-draw(Sprite const * sprite)
-{
-    assert(sprite->tilemap);
+internal void draw(Sprite const * sprite) {
+    
+    if (!sprite->tilemap) {
+        exit_error("tilemap %d !!", sprite->entity.type);
+    }
+    
     i32 frame_to_render = sprite->current_frame;
     
     if (sprite->animation_set) {

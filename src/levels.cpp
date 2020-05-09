@@ -85,13 +85,14 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos, ivec2 tpos) {
         u64 object_id;
         c++;
         c = string_parse_uint(c, &object_id);
+        static int count = 1;
+        Sprite pickup = make_pickup(pos, object_id, count);
+        pickup.entity.params[1].as_u64 = 1;
+        map_add(map, &pickup);
         
-        Sprite pickup = make_pickup(pos, object_id);
-        Sprite *ref = map_add(map, &pickup);
-        
-        ref->entity.params[1].as_u64 = 1;
-        
-        map->hidden_pickups[tpos.x][tpos.y] = ref;
+        assert(map->hidden_pickups[tpos.x][tpos.y] == 0);
+        map->hidden_pickups[tpos.x][tpos.y] = count;
+        count++;
         //inform("Under Normal tile: %lld", object_id);
     }
     return c;
@@ -123,6 +124,7 @@ internal bool load_map(Map *const map, const char *path) {
             map->hidden_pickups[c][r] = 0;
         }
     }
+    
     
     map->name = path;
     if (!string_parse(c, loader_version)) {
@@ -203,16 +205,15 @@ internal bool load_map(Map *const map, const char *path) {
                                     c = Ghost_custom(&sprite_to_make, c);
                                 }break;
                                 
-                                case EnemyType::KMirror: {
-                                    sprite_to_make = make_ghost(sprite_initial_pos);
-                                    c = Ghost_custom(&sprite_to_make, c);
-                                }break;
-                                
                                 case EnemyType::BlueFlame: {
                                     sprite_to_make = make_blueflame(sprite_initial_pos);
                                     c = BlueFlame_custom(&sprite_to_make, c);
                                 }break;
                                 
+                                case EnemyType::KMirror: {
+                                    sprite_to_make = make_kmirror(sprite_initial_pos);
+                                    c = KMirror_custom(&sprite_to_make, c);
+                                }break;
                             }
                         }break;
                         
@@ -312,6 +313,17 @@ internal Sprite* scene_get_first_sprite(EntityBaseType type) {
     }
     return 0;
     
+}
+
+internal Sprite *scene_get_pickup_with_id(u64 id) {
+    for (i32 i = 0; i < g_scene.loaded_map.pickups.size(); i += 1) {
+        Sprite* spref = &g_scene.loaded_map.pickups[i];
+        
+        if (spref->entity.type == ePickup && spref->entity.params[2].as_u64 == id) {
+            return spref;
+        }
+    }
+    return 0;
 }
 
 internal Sprite *scene_find_nthsprite(EntityBaseType type, int *n) {

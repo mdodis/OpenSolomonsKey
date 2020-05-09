@@ -189,9 +189,16 @@ internal void ePlayer_cast(Sprite* player, float dt) {
         
     }
     
-    Sprite *pref = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
-    if (pref) {
-        pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
+    u64 pref_id = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
+    
+    if (pref_id > 0) {
+        
+        Sprite *pref = scene_get_pickup_with_id(pref_id);
+        if (pref) {
+            assert(pref->entity.type == ePickup);
+            pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
+        }
+        
     }
     
     SET_ANIMATION(player, test_player, Cast);
