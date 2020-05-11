@@ -167,7 +167,7 @@ aabb_minkowski(
 inline u64 lengthsq(const fvec2* const v);
 inline float ftrunc(float n);
 inline float iabs(float n);
-float iclamp(float a, float b, float x);
+//float iclamp(float a, float b, float x);
 // Precise method, which guarantees v = v1 when t = 1.
 float lerp(float v0, float v1, float t) {
     return (1 - t) * v0 + t * v1;
@@ -179,7 +179,6 @@ fvec2 lerp2(fvec2 a, fvec2 b, float t) {
     return result;
 }
 
-inline fvec2 iclamp(fvec2 a, fvec2 b, fvec2 x);
 inline int highest_pow2(int n);
 
 #endif //!OSK_MATH_H
@@ -200,35 +199,35 @@ inline float iabs(float n)
         return n;
 }
 
-inline float fclamp(float a, float b, float x)
+inline float clamp(float a, float b, float x)
 {
     if (x < a) return a;
     if (x > b) return b;
     return x;
 }
 
-inline fvec2 fclamp(fvec2 a, fvec2 b, fvec2 x)
+inline fvec2 clamp(fvec2 a, fvec2 b, fvec2 x)
 {
     return fvec2
     {
-        iclamp(a.x, b.x, x.x),
-        iclamp(a.y, b.y, x.y)
+        clamp(a.x, b.x, x.x),
+        clamp(a.y, b.y, x.y)
     };
 }
 
-inline i32  iclamp(i32  a, i32 b, i32 x)
+inline i32 clamp(i32  a, i32 b, i32 x)
 {
     if (x < a) return a;
     if (x > b) return b;
     return x;
 }
 
-inline ivec2 iclamp(ivec2 a, ivec2 b, ivec2 x)
+inline ivec2 clamp(ivec2 a, ivec2 b, ivec2 x)
 {
     return ivec2
     {
-        iclamp(a.x, b.x, x.x),
-        iclamp(a.y, b.y, x.y)
+        clamp(a.x, b.x, x.x),
+        clamp(a.y, b.y, x.y)
     };
 }
 

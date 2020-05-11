@@ -12,6 +12,8 @@ OSK_EXCLUDE_MSG_EXPR
 */
 //#define OSK_ROUND_TO_POW_2
 //#define OSK_EXCLUDE_MSG_EXPR
+//#define OSK_WIN32_CONSOLE
+
 inline void _exit_with_message(char* message)
 {
     puts(message);

@@ -9,7 +9,7 @@ eBlocks + eEmptySpace
 
 */
 // NOTE: change map to level (g_scene...)
-internal Sprite *map_add(Map *map, Sprite *sprite) {
+internal Sprite *map_add(Map *map, const Sprite *sprite) {
     fail_unless(sprite, "Passing null sprite to map_add");
     
     if (sprite->entity.type == ePickup) {
@@ -22,7 +22,7 @@ internal Sprite *map_add(Map *map, Sprite *sprite) {
     }
 }
 
-internal Sprite *scene_sprite_add(Sprite *sprite)
+internal Sprite *scene_sprite_add(const Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
     
@@ -451,7 +451,7 @@ internal void scene_startup_animation(float dt) {
             
             if (startup_anim_time < anim_dur) {
                 ring->position = lerp2(DOOR, KEY, (startup_anim_time/anim_dur));
-                startup_anim_time = fclamp(0.f, anim_dur, startup_anim_time + dt);
+                startup_anim_time = clamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
                 g_scene.startup_state = STATE_SHOW_PLAYER;
                 startup_anim_time = 0.f;
@@ -464,7 +464,7 @@ internal void scene_startup_animation(float dt) {
             
             if (startup_anim_time < anim_dur) {
                 ring->position = lerp2(KEY, player->position, (startup_anim_time/anim_dur));
-                startup_anim_time = fclamp(0.f, anim_dur, startup_anim_time + dt);
+                startup_anim_time = clamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
                 g_scene.startup_state = 4;
                 ring->mark_for_removal = true;

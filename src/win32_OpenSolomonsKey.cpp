@@ -590,13 +590,11 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 #undef KEYPRESS
 }
 
-int WinMain(
-            HINSTANCE hInstance,
-            HINSTANCE hPrevInstance,
-            LPSTR     lpCmdLine,
-            int       nShowCmd)
-{
-    
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nShowCmd) {
+#if defined(OSK_WIN32_CONSOLE)
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
+#endif
     win32_init(hInstance);
     HDC dc = GetDC(g_wind);
     

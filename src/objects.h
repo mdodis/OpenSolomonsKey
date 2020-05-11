@@ -1,4 +1,4 @@
-#define MAX_ENTITY_PARAMS (3 + 2)
+#define MAX_ENTITY_PARAMS (3 + 4)
 // Custom Parameters
 // eEmptySpace :: hidden item
 // eBlockFrail :: health, hidden item
@@ -170,13 +170,11 @@ struct Sprite {
     
     Entity entity;
     
-    inline AABox get_transformed_AABox() const
-    {
+    inline AABox get_transformed_AABox() const {
         return this->collision_box.translate(this->position);
     }
     
-    void collide_aabb(AABox* target)
-    {
+    void collide_aabb(AABox* target) {
         fail_unless(target, "");
         
         AABox this_collision = this->get_transformed_AABox();
@@ -184,25 +182,21 @@ struct Sprite {
         fvec2 diff;
         b32 collided = aabb_minkowski(&this_collision, target, &diff);
         b32 collided_on_bottom = false;
-        if (collided)
-        {
+        if (collided) {
             this->position = this->position - (diff);
             
             // If we are moving up and diff moved us in the Y dir,
             // then negate the collision.
             // (fixes bouncing when hitting corner of a tile)
-            if (this->velocity.y < 0 && iabs(diff.y) < 5)
-            {
+            if (this->velocity.y < 0 && iabs(diff.y) < 5) {
                 this->position.y += diff.y;
                 goto finished;
             }
             
             // NOTE(miked): if on top?
-            if (this_collision.min_y < target->min_y)
-            {
+            if (this_collision.min_y < target->min_y) {
                 collided_on_bottom = true;
-                if (iabs(diff.y) > 0)
-                {
+                if (iabs(diff.y) > 0) {
                     this->is_on_air = false;
                     this->velocity.y = 0;
                 }
@@ -609,9 +603,8 @@ internal char *Goblin_custom(Sprite *goblin, char *c) {
 
 internal char *Ghost_custom(Sprite *ghost, char *c) {
     c = parse_custom_double(ghost, c, 1, 200.f);
-    c = parse_custom_double(ghost, c, 1, 200.f);
+    //c = parse_custom_double(ghost, c, 1, 200.f);
     
-    ghost->entity.params[1].as_f64 = 200.f;
     //c = parse_custom_bool32(&ghost->mirror.x, c, false);
     return c;
 }
@@ -657,10 +650,13 @@ internal char *KMirror_custom(Sprite *mirror, char *c, fvec2 pos) {
     // (we'd have to add a lot of custom params then). Instead we malloc a Sprite,
     // parse the params for it and add a pointer to it in the mirror. Whenever its
     // spawned we just clone that pointer with map_add
-    c = parse_custom_double(mirror, c, 1, 1.f);
-    c = parse_custom_double(mirror, c, 2, 1.f);
-    c = parse_kmirror_enemy(mirror, c, 3, 0, pos);
-    c = parse_kmirror_enemy(mirror, c, 4, 0, pos);
+    // TODO(NAME): highly propable memory leak!
+    mirror->entity.params[1].as_f64 = 0.f;
+    mirror->entity.params[2].as_f64 = 0.f;
+    c = parse_custom_double(mirror, c, 3, 1.f);
+    c = parse_custom_double(mirror, c, 4, 1.f);
+    c = parse_kmirror_enemy(mirror, c, 5, 0, pos);
+    c = parse_kmirror_enemy(mirror, c, 6, 0, pos);
     return c;
 }
 

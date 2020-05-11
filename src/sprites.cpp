@@ -7,7 +7,7 @@ void Sprite::move_and_collide(float dt,
     this->velocity.x = XSPEED;
     
     this->velocity.y += GRAVITY * dt;
-    this->velocity.y = fclamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
+    this->velocity.y = clamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
     
     // NOTE(miked): This should teach me not to mix integers
     // and floats ever again:
@@ -24,8 +24,8 @@ void Sprite::move_and_collide(float dt,
     
     // Get the upper left tile based on the center of the this sprite
     fvec2 ipos = {this->position.x, this->position.y};
-    ivec2 start_tile = iclamp(ivec2{0,0}, ivec2{14,11},
-                              map_position_to_tile_centered(ipos) - 1);
+    ivec2 start_tile = clamp(ivec2{0,0}, ivec2{14,11},
+                             map_position_to_tile_centered(ipos) - 1);
     
     b32 collided_on_bottom = false;
     
@@ -152,7 +152,7 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     
     
     // Get the upper left tile based on the center of the player sprite
-    ivec2 player_tile = iclamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
+    ivec2 player_tile = clamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
     
     if (player->mirror.x) {
@@ -165,7 +165,7 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     
     // if we were crouching: special condition
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch)) {
-        target_tile.y = iclamp(0, 14,target_tile.y + 1);
+        target_tile.y = clamp(0, 14,target_tile.y + 1);
     }
     
     EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
@@ -710,7 +710,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
         goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
     } else {
         goblin->velocity.y += 900 * dt;
-        goblin->velocity.y = fclamp(-450, 450, goblin->velocity.y);
+        goblin->velocity.y = clamp(-450.f, 450.f, goblin->velocity.y);
         
         goblin->position.y += goblin->velocity.y * dt;
     }
@@ -862,7 +862,7 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
     }
     
     if (switch_state) {
-        state = iclamp(0, 5, state + 1);
+        state = clamp(0, 5, state + 1);
         if (state != 5) {
             fairie->velocity = normalize({f_to_player.x * random11(), f_to_player.y * random11()});
         }
@@ -901,6 +901,43 @@ internal void player_pickup(Sprite *player, Sprite *pickup) {
     }
 }
 
-internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
+internal void KMirror_spawn(Sprite *kmirror) {
+    Sprite *mv1 = (Sprite *)kmirror->entity.params[5].as_ptr;
+    Sprite *mv2 = (Sprite *)kmirror->entity.params[6].as_ptr;
     
+    const Sprite *sp = mv1;
+    scene_sprite_add(sp);
+    
+    printf("%p %p\n", mv1, mv2);
+    // swap spawn sprite primitives
+    if (mv2 != 0) {
+        Sprite tmp = *mv1;
+        *mv1 = *mv2;
+        *mv2 = tmp;
+    }
+}
+
+internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
+    double &current_timer = kmirror->entity.params[1].as_f64;
+    double &current_delay_timer = kmirror->entity.params[2].as_f64;
+    const double &delay = kmirror->entity.params[3].as_f64;
+    const double &interval = kmirror->entity.params[4].as_f64;
+    
+    if (current_delay_timer >= 0.f) {
+        // initial delay
+        current_delay_timer += dt;
+        
+        if (current_delay_timer > delay) {
+            current_delay_timer = -1.f;
+            KMirror_spawn(kmirror);
+        }
+        
+    } else {
+        
+        current_timer += dt;
+        if (current_timer > interval) {
+            current_timer = 0.f;
+            KMirror_spawn(kmirror);
+        }
+    }
 }
