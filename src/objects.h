@@ -610,13 +610,7 @@ internal char *Ghost_custom(Sprite *ghost, char *c) {
 }
 
 internal char* BlueFlame_custom(Sprite *flame, char *c) {
-    if (*c == ',') {
-        c++;
-        double dur;
-        c = parse_double(c, &dur);
-        
-        flame->entity.params[1].as_f64 = dur;
-    }
+    c = parse_custom_double(flame, c, 1, 1.f);
     
     return c;
 }

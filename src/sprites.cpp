@@ -915,8 +915,10 @@ internal void KMirror_spawn(Sprite *kmirror) {
     Sprite *mv1 = (Sprite *)kmirror->entity.params[5].as_ptr;
     Sprite *mv2 = (Sprite *)kmirror->entity.params[6].as_ptr;
     
-    const Sprite *sp = mv1;
-    scene_sprite_add(sp);
+    if (mv1) {
+        const Sprite *sp = mv1;
+        scene_sprite_add(sp);
+    }
     
     printf("%p %p\n", mv1, mv2);
     // swap spawn sprite primitives

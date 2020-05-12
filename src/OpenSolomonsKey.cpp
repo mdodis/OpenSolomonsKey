@@ -4,6 +4,8 @@ TODO:
 - Background selection from .osk format
 - level 2
 
+- At fire, osked outputs two params instead of one!
+
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
 - Pickup secrets (add+destroy block in empty space)
@@ -175,7 +177,7 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     
-    load_map(&g_scene.loaded_map, "lvl1.osk");
+    load_map(&g_scene.loaded_map, "test1.osk");
     
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;

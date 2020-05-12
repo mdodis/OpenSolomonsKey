@@ -99,7 +99,6 @@ internal char *parse_custom(Map *const map, char *c, fvec2 pos, ivec2 tpos) {
 }
 
 internal bool load_map(Map *const map, const char *path) {
-    constexpr char * loader_version = "V0.2";
     bool level_validity[] = {
         false,  // Door exists
         false,  // Key exists
@@ -127,10 +126,6 @@ internal bool load_map(Map *const map, const char *path) {
     
     
     map->name = path;
-    if (!string_parse(c, loader_version)) {
-        warn("Map %s does not match loader version", path);
-    }
-    c += 5;
     
     i32 counter_x = 0;
     i32 counter_y = 0;
@@ -156,7 +151,7 @@ internal bool load_map(Map *const map, const char *path) {
                 c = string_parse_uint(c, &res);
                 
                 if (res >= EntityBaseType_Count) {
-                    error("Entity type %lld does not exist in loader verison %s!", res, loader_version);
+                    error("Entity type %lld does not exist in loader!", res);
                     return false;
                 }
                 
@@ -223,7 +218,16 @@ internal bool load_map(Map *const map, const char *path) {
                 
             } break;
             
+            
+            
             default: {
+                if (c[0] == 'B' && c[1] == 'G' && c[2] == ' ') {
+                    c += 3;
+                    long bg;
+                    c = parse_long(c, &bg);
+                    inform("Using background %d", bg);
+                }
+                
                 c++;
             } break;
         }
