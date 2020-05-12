@@ -284,6 +284,10 @@ struct Sprite {
     }
 };
 
+inline internal EnemyType get_enemy_type(Sprite *spr) {
+    return spr->entity.params[0].as_etype;
+}
+
 #include <vector>
 /* Thanks c++ stl! Now this'll speed up my productivity */
 typedef std::vector<Sprite> List_Sprite;

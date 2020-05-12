@@ -149,8 +149,6 @@ void Sprite::move_and_collide(float dt,
 
 
 internal void ePlayer_cast(Sprite* player, float dt) {
-    
-    
     // Get the upper left tile based on the center of the player sprite
     ivec2 player_tile = clamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
@@ -169,6 +167,8 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     }
     Sprite *enemy_on_tile = find_first_sprite_on_tile(eEnemy, target_tile);
     if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(eDoor, target_tile);
+    
+    if (enemy_on_tile && get_enemy_type(enemy_on_tile) == EnemyType::BlueFlame) enemy_on_tile = 0;
     
     SET_ANIMATION(player, test_player, Cast);
     if (!enemy_on_tile) {

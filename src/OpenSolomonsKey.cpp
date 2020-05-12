@@ -249,9 +249,7 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     draw_extra_stuff();
     
-    
     gl_background_draw();
-    
     
     if (dt > 0.13f) dt = 0.13f;
     
