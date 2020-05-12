@@ -226,6 +226,8 @@ internal bool load_map(Map *const map, const char *path) {
                     long bg;
                     c = parse_long(c, &bg);
                     inform("Using background %d", bg);
+                    
+                    gl_load_background_texture(bg);
                 }
                 
                 c++;

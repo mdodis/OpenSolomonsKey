@@ -21,25 +21,13 @@ struct GLShader
 };
 
 internal GLTilemapTexture
-gl_load_rgba_tilemap(
-                     u8* data,
-                     i32 width,
-                     i32 height,
-                     i32 tilemap_rows,
-                     i32 tilemap_cols);
+gl_load_rgba_tilemap(u8* data, i32 width, i32 height, i32 tilemap_rows, i32 tilemap_cols);
 
 internal void
-gl_slow_tilemap_draw(
-                     GLTilemapTexture const* tm,
-                     fvec2 pos,
-                     fvec2 size,
-                     float rotate = 0.f,
-                     i32 tm_index = 0,
-                     b32 mirrorx = false,
-                     b32 mirrory = false,
-                     NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f},
-                     b32 account_for_offset = true);
+gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 pos, fvec2 size, float rotate = 0.f, i32 tm_index = 0, b32 mirrorx = false, b32 mirrory = false, NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f}, b32 account_for_offset = true);
 
+
+internal void gl_background_draw();
 const char* const g_2d_vs =
 R"EOS(
 #version 330
@@ -75,8 +63,26 @@ void main()
     
 )EOS";
 
+const char* const g_bg_fs =
+R"EOS(
+#version 330
+in vec2 TexCoords;
+out vec4 color;
+
+uniform sampler2D sampler;
+
+void main()
+{
+      color =  texture(sampler, TexCoords);
+    }
+    
+)EOS";
+
+
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
+global GLShader g_shd_bg;
 global glm::mat4 g_projection;
+global GLuint g_background_texture_id;
 
 #endif //! GL_GRAPHICS_H

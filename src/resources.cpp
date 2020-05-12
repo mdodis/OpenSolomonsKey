@@ -28,7 +28,6 @@ DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
-DEF_TILEMAP(background         ,"res/bg_room0.png"                        ,1    ,1  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,1    ,19 )\
 
 struct RESTilemap
@@ -48,6 +47,39 @@ enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
 global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 ////////////////////////////////
 ////////////////////////////////
+
+////////////////////////////////
+// Backgrounds
+
+#define ALL_BACKGROUNDS \
+B("res/bg/bg_room01.png")\
+B("res/bg/bg_room02.png")\
+B("res/bg/bg_room03.png")\
+B("res/bg/bg_room04.png")\
+B("res/bg/bg_room05.png")\
+B("res/bg/bg_room06.png")\
+B("res/bg/bg_room07.png")\
+B("res/bg/bg_room08.png")\
+B("res/bg/bg_room09.png")\
+B("res/bg/bg_room10.png")\
+B("res/bg/bg_room11.png")\
+B("res/bg/bg_room12.png")\
+B("res/bg/bg_room13.png")\
+B("res/bg/bg_room14.png")\
+B("res/bg/bg_room15.png")\
+B("res/bg/bg_room16.png")\
+B("res/bg/bg_room17.png")\
+B("res/bg/bg_room18.png")\
+
+struct RESBackground {
+    const char *name;
+};
+
+RESBackground g_background_files[] {
+#define B(name) name,
+    ALL_BACKGROUNDS
+#undef B
+};
 
 
 ////////////////////////////////
@@ -175,16 +207,20 @@ ALL_CHARACTERS
 ////////////////////////////////
 
 internal u8*
-load_image_as_rgba_pixels(
-                          const char* const name,
-                          i32* out_width,
-                          i32* out_height,
-                          i32* out_n)
-{
+load_image_as_rgba_pixels(const char* const name, i32* out_width, i32* out_height, i32* out_n) {
     int i_w, i_h, i_n;
     unsigned char* data = stbi_load(name, out_width, out_height, out_n, 4);
     
     return data;
+}
+
+
+internal void gl_load_background_texture(long bgn) {
+    i32 w,h,n;
+    u8 *data = load_image_as_rgba_pixels(g_background_files[bgn].name, &w, &h, &n);
+    assert(data);
+    gl_update_rgba_texture(data, w, h, g_background_texture_id);
+    free(data);
 }
 
 internal void load_tilemap_textures()
@@ -218,7 +254,7 @@ internal void load_tilemap_textures()
     GLenum err = glGetError();
     if (err != GL_NO_ERROR)
     {
-        printf("err: %d\n", err);
+        printf("TMerr: %d\n", err);
         exit(-1);
     }
     

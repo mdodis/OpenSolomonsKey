@@ -206,7 +206,7 @@ win32_init_gl(HDC real_dc) {
     // Specify that we want to create an OpenGL 3.3 core profile context
     int gl33_attribs[] = {
         WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 2,
         WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
         0,
     };

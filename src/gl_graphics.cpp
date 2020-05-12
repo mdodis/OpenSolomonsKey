@@ -85,6 +85,36 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     return result;
 }
 
+
+internal void
+gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA,
+                 width, height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 data);
+    
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        error("err %x\n",err);
+        exit(0);
+    }
+    //assert(err == GL_NO_ERROR);
+    
+}
+
+
 internal GLTilemapTexture gl_load_rgba_tilemap(u8* data, i32 width, i32 height, i32 tilemap_rows, i32 tilemap_cols) {
     u32 tilemap_id;
     
@@ -135,18 +165,8 @@ internal GLTilemapTexture gl_load_rgba_tilemap(u8* data, i32 width, i32 height, 
     return GLTilemapTexture{tilemap_id, width, height, tilemap_rows, tilemap_cols};
 }
 
-
 // NOTE: maybe I should get rid of glm, since its only used here...
-internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm,
-                                   fvec2 _pos,
-                                   fvec2 _size,
-                                   float rotate,
-                                   i32 tm_index,
-                                   b32 mirrorx,
-                                   b32 mirrory,
-                                   NRGBA tint,
-                                   b32 account_for_offset)
-{
+internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 _pos, fvec2 _size, float rotate, i32 tm_index, b32 mirrorx, b32 mirrory, NRGBA tint, b32 account_for_offset) {
     if (tm_index < 0) return;
     glBindTexture(GL_TEXTURE_2D_ARRAY, tm->texture_id);
     glBindVertexArray(g_quad_vao);
@@ -191,14 +211,37 @@ internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm,
     model = glm::scale(model, glm::vec3(size, 1.0f));
     
     GLuint loc = glGetUniformLocation(g_shd_2d.id, "model");
-    glUniformMatrix4fv(
-                       loc,
-                       1,
-                       GL_FALSE,
-                       glm::value_ptr(model));
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
     loc = glGetUniformLocation(g_shd_2d.id, "tint");
     glUniform4f(loc, tint.r, tint.g, tint.b, tint.a);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+internal void gl_background_draw() {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, g_background_texture_id);
+    
+    glm::mat4 model(1.f);
+    glm::vec2 size = glm::vec2(960, 768);
+    
+    model = glm::scale(model, glm::vec3(g_pixel_scale, g_pixel_scale, 1.f));
+    model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
+    model = glm::scale(model, glm::vec3(size, 1.0f));
+    
+    glUseProgram(g_shd_bg.id);
+    //GLuint layer_loc = glGetUniformLocation(g_shd_bg.id, "sampler");
+    //glUniform1i(layer_loc, 0);
+    
+    GLuint loc = glGetUniformLocation(g_shd_2d.id, "model");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+    loc = glGetUniformLocation(g_shd_2d.id, "projection");
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(g_projection));
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(g_shd_2d.id);
+    
 }
 
 internal void gl_init() {
@@ -207,6 +250,7 @@ internal void gl_init() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
     
+    g_shd_bg.create(g_2d_vs, g_bg_fs);
     g_shd_2d.create(g_2d_vs, g_2d_fs);
     
     GLuint sampler_loc = glGetUniformLocation(g_shd_2d.id, "sampler");
@@ -235,6 +279,11 @@ internal void gl_init() {
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    
+    glGenTextures(1, &g_background_texture_id);
+    gl_load_background_texture(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
     
     assert(glGetError() == GL_NO_ERROR);
     

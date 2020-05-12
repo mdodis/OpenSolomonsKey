@@ -33,6 +33,7 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include <glm/gtc/type_ptr.hpp>
 #include "osk_math.h"
 #include "gl_funcs.h"
+internal void gl_load_background_texture(long bgn);
 #include "gl_graphics.h"
 #include "gl_graphics.cpp"
 #include "resources.cpp"
@@ -172,13 +173,10 @@ internal void draw_extra_stuff() {
 
 void cb_init() {
     srand(time(0));
-    srand(time(0));
     gl_init();
     load_tilemap_textures();
     load_sound_resources();
-    
     load_map(&g_scene.loaded_map, "test1.osk");
-    
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;
 }
@@ -251,9 +249,9 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     draw_extra_stuff();
     
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(background),
-                         {0,0}, {15 * 64, 768},
-                         0);
+    
+    gl_background_draw();
+    
     
     if (dt > 0.13f) dt = 0.13f;
     
