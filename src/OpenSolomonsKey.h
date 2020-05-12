@@ -14,8 +14,7 @@ OSK_EXCLUDE_MSG_EXPR
 //#define OSK_EXCLUDE_MSG_EXPR
 //#define OSK_WIN32_CONSOLE
 
-inline void _exit_with_message(char* message)
-{
+inline void _exit_with_message(char* message) {
     puts(message);
     fflush(stdout); // Will now print everything in the stdout buffer
     exit(-1);

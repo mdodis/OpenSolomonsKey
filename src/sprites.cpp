@@ -167,45 +167,56 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch)) {
         target_tile.y = clamp(0, 14,target_tile.y + 1);
     }
-    
-    EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
-    bool should_spawn_flash_effect = true;
-    bool put_frail_block;
-    
-    if (is_frail_block(type)) {
-        scene_set_tile(target_tile, eEmptySpace);
-        put_frail_block = false;
-    } else if (type == eEmptySpace) {
-        
-        Sprite *blue_flame;
-        blue_flame = find_first_enemy_on_tile(EnemyType::BlueFlame, target_tile);
-        if (blue_flame) {
-            BlueFlame_cast(blue_flame);
-            should_spawn_flash_effect = false;
-        } else {
-            put_frail_block = true;
-            scene_set_tile(target_tile, eBlockFrail);
-        }
-        
-    }
-    
-    u64 pref_id = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
-    
-    if (pref_id > 0) {
-        
-        Sprite *pref = scene_get_pickup_with_id(pref_id);
-        if (pref) {
-            assert(pref->entity.type == ePickup);
-            pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
-        }
-        
-    }
+    Sprite *enemy_on_tile = find_first_sprite_on_tile(eEnemy, target_tile);
+    if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(eDoor, target_tile);
     
     SET_ANIMATION(player, test_player, Cast);
-    
-    if (should_spawn_flash_effect) {
-        Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
-        scene_sprite_add(&flash);
+    if (!enemy_on_tile) {
+        EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
+        bool should_spawn_flash_effect = true;
+        bool put_frail_block;
+        
+        if (is_frail_block(type)) {
+            scene_set_tile(target_tile, eEmptySpace);
+            put_frail_block = false;
+        } else if (type == eEmptySpace) {
+            
+            Sprite *blue_flame;
+            blue_flame = find_first_enemy_on_tile(EnemyType::BlueFlame, target_tile);
+            if (blue_flame) {
+                BlueFlame_cast(blue_flame);
+                should_spawn_flash_effect = false;
+            } else {
+                put_frail_block = true;
+                scene_set_tile(target_tile, eBlockFrail);
+            }
+            
+        }
+        
+        u64 pref_id = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
+        
+        if (pref_id > 0) {
+            
+            Sprite *pref = scene_get_pickup_with_id(pref_id);
+            if (pref) {
+                assert(pref->entity.type == ePickup);
+                pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
+            }
+            
+        }
+        
+        if (should_spawn_flash_effect) {
+            Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
+            scene_sprite_add(&flash);
+        }
+    } else {
+        Sprite hit = make_effect(enemy_on_tile->position, GET_CHAR_ANIM_HANDLE(Effect, Hit));
+        
+        if (player->position.x < enemy_on_tile->position.x) {
+            hit.mirror.x = true;
+        }
+        
+        scene_sprite_add(&hit);
     }
 }
 
@@ -789,7 +800,6 @@ internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt) {
     double &flame_tame_timer       = flame->entity.params[2].as_f64;
     
     if (flame_tame_timer != -FLT_MAX) {
-        
         flame_tame_timer += dt;
         
         if (flame_tame_timer >= flame_tame_dur) {
