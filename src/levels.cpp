@@ -35,8 +35,7 @@ internal Sprite *scene_sprite_add(const Sprite *sprite)
     }
 }
 
-internal char* string_nextline(char* c)
-{
+internal char* string_nextline(char* c) {
     while (*c != '\n') c++;
     return c + 1;
 }
@@ -68,8 +67,7 @@ internal char* string_parse_uint(char* c, u64* out_i)
 #undef IS_DIGIT
 }
 
-internal b32 is_valid_tilemap_object(EntityBaseType type)
-{
+internal b32 is_valid_tilemap_object(EntityBaseType type) {
     return ((u64)type <= (u64)eBlockSolid);
 }
 
@@ -123,7 +121,6 @@ internal bool load_map(Map *const map, const char *path) {
             map->hidden_pickups[c][r] = 0;
         }
     }
-    
     
     map->name = path;
     

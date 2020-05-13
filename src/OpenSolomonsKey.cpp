@@ -102,35 +102,11 @@ internal void draw_extra_stuff() {
     for (i32 idx = 0; idx < 9; ++idx) {
         float i = float(idx);
         // top bars
-        gl_slow_tilemap_draw(texture,
-                             fvec2{i * 128, 24},
-                             fvec2{64, 64},
-                             0.f, 2 * 4 + 0,
-                             true, true,
-                             NRGBA{1,1,1,1},
-                             false);
-        gl_slow_tilemap_draw(texture,
-                             fvec2{i * 128 + 64, 24},
-                             fvec2{64, 64},
-                             0.f, 2 * 4 + 1,
-                             true, true,
-                             NRGBA{1,1,1,1},
-                             false);
+        gl_slow_tilemap_draw(texture, fvec2{i * 128, 24}, fvec2{64, 64}, 0.f, 2 * 4 + 0, true, true, NRGBA{1,1,1,1}, false);
+        gl_slow_tilemap_draw(texture, fvec2{i * 128 + 64, 24}, fvec2{64, 64}, 0.f, 2 * 4 + 1, true, true, NRGBA{1,1,1,1}, false);
         // bottom bars
-        gl_slow_tilemap_draw(texture,
-                             fvec2{i * 128, 12 * 64 + 32},
-                             fvec2{64, 64},
-                             0.f, 2 * 4 + 2,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
-        gl_slow_tilemap_draw(texture,
-                             fvec2{i * 128 + 64, 12 * 64 + 32},
-                             fvec2{64, 64},
-                             0.f, 2 * 4 + 3,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
+        gl_slow_tilemap_draw(texture, fvec2{i * 128, 12 * 64 + 32}, fvec2{64, 64}, 0.f, 2 * 4 + 2, false, false, NRGBA{1,1,1,1}, false);
+        gl_slow_tilemap_draw(texture, fvec2{i * 128 + 64, 12 * 64 + 32}, fvec2{64, 64}, 0.f, 2 * 4 + 3, false, false, NRGBA{1,1,1,1}, false);
         
     }
     
@@ -138,37 +114,24 @@ internal void draw_extra_stuff() {
     // draw the extra stuff:
     for (i32 i = 0; i < 6; ++i) {
         // Draw the vertical bars
-        gl_slow_tilemap_draw(texture,
-                             fvec2{-32.f, i * 128.f + 64.f},
-                             fvec2{64.f, 64.f},
-                             0.f, 1 * 4 + 2,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
-        gl_slow_tilemap_draw(texture,
-                             fvec2{-32.f, i * 128.f + 64.f + 64.f},
-                             fvec2{64.f, 64.f},
-                             0.f, 1 * 4 + 3,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
-        gl_slow_tilemap_draw(texture,
-                             fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f},
-                             fvec2{64, 64},
-                             0.f, 1 * 4 + 0,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
-        gl_slow_tilemap_draw(texture,
-                             fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f + 64.f},
-                             fvec2{64, 64},
-                             0.f, 1 * 4 + 1,
-                             false, false,
-                             NRGBA{1,1,1,1},
-                             false);
+        gl_slow_tilemap_draw(texture, fvec2{-32.f, i * 128.f + 64.f}, fvec2{64.f, 64.f}, 0.f, 1 * 4 + 2, false, false, NRGBA{1,1,1,1}, false);
+        gl_slow_tilemap_draw(texture, fvec2{-32.f, i * 128.f + 64.f + 64.f}, fvec2{64.f, 64.f}, 0.f, 1 * 4 + 3, false, false, NRGBA{1,1,1,1}, false);
+        gl_slow_tilemap_draw(texture, fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f}, fvec2{64,64}, 0.f, 1 * 4 + 0, false, false, NRGBA{1,1,1,1}, false);
+        gl_slow_tilemap_draw(texture, fvec2{15.f * 64.f + 32.f, i * 128.f + 64.f + 64.f}, fvec2{64, 64}, 0.f, 1 * 4 + 1, false, false, NRGBA{1,1,1,1}, false);
         
     }
     
+}
+
+internal void load_next_map() {
+    g_scene.current_level_counter++;
+    
+    static char buf[256];
+    sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
+    
+    reset_scene();
+    load_map(&g_scene.loaded_map, "level_1.osk");
+    audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
 }
 
 void cb_init() {
@@ -176,8 +139,8 @@ void cb_init() {
     gl_init();
     load_tilemap_textures();
     load_sound_resources();
-    load_map(&g_scene.loaded_map, "level_01.osk");
-    audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
+    
+    load_next_map();
     return;
 }
 
