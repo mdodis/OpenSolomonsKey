@@ -43,31 +43,6 @@ enum class EnemyType {
     Count
 };
 
-enum PickupType {
-    Bag100,
-    Bag200,
-    Bag500,
-    Bag1000,
-    Bag2000,
-    Bag5000,
-    Bag10000,
-    Bag20000,
-    Jewel100,
-    Jewel200,
-    Jewel500,
-    Jewel1000,
-    Jewel2000,
-    Jewel5000,
-    Jewel10000,
-    Jewel20000,
-    Jewel50000,
-    Bell,
-    Bell2,
-    
-    // effect stuff
-    Count
-};
-
 union CustomParameter {
     u64    as_u64;
     double as_f64;
@@ -75,69 +50,6 @@ union CustomParameter {
     EnemyType as_etype;
     void *as_ptr;
 };
-
-internal bool pickup_type_is_valid(PickupType type) {
-    return(type >= 0 && type < PickupType::Count);
-}
-
-internal bool pickup_type_is_non_effect(PickupType type) {
-    return pickup_type_is_valid(type) && (type < Jewel50000);
-}
-
-internal bool pickup_is_bell(PickupType type) {
-    return pickup_type_is_valid(type) && (type == Bell || type == Bell2);
-}
-
-internal long get_pickup_worth(PickupType type) {
-    assert(pickup_type_is_valid(type));
-    
-    switch(type) {
-        case Bag100:
-        case Jewel100: {
-            return 100;
-        }break;
-        
-        case Bag200:
-        case Jewel200: {
-            return 200;
-        }break;
-        
-        case Bag500:
-        case Jewel500: {
-            return 500;
-        }break;
-        
-        case Bag1000:
-        case Jewel1000: {
-            return 1000;
-        }break;
-        
-        case Bag2000:
-        case Jewel2000: {
-            return 2000;
-        }break;
-        
-        case Bag5000:
-        case Jewel5000: {
-            return 5000;
-        }break;
-        
-        case Bag10000:
-        case Jewel10000: {
-            return 10000;
-        }break;
-        
-        case Bag20000:
-        case Jewel20000: {
-            return 20000;
-        }break;
-        case Jewel50000: {
-            return 50000;
-        }break;
-    }
-    assert(0);
-    return -1;
-}
 
 inline bool tile_is_empty(EntityBaseType type) {
     if (type == eDoor || type == eEmptySpace) return true;

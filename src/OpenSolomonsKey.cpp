@@ -38,6 +38,7 @@ internal void gl_load_background_texture(long bgn);
 #include "gl_graphics.cpp"
 #include "resources.cpp"
 #include "text.cpp"
+#include "pickups.h"
 #include "objects.h"
 #include "audio.cpp"
 #include "levels.cpp"

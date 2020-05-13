@@ -28,7 +28,7 @@ DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
-DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,1    ,19 )\
+DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,2    ,19 )\
 
 struct RESTilemap
 {
@@ -265,8 +265,8 @@ internal void load_tilemap_textures()
 internal RESSound Wave_load_from_file(const char* file);
 
 #define ALL_SOUNDS \
-DEF_SOUND(SND_background, "res/bgm1.wav" ) \
-DEF_SOUND(SND_jump,       "res/bloop.wav") \
+DEF_SOUND(SND_background, "res/audio/bgm1.wav" ) \
+DEF_SOUND(SND_jump,       "res/audio/bloop.wav") \
 DEF_SOUND(SND_show_key,   "res/audio/key_appear.wav") \
 DEF_SOUND(SND_show_player,"res/audio/player_appear.wav") \
 DEF_SOUND(SND_hurry,      "res/audio/hurry.wav") \
