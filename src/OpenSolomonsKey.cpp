@@ -176,7 +176,7 @@ void cb_init() {
     gl_init();
     load_tilemap_textures();
     load_sound_resources();
-    load_map(&g_scene.loaded_map, "test1.osk");
+    load_map(&g_scene.loaded_map, "level_01.osk");
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
     return;
 }
@@ -253,10 +253,12 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt)
     
     if (dt > 0.13f) dt = 0.13f;
     
-    if (g_scene.playing)
+    if (g_scene.playing) {
         scene_update(&istate, dt);
-    else
+    } else {
         scene_startup_animation(dt);
+        //scene_win_animation(dt);
+    }
     
     draw_ui(dt);
     

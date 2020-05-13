@@ -383,6 +383,7 @@ internal char *Goblin_custom(Sprite *goblin, char *c) {
 
 internal char *Ghost_custom(Sprite *ghost, char *c) {
     c = parse_custom_double(ghost, c, 1, 200.f);
+    c = parse_custom_double(ghost, c, 1, 200.f);
     //c = parse_custom_double(ghost, c, 1, 200.f);
     
     //c = parse_custom_bool32(&ghost->mirror.x, c, false);
@@ -390,6 +391,7 @@ internal char *Ghost_custom(Sprite *ghost, char *c) {
 }
 
 internal char* BlueFlame_custom(Sprite *flame, char *c) {
+    c = parse_custom_double(flame, c, 1, 1.f);
     c = parse_custom_double(flame, c, 1, 1.f);
     
     return c;

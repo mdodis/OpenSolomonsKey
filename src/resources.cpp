@@ -28,7 +28,7 @@ DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
-DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,2    ,19 )\
+DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7 )\
 
 struct RESTilemap
 {
@@ -52,24 +52,25 @@ global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
 // Backgrounds
 
 #define ALL_BACKGROUNDS \
-B("res/bg/bg_room01.png")\
-B("res/bg/bg_room02.png")\
-B("res/bg/bg_room03.png")\
-B("res/bg/bg_room04.png")\
-B("res/bg/bg_room05.png")\
-B("res/bg/bg_room06.png")\
-B("res/bg/bg_room07.png")\
-B("res/bg/bg_room08.png")\
-B("res/bg/bg_room09.png")\
-B("res/bg/bg_room10.png")\
-B("res/bg/bg_room11.png")\
-B("res/bg/bg_room12.png")\
-B("res/bg/bg_room13.png")\
-B("res/bg/bg_room14.png")\
-B("res/bg/bg_room15.png")\
-B("res/bg/bg_room16.png")\
-B("res/bg/bg_room17.png")\
-B("res/bg/bg_room18.png")\
+B("res/bg/0.png")\
+B("res/bg/1.png")\
+B("res/bg/2.png")\
+B("res/bg/3.png")\
+B("res/bg/4.png")\
+B("res/bg/5.png")\
+B("res/bg/6.png")\
+B("res/bg/7.png")\
+B("res/bg/8.png")\
+B("res/bg/9.png")\
+B("res/bg/10.png")\
+B("res/bg/11.png")\
+B("res/bg/12.png")\
+B("res/bg/13.png")\
+B("res/bg/14.png")\
+B("res/bg/15.png")\
+B("res/bg/16.png")\
+B("res/bg/17.png")\
+B("res/bg/18.png")\
 
 struct RESBackground {
     const char *name;

@@ -4,34 +4,40 @@
 
 enum class PickupType {
     // Bonus Points Items
+    Bag10000,
+    Bag20000,
     Bag100,
     Bag200,
     Bag500,
     Bag1000,
-    Bag2000 = 4,
+    Bag2000,
     Bag5000,
-    Bag10000,
-    Bag20000,
-    Jewel100 = 8,
+    Bell,
+    Jewel20000,
+    Jewel1000,
+    Jewel2000,
+    Jewel10000,
+    PotionDestruction,
+    Hourglass,
+    Jewel5000,
+    Jewel50000,
+    Jewel100,
     Jewel200,
     Jewel500,
-    Jewel1000,
-    Jewel2000 = 12,
-    Jewel5000,
-    Jewel10000,
-    Jewel20000,
-    Jewel50000 = 16,
-    // Magic Items
-    Bell,
-    Bell2,
     JewelChange,
-    JewelChange2 = 20,
+    JewelRange,
+    JewelRange2,
     PotionFire,
     PotionSuperFire,
     PotionFireGrowth,
-    ScrollExtension = 24,
-    ScrollExtension2,
-    JewelRange,
+    PotionLife,
+    PotionTime1,
+    PotionTime2,
+    ScrollExtension,
+    SolomonSeal,
+    Sphinx,
+    PaperCrane,
+    SolomonsKey,
     
     Count
 };
@@ -45,7 +51,7 @@ internal inline bool pickup_type_is_non_effect(PickupType type) {
 }
 
 internal inline bool pickup_is_bell(PickupType type) {
-    return pickup_type_is_valid(type) && (type == PickupType::Bell || type == PickupType::Bell2);
+    return pickup_type_is_valid(type) && (type == PickupType::Bell);
 }
 
 internal long get_pickup_worth(PickupType type) {
