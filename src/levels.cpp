@@ -508,7 +508,6 @@ global int key_anim_state = 0;
 internal void play_key_get_animation() {
     key_anim_state = 0;
     key_anim_time = 0.f;
-    
     g_scene.paused_for_key_animation = true;
 }
 
@@ -552,6 +551,7 @@ internal void scene_key_animation(float dt) {
             if (finished) {
                 key_anim_state = KEYROT;
                 g_scene.paused_for_key_animation = false;
+                g_scene.player_has_key = true;
                 
                 SET_ANIMATION(door, Door, Open);
             }

@@ -1,11 +1,5 @@
-void Sprite::move_and_collide(float dt,
-                              const float GRAVITY,
-                              const float MAX_YSPEED,
-                              const float JUMP_STRENGTH,
-                              float XSPEED,
-                              b32 damage_tiles) {
+void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSPEED, const float JUMP_STRENGTH, float XSPEED, b32 damage_tiles) {
     this->velocity.x = XSPEED;
-    
     this->velocity.y += GRAVITY * dt;
     this->velocity.y = clamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
     
@@ -121,29 +115,11 @@ void Sprite::move_and_collide(float dt,
     this->collide_aabb(&bound_left);
     
 #ifndef NDEBUG
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
-                         {bound_bottom.min_x, bound_bottom.min_y},
-                         {bound_bottom.max_x, bound_bottom.max_y},
-                         0.f,
-                         1 * 5 + 1,
-                         false, false,
-                         NRGBA{0,1,1,.7f});
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {bound_bottom.min_x, bound_bottom.min_y}, {bound_bottom.max_x, bound_bottom.max_y}, 0.f, 1 * 5 + 1, false, false, NRGBA{0,1,1,.7f});
     
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
-                         {bound_right.min_x, bound_right.min_y},
-                         {bound_right.max_x, bound_right.max_y},
-                         0.f,
-                         1* 5 + 1,
-                         false, false,
-                         NRGBA{0,1,1,.7f});
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {bound_right.min_x, bound_right.min_y}, {bound_right.max_x, bound_right.max_y}, 0.f, 1* 5 + 1, false, false, NRGBA{0,1,1,.7f});
     
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
-                         {bound_left.min_x + 32, bound_left.min_y},
-                         {bound_left.max_x + 32, bound_left.max_y},
-                         0.f,
-                         1* 5 + 1,
-                         false, false,
-                         NRGBA{0,1,1,.7f});
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {bound_left.min_x + 32, bound_left.min_y}, {bound_left.max_x + 32, bound_left.max_y}, 0.f, 1* 5 + 1,false, false, NRGBA{0,1,1,.7f});
 #endif
 }
 
@@ -489,6 +465,11 @@ should't be eEmptySpace
     
 }
 
+internal void player_reach_door(Sprite *player, Sprite *door) {
+    if (g_scene.player_has_key) {
+        SET_ANIMATION(door, Door, Close);
+    }
+}
 
 internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     const float GRAVITY = 950;
@@ -523,7 +504,6 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
             AABox *s_box = &s.get_transformed_AABox();
             if (intersect(player_box, s_box)) {
                 player_pickup(player, &s);
-                
             }
         }
     }
@@ -543,7 +523,10 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     
     // Door
     {
-        AABox box = get_tile_box(g_scene.loaded_map.exit_location);
+        Sprite *door = find_first_sprite(eDoor);
+        assert(door);
+        
+        AABox box = door->get_transformed_AABox();
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
                              {box.min_x, box.min_y},
                              {box.max_x - box.min_x, box.max_y - box.min_y},
@@ -552,7 +535,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
                              NRGBA{1.f, 0, 1.f, 0.7f});
         AABox player_box = player->get_transformed_AABox();
         if (intersect(&player_box,&box)) {
-            // TODO(miked): win code here
+            player_reach_door(player, door);
         }
     }
     
