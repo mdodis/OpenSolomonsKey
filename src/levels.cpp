@@ -288,7 +288,7 @@ internal void scene_draw_tilemap() {
 
 // Finds first sprite of specific type
 // if not found; return 0
-internal Sprite* scene_get_first_sprite(EntityBaseType type) {
+internal Sprite* find_first_sprite(EntityBaseType type) {
     for (i32 i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite* spref = &g_scene.loaded_map.sprites[i];
         
@@ -426,8 +426,8 @@ internal void scene_startup_animation(float dt) {
     
     ring = &ring_static;
     
-    const Sprite *const player = scene_get_first_sprite(ePlayer);
-    Sprite *door = scene_get_first_sprite(eDoor);
+    const Sprite *const player = find_first_sprite(ePlayer);
+    Sprite *door = find_first_sprite(eDoor);
     
     // placeholder
     const fvec2 DOOR = tile_to_position(g_scene.loaded_map.exit_location);
@@ -505,13 +505,20 @@ internal void scene_startup_animation(float dt) {
 
 global float key_anim_time = 0.f;
 global int key_anim_state = 0;
+internal void play_key_get_animation() {
+    key_anim_state = 0;
+    key_anim_time = 0.f;
+    
+    g_scene.paused_for_key_animation = true;
+}
+
 // rotate the key at first
 internal void scene_key_animation(float dt) {
     const int KEYROT = 0;
     const int STAR_DOOR = 1;
     bool finished = false;
-    const float anim_dur = 2.f;
-    Sprite *key = scene_get_first_sprite(eKey);
+    const float anim_dur = 1.f;
+    Sprite *key = find_first_sprite(eKey);
     static Sprite effect;
     static Sprite star;
     // update
@@ -539,7 +546,7 @@ internal void scene_key_animation(float dt) {
         }break;
         
         case STAR_DOOR: {
-            Sprite *door = scene_get_first_sprite(eDoor);
+            Sprite *door = find_first_sprite(eDoor);
             fail_unless(door, "where is the door???");
             
             if (finished) {
@@ -561,18 +568,6 @@ internal void scene_key_animation(float dt) {
     }
     
 }
-
-
-
-internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
-internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
-internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
-internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
-internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
-internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
-internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
-internal void BlueFlame_cast(Sprite* flame);
-internal void player_pickup(Sprite *player, Sprite *pickup);
 
 internal void scene_update(InputState* istate, float dt) {
     
@@ -609,13 +604,14 @@ internal void scene_update(InputState* istate, float dt) {
         }
     }
     
+    if (g_scene.paused_for_key_animation)
+        scene_key_animation(dt);
+    
     List_Sprite &l = g_scene.loaded_map.sprites;
     for (int i = 0; i < l.size(); ++i) {
         Sprite* spref = &l[i];
         
-        if (g_scene.paused_for_key_animation) {
-            scene_key_animation(dt);
-        } else {
+        if (!g_scene.paused_for_key_animation) {
             spref->update_animation(dt);
             switch(spref->entity.type) {
                 case ePlayer:{

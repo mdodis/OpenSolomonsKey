@@ -1,9 +1,8 @@
 /*
 TODO:
-- level timer sound change when close to stop
+- Scene reset to get back into initial state
 - Background selection from .osk format
 - level 2
-
 - At fire, osked outputs two params instead of one!
 
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12

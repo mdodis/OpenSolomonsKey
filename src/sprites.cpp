@@ -528,6 +528,19 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
         }
     }
     
+    // Key Pickup
+    {
+        Sprite *key = find_first_sprite(eKey);
+        if (key) {
+            AABox key_box = key->get_transformed_AABox();
+            AABox player_box = player->get_transformed_AABox();
+            
+            if (intersect(&player_box, &key_box)) {
+                play_key_get_animation();
+            }
+        }
+    }
+    
     // Door
     {
         AABox box = get_tile_box(g_scene.loaded_map.exit_location);
@@ -619,7 +632,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
     
     // Chase
     {
-        const Sprite* const player = scene_get_first_sprite(ePlayer);
+        const Sprite* const player = find_first_sprite(ePlayer);
         fail_unless(player, "Player sprite not found scene_get_first_sprite");
         
         fvec2 ppos = player->position;
@@ -821,7 +834,7 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
     //
     
     // get player location
-    Sprite *player = scene_get_first_sprite(ePlayer);
+    Sprite *player = find_first_sprite(ePlayer);
     if (!player) return;
     
     fvec2 f_to_player = normalize(player->position - fairie->position);
