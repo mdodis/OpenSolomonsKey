@@ -165,7 +165,7 @@ bool add_tilemap_hidden_entity(PickupType type, int row, int col) {
     fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
     Sprite sprite_to_make = make_pickup(pos, type);
     sprite_to_make.entity.params[1].as_u64 = 1;
-    printf("%d %d %d\n", type, row, col);
+    //printf("%d %d %d\n", type, row, col);
     assert(smap.hidden_pickups[col][row] == 0);
     smap.hidden_pickups[col][row] = hidden_pickup_count;
     sprite_to_make.entity.params[2].as_u64 = hidden_pickup_count;
@@ -182,9 +182,10 @@ bool add_tilemap_pickup(PickupType type, int row, int col) {
     return true;
 }
 // add an enemy
-bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2) {
+bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2, bool kmirror) {
     fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
     Sprite sprite_to_make;
+    
     switch(type) {
         case MT_Goblin: {
             sprite_to_make = make_goblin(pos);
@@ -192,9 +193,39 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             long dir = *(long*)param2;
             if (dir == 1) sprite_to_make.mirror.x = true;
         }break;
+        
+        case MT_KMirror: {
+            sprite_to_make = make_kmirror(pos);
+            sprite_to_make.entity.params[1].as_f64 = 0;
+            sprite_to_make.entity.params[2].as_f64 = 0;
+            sprite_to_make.entity.params[3].as_f64 = *(double*)param1;
+            sprite_to_make.entity.params[4].as_f64 = *(double*)param2;
+            sprite_to_make.entity.params[5].as_ptr = 0;
+            sprite_to_make.entity.params[6].as_ptr = 0;
+        }break;
+        
+        default:{
+            assert(0);
+        }break;
     }
-    map_add(&smap, &sprite_to_make);
     
+    if (kmirror) {
+        Sprite *ksprite = (Sprite*)malloc(sizeof(Sprite));
+        *ksprite = sprite_to_make;
+        assert(ksprite);
+        
+        Sprite *kmirror = find_first_enemy_on_tile(MT_KMirror, ivec2{col, row}, &smap);
+        assert(kmirror);
+        
+        if (!kmirror->entity.params[5].as_ptr) {
+            kmirror->entity.params[5].as_ptr = ksprite;
+        } else {
+            kmirror->entity.params[6].as_ptr = ksprite;
+        }
+        
+    } else {
+        map_add(&smap, &sprite_to_make);
+    }
     return true;
 }
 

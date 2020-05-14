@@ -107,9 +107,12 @@ internal Sprite *scene_get_pickup_with_id(u64 id) {
     return 0;
 }
 
-internal Sprite *scene_find_nthsprite(EntityType type, int *n) {
-    for (i32 i = *n; i < g_scene.loaded_map.sprites.size(); i += 1) {
-        Sprite* spref = &g_scene.loaded_map.sprites[i];
+internal Sprite *scene_find_nthsprite(EntityType type, int *n, Map *opt_map = 0) {
+    Map *map_to_search = &g_scene.loaded_map;
+    if (opt_map) map_to_search = opt_map;
+    
+    for (i32 i = *n; i < map_to_search->sprites.size(); i += 1) {
+        Sprite* spref = &map_to_search->sprites[i];
         
         if (spref->entity.type == type) {
             *n = i;
@@ -121,11 +124,11 @@ internal Sprite *scene_find_nthsprite(EntityType type, int *n) {
     return 0;
 }
 
-internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile) {
+internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile, Map *opt_map = 0) {
     int n = 0;
     
     do {
-        Sprite *next = scene_find_nthsprite(ET_Enemy, &n);
+        Sprite *next = scene_find_nthsprite(ET_Enemy, &n, opt_map);
         
         if (next) {
             ivec2 tpos = map_position_to_tile_centered(next->position);

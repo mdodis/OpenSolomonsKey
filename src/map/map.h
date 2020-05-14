@@ -15,7 +15,7 @@ bool add_tilemap_hidden_entity(PickupType type, int row, int col);
 // add a normal pickup
 bool add_tilemap_pickup(PickupType type, int row, int col);
 // add an enemy
-bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2);
+bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2, bool kmirror);
 
 ////////////////////////////////
 static char* _load_entire_file(const char* path) {
@@ -105,40 +105,72 @@ static char *parse_custom_long(long *ret, char *c, long default_val) {
 
 static char *parse_enemy(char *c, int row, int col);
 static char *parse_enemy_type(char *c, EnemyType *type);
-static char *parse_enemy_custom(char *c, EnemyType type, int row, int col);
+static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool kmirror);
 static char *parse_kmirror_enemy(char *c, int index);
 
-static char *Goblin_custom(char *c, int row, int col) {
+static char *Goblin_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
     c = parse_custom_double(&speed, c, 80.f);
     c = parse_custom_long(&dir, c, 0);
-    add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir);
+    add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir,kmirror);
     return c;
 }
 
-static char *Ghost_custom(char *c, int row, int col) {
+static char *Ghost_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
     c = parse_custom_double(&speed, c, 200.f);
     c = parse_custom_long(&dir, c, 0);
-    add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir);
+    add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir,kmirror);
     return c;
 }
 
-static char* BlueFlame_custom(char *c, int row, int col) {
+static char* BlueFlame_custom(char *c, int row, int col, bool kmirror) {
     double time;
     long ignore;
     c = parse_custom_double(&time, c, 1.f);
     c = parse_custom_long(&ignore, c, 0);
-    add_tilemap_enemy(MT_BlueFlame, row, col, (void*)&time, (void*)0);
+    add_tilemap_enemy(MT_BlueFlame, row, col, (void*)&time, (void*)0,kmirror);
+    return c;
+}
+
+static char *parse_kmirror_enemy(char *c, int row, int col) {
+    if (*c == ',') {
+        c++;
+        assert(*c == '{');
+        c++;
+        
+        EnemyType type;
+        {
+            long tl;
+            c = parse_long(c, &tl);
+            type = (EnemyType)tl;
+            assert(type < MT_Count);
+        }
+        c = parse_enemy_custom(c, type, row, col, true);
+        assert(*c == '}');
+        c++;
+    }
+    return c;
+}
+
+static char *KMirror_custom(char *c, int row, int col) {
+    double delay, interval;
+    
+    c = parse_custom_double(&delay, c, 1.f);
+    c = parse_custom_double(&interval, c, 1.f);
+    add_tilemap_enemy(MT_KMirror, row, col, (void*)&delay, (void*)&interval, false);
+    
+    c = parse_kmirror_enemy(c, row, col);
+    c = parse_kmirror_enemy(c, row, col);
     return c;
 }
 
 static char *parse_enemy(char *c, int row, int col) {
     EnemyType type;
     c = parse_enemy_type(c, &type);
-    c = parse_enemy_custom(c, type, row, col);
+    c = parse_enemy_custom(c, type, row, col, false);
     
     return c;
 }
@@ -152,18 +184,22 @@ static char *parse_enemy_type(char *c, EnemyType *type) {
     return c;
 }
 
-static char *parse_enemy_custom(char *c, EnemyType type, int row, int col) {
+static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool kmirror) {
     switch(type) {
         case MT_Goblin: {
-            c = Goblin_custom(c, row, col);
+            c = Goblin_custom(c, row, col, kmirror);
         }break;
         
         case MT_Ghost: {
-            c = Ghost_custom(c, row, col);
+            c = Ghost_custom(c, row, col, kmirror);
         }break;
         
         case MT_BlueFlame: {
-            c = BlueFlame_custom(c, row, col);
+            c = BlueFlame_custom(c, row, col, kmirror);
+        }break;
+        
+        case MT_KMirror: {
+            c = KMirror_custom(c, row, col);
         }break;
     }
     return c;

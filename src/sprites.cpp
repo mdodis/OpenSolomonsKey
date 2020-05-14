@@ -915,7 +915,7 @@ internal void KMirror_spawn(Sprite *kmirror) {
         scene_sprite_add(sp);
     }
     
-    printf("%p %p\n", mv1, mv2);
+    //printf("%p %p\n", mv1, mv2);
     // swap spawn sprite primitives
     if (mv2 != 0) {
         Sprite tmp = *mv1;
