@@ -194,6 +194,18 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             if (dir == 1) sprite_to_make.mirror.x = true;
         }break;
         
+        case MT_Ghost: {
+            sprite_to_make = make_ghost(pos);
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = true;
+        }break;
+        
+        case MT_BlueFlame: {
+            sprite_to_make = make_blueflame(pos);
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+        }break;
+        
         case MT_KMirror: {
             sprite_to_make = make_kmirror(pos);
             sprite_to_make.entity.params[1].as_f64 = 0;
@@ -229,6 +241,11 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
     return true;
 }
 
+bool add_tilemap_background(long num) {
+    gl_load_background_texture(num);
+    return true;
+}
+
 internal void load_map(Map *m, const char *path) {
     load_map_from_file(path, 0);
     *m = smap;
@@ -251,8 +268,7 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     
-    reset_scene();
-    load_map(&g_scene.loaded_map, "level_0.osk");
+    load_next_map();
     return;
 }
 

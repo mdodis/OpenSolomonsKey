@@ -2,8 +2,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-struct MapEntity {
-};
+#include "entity.h"
 
 ////////////////////////////////
 // put your entity handling code here
@@ -14,8 +13,10 @@ bool add_tilemap_entity(EntityType type, int row, int col);
 bool add_tilemap_hidden_entity(PickupType type, int row, int col);
 // add a normal pickup
 bool add_tilemap_pickup(PickupType type, int row, int col);
-// add an enemy
+// add an enemy (kmirror is set if the enemy is a parameter for the kmirror)
 bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2, bool kmirror);
+// add background
+bool add_tilemap_background(long num);
 
 ////////////////////////////////
 static char* _load_entire_file(const char* path) {
@@ -113,7 +114,7 @@ static char *Goblin_custom(char *c, int row, int col, bool kmirror) {
     long dir;
     c = parse_custom_double(&speed, c, 80.f);
     c = parse_custom_long(&dir, c, 0);
-    add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir,kmirror);
+    add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
 
@@ -122,7 +123,7 @@ static char *Ghost_custom(char *c, int row, int col, bool kmirror) {
     long dir;
     c = parse_custom_double(&speed, c, 200.f);
     c = parse_custom_long(&dir, c, 0);
-    add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir,kmirror);
+    add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
 
@@ -131,7 +132,7 @@ static char* BlueFlame_custom(char *c, int row, int col, bool kmirror) {
     long ignore;
     c = parse_custom_double(&time, c, 1.f);
     c = parse_custom_long(&ignore, c, 0);
-    add_tilemap_enemy(MT_BlueFlame, row, col, (void*)&time, (void*)0,kmirror);
+    add_tilemap_enemy(MT_BlueFlame, row, col, (void*)&time, (void*)0, kmirror);
     return c;
 }
 
@@ -297,9 +298,7 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                             exit(0);
                         }break;
                     }
-                    
                 }
-                
                 counter_x++;
                 
             } break;
@@ -310,7 +309,8 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                     c += 3;
                     long bg;
                     c = parse_long(c, &bg);
-                    inform("Using background %d", bg);
+                    //inform("Using background %d", bg);
+                    add_tilemap_background(bg);
                 }
                 c++;
             } break;
