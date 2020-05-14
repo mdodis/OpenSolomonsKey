@@ -1,6 +1,7 @@
 #ifndef OSK_HH
 #define OSK_HH
 #include <stdint.h>
+#include <assert.h>
 
 /* Compile Time options:
 OSK_ROUND_TO_POW_2
@@ -13,6 +14,8 @@ OSK_EXCLUDE_MSG_EXPR
 //#define OSK_ROUND_TO_POW_2
 //#define OSK_EXCLUDE_MSG_EXPR
 //#define OSK_WIN32_CONSOLE
+
+#define exit(s) assert(0)
 
 inline void _exit_with_message(char* message) {
     puts(message);
@@ -50,10 +53,6 @@ void exit_error(const char *fmt, ...) {
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", ##__VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", ##__VA_ARGS__)
 #endif
-
-
-#define assert(expr) do{if (!(expr)) { fprintf(stderr, "ASSERTION FAILED: %s:%d\n", __FILE__, __LINE__); exit(-1);}  }while(0)
-
 
 #define internal static
 #define global   static

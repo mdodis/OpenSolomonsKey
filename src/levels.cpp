@@ -12,7 +12,7 @@ eBlocks + eEmptySpace
 internal Sprite *map_add(Map *map, const Sprite *sprite) {
     fail_unless(sprite, "Passing null sprite to map_add");
     
-    if (sprite->entity.type == ePickup) {
+    if (sprite->entity.type == ET_Pickup) {
         map->pickups.push_back(*sprite);
         //inform("Added pickup!");
         return &map->pickups.back();
@@ -26,18 +26,13 @@ internal Sprite *scene_sprite_add(const Sprite *sprite)
 {
     fail_unless(sprite, "Passing null sprite to scene_add");
     
-    if (sprite->entity.type == ePickup) {
+    if (sprite->entity.type == ET_Pickup) {
         g_scene.loaded_map.pickups.push_back(*sprite);
         return &g_scene.loaded_map.pickups.back();
     } else {
         g_scene.loaded_map.sprites.push_back(*sprite);
         return &g_scene.loaded_map.sprites.back();
     }
-}
-
-internal char* string_nextline(char* c) {
-    while (*c != '\n') c++;
-    return c + 1;
 }
 
 internal char* string_parse(char* c, const char *str)
@@ -51,200 +46,10 @@ internal char* string_parse(char* c, const char *str)
     return 0;
 }
 
-internal char* string_parse_uint(char* c, u64* out_i)
-{
-#define IS_DIGIT(x) (x >= '0' && x <= '9')
-    u64 res = 0;
-    while (*c && IS_DIGIT(*c))
-    {
-        res *= 10;
-        res += *c - '0';
-        
-        c++;
-    }
-    *out_i = res;
-    return c;
-#undef IS_DIGIT
-}
-
-internal b32 is_valid_tilemap_object(EntityBaseType type) {
-    return ((u64)type <= (u64)eBlockSolid);
-}
-
-internal char* eat_whitepspace(char *c) {
-    while(*c == ' ' || *c == '\t') c++;
-    return c;
-}
-
-internal char *parse_custom(Map *const map, char *c, fvec2 pos, ivec2 tpos) {
-    c = eat_whitepspace(c);
-    
-    while (*c && *c == ',') {
-        u64 object_id;
-        c++;
-        c = string_parse_uint(c, &object_id);
-        static int count = 1;
-        Sprite pickup = make_pickup(pos, object_id, count);
-        pickup.entity.params[1].as_u64 = 1;
-        map_add(map, &pickup);
-        
-        assert(map->hidden_pickups[tpos.x][tpos.y] == 0);
-        map->hidden_pickups[tpos.x][tpos.y] = count;
-        count++;
-        //inform("Under Normal tile: %lld", object_id);
-    }
-    return c;
-}
-
-internal bool load_map(Map *const map, const char *path) {
-    bool level_validity[] = {
-        false,  // Door exists
-        false,  // Key exists
-        false   // Player exists
-    };
-    
-    char *data = platform_load_entire_file(path);
-    char *c = data;
-    // if no path is given use map's name for reloading
-    if (!path) path = map->name;
-    
-    if (!data) {
-        error("Failed to load map %s!", path);
-        return false;
-    }
-    
-    map->sprites.clear();
-    map->pickups.clear();
-    
-    for (int c = 0; c < TILEMAP_COLS; ++c) {
-        for (int r = 0; r < TILEMAP_ROWS; ++r) {
-            map->hidden_pickups[c][r] = 0;
-        }
-    }
-    
-    map->name = path;
-    
-    i32 counter_x = 0;
-    i32 counter_y = 0;
-    
-    while (*c) {
-        switch(*c) {
-            
-            case '#': {
-                c = string_nextline(c);
-            } break;
-            
-            case '0':
-            case '1':
-            case '2':
-            case '3':
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9': {
-                u64 res;
-                c = string_parse_uint(c, &res);
-                
-                if (res >= EntityBaseType_Count) {
-                    error("Entity type %lld does not exist in loader!", res);
-                    return false;
-                }
-                
-                if (counter_x >= TILEMAP_COLS) {
-                    counter_x = 0;
-                    counter_y++;
-                }
-                
-                if (is_valid_tilemap_object((EntityBaseType) res)) {
-                    
-                    map->tiles[counter_x][counter_y] = (EntityBaseType)res;
-                    
-                    c = parse_custom(map, c,fvec2{ counter_x * 64.f,counter_y * 64.f}, ivec2{counter_x, counter_y});
-                } else {
-                    
-                    if (res == eDoor) {
-                        level_validity[0] = true;
-                        map->exit_location = ivec2{i32(counter_x), i32(counter_y)};
-                    } else if (res == eKey) {
-                        level_validity[1] = true;
-                        map->key_location = ivec2{i32(counter_x), i32(counter_y)};
-                    }
-                    
-                    Sprite sprite_to_make;
-                    fvec2 sprite_initial_pos = fvec2{ (float)counter_x * 64, (float)counter_y * 64};
-                    
-                    switch((EntityBaseType)res) {
-                        
-                        case ePlayerSpawnPoint:{
-                            level_validity[2] = true;
-                            sprite_to_make = make_player(sprite_initial_pos);
-                        }break;
-                        
-                        case eEnemy: {
-                            c = parse_enemy(&sprite_to_make, c, sprite_initial_pos);
-                        }break;
-                        
-                        case eDoor: {
-                            sprite_to_make = make_door(sprite_initial_pos);
-                        }break;
-                        
-                        case eKey: {
-                            sprite_to_make = make_key(sprite_initial_pos);
-                        }break;
-                        
-                        case ePickup: {
-                            sprite_to_make = make_pickup(sprite_initial_pos, 0);
-                            c = ePickup_parse(&sprite_to_make, c);
-                        }break;
-                        
-                        default:{
-                            error("sprite type %Iu not available for make_", res);
-                            exit(0);
-                        }break;
-                    }
-                    
-                    sprite_to_make.position.y += 64.f - sprite_to_make.collision_box.max_y;
-                    
-                    map_add(map, &sprite_to_make);
-                    map->tiles[counter_x][counter_y] = eEmptySpace;
-                }
-                
-                counter_x++;
-                
-            } break;
-            
-            
-            
-            default: {
-                if (c[0] == 'B' && c[1] == 'G' && c[2] == ' ') {
-                    c += 3;
-                    long bg;
-                    c = parse_long(c, &bg);
-                    inform("Using background %d", bg);
-                    
-                    gl_load_background_texture(bg);
-                }
-                
-                c++;
-            } break;
-        }
-    }
-    
-    for (int i = 0; i < ARRAY_COUNT(level_validity); i += 1) {
-        fail_unless(level_validity[i], "Level invalid");
-    }
-    
-    
-    free(data);
-    return true;
-}
-
-inline EntityBaseType scene_get_tile(ivec2 p) {
+inline EntityType scene_get_tile(ivec2 p) {
     
     if (p.x > (TILEMAP_COLS - 1) || p.y > (TILEMAP_ROWS - 1) ||
-        p.x < 0 || p.y < 0) return eBlockSolid;
+        p.x < 0 || p.y < 0) return ET_BlockSolid;
     
     return g_scene.loaded_map.tiles[p.x][p.y];
 }
@@ -253,7 +58,7 @@ inline bool scene_tile_empty(ivec2 p) {
     return tile_is_empty(scene_get_tile(p));
 }
 
-inline void scene_set_tile(ivec2 p, EntityBaseType t) {
+inline void scene_set_tile(ivec2 p, EntityType t) {
     g_scene.loaded_map.tiles[p.x][p.y] = t;
 }
 
@@ -265,19 +70,15 @@ internal void scene_draw_tilemap() {
         for(int j = 0; j < 12; ++j ) {
             u32 id;
             
-            EntityBaseType type = (EntityBaseType)scene_get_tile(ivec2{i,j});
+            EntityType type = (EntityType)scene_get_tile(ivec2{i,j});
             
-            if (type == eEmptySpace) continue;
-            else if (type == eBlockFrail) id = 0 * 5 + 0;
-            else if (type == eBlockFrailHalf) id = 0 * 5 + 4;
-            else if (type == eBlockSolid) id = 1 * 5 + 0;
+            if (type == ET_EmptySpace) continue;
+            else if (type == ET_BlockFrail) id = 0 * 5 + 0;
+            else if (type == ET_BlockFrailHalf) id = 0 * 5 + 4;
+            else if (type == ET_BlockSolid) id = 1 * 5 + 0;
             else continue;
             
-            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
-                                 fvec2{float(i) * 64.f, j * 64.f},
-                                 fvec2{64, 64},
-                                 0.f,
-                                 id);
+            gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),fvec2{float(i) * 64.f,j *64.f},fvec2{64, 64},0.f,id);
         }
     }
 }
@@ -285,7 +86,7 @@ internal void scene_draw_tilemap() {
 
 // Finds first sprite of specific type
 // if not found; return 0
-internal Sprite* find_first_sprite(EntityBaseType type) {
+internal Sprite* find_first_sprite(EntityType type) {
     for (i32 i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite* spref = &g_scene.loaded_map.sprites[i];
         
@@ -299,14 +100,14 @@ internal Sprite *scene_get_pickup_with_id(u64 id) {
     for (i32 i = 0; i < g_scene.loaded_map.pickups.size(); i += 1) {
         Sprite* spref = &g_scene.loaded_map.pickups[i];
         
-        if (spref->entity.type == ePickup && spref->entity.params[2].as_u64 == id) {
+        if (spref->entity.type == ET_Pickup && spref->entity.params[2].as_u64 == id) {
             return spref;
         }
     }
     return 0;
 }
 
-internal Sprite *scene_find_nthsprite(EntityBaseType type, int *n) {
+internal Sprite *scene_find_nthsprite(EntityType type, int *n) {
     for (i32 i = *n; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite* spref = &g_scene.loaded_map.sprites[i];
         
@@ -324,7 +125,7 @@ internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile) {
     int n = 0;
     
     do {
-        Sprite *next = scene_find_nthsprite(EntityBaseType::eEnemy, &n);
+        Sprite *next = scene_find_nthsprite(ET_Enemy, &n);
         
         if (next) {
             ivec2 tpos = map_position_to_tile_centered(next->position);
@@ -338,7 +139,7 @@ internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile) {
     return 0;
 }
 
-internal Sprite *find_first_sprite_on_tile(EntityBaseType type, ivec2 tile) {
+internal Sprite *find_first_sprite_on_tile(EntityType type, ivec2 tile) {
     int n = 0;
     
     do {
@@ -358,17 +159,17 @@ internal Sprite *find_first_sprite_on_tile(EntityBaseType type, ivec2 tile) {
 }
 
 
-inline internal bool is_frail_block(EntityBaseType type) {
-    return (type == eBlockFrail || type == eBlockFrailHalf);
+inline internal bool is_frail_block(EntityType type) {
+    return (type == ET_BlockFrail || type == ET_BlockFrailHalf);
 }
 
 
 // Decreases block's health properly
 inline internal void scene_hit_frail_block(ivec2 tile) {
-    EntityBaseType type = scene_get_tile(tile);
+    EntityType type = scene_get_tile(tile);
     
-    if (type == eBlockFrail) scene_set_tile(tile, eBlockFrailHalf);
-    else if (type == eBlockFrailHalf) scene_set_tile(tile, eEmptySpace);
+    if (type == ET_BlockFrail) scene_set_tile(tile, ET_BlockFrailHalf);
+    else if (type == ET_BlockFrailHalf) scene_set_tile(tile, ET_EmptySpace);
     else {
         exit_error("scene_hit_frail_block only takes eBlockFrail\\Half");
     }
@@ -379,7 +180,7 @@ inline internal void scene_hit_frail_block(ivec2 tile) {
 internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile) {
     i32 xdiff = sgn(end_tile.x - start_tile.x);
     while (start_tile != end_tile) {
-        if (scene_get_tile(start_tile) != eEmptySpace) {
+        if (scene_get_tile(start_tile) != ET_EmptySpace) {
             return start_tile;
         }
         
@@ -387,7 +188,6 @@ internal ivec2 scene_get_first_nonempty_tile(ivec2 start_tile, ivec2 end_tile) {
         
         if (start_tile.x < 0 || start_tile.x > 14) return {-1, -1};
     }
-    
     
     return ivec2{-1 ,-1};
 }
@@ -443,43 +243,43 @@ internal void scene_update(InputState* istate, float dt) {
         if (!g_scene.paused_for_key_animation) {
             spref->update_animation(dt);
             switch(spref->entity.type) {
-                case ePlayer:{
+                case ET_Player:{
                     ePlayer_update(spref, istate, dt);
                 }break;
                 
-                case eEnemy: {
+                case ET_Enemy: {
                     
                     switch(spref->entity.params[0].as_etype) {
-                        case EnemyType::Goblin: {
+                        case MT_Goblin: {
                             Goblin_update(spref, istate, dt);
                         }break;
                         
-                        case EnemyType::Ghost: {
+                        case MT_Ghost: {
                             Ghost_update(spref, istate,dt);
                         }break;
                         
-                        case EnemyType::BlueFlame: {
+                        case MT_BlueFlame: {
                             BlueFlame_update(spref, istate,dt);
                         }break;
                         
-                        case EnemyType::KMirror: {
+                        case MT_KMirror: {
                             KMirror_update(spref, istate,dt);
                         }break;
                         
                     }
                 } break;
                 
-                case eEffect:{
+                case ET_Effect:{
                     if (!spref->animation_playing) {
                         spref->mark_for_removal = true;
                     }
                 }break;
                 
-                case eDFireball:{
+                case ET_DFireball:{
                     eDFireball_update(spref, istate, dt);
                 }break;
                 
-                case eFairie: {
+                case ET_Fairie: {
                     eFairie_update(spref, istate,dt);
                 }break;
                 

@@ -9,13 +9,13 @@ struct MapEntity {
 // put your entity handling code here
 
 // add a normal (non-enemy, non-pickup) entity
-bool add_tilemap_entity(EntityType type, int row, int col) {
-    
-}
-
+bool add_tilemap_entity(EntityType type, int row, int col);
 // add a pickup that's hidden in row,col
-bool add_tilemap_hidden_entity(PickupType type, int row, int col) {
-}
+bool add_tilemap_hidden_entity(PickupType type, int row, int col);
+// add a normal pickup
+bool add_tilemap_pickup(PickupType type, int row, int col);
+// add an enemy
+bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2);
 
 ////////////////////////////////
 static char* _load_entire_file(const char* path) {
@@ -68,6 +68,7 @@ char *parse_tilemap_hidden(char *c, int row, int col) {
         c = string_parse_uint(c, &eid);
         add_tilemap_hidden_entity(PickupType(eid), row, col);
     }
+    return c;
 }
 
 static char *parse_long(char *c, long *d) {
@@ -76,21 +77,68 @@ static char *parse_long(char *c, long *d) {
     return end;
 }
 
+internal char *parse_double(char *c, double *d){
+    char *end;
+    *d = strtod(c, &end);
+    return end;
+}
 
-static char *Ghost_custom(char *c) {
-    c = parse_custom_double(ghost, c, 1, 200.f);
-    c = parse_custom_double(ghost, c, 1, 200.f);
+static char *parse_custom_double(double *ret, char *c, double default_val) {
+    *ret = default_val;
+    
+    if (*c == ',') {
+        c++;
+        c = parse_double(c, ret);
+    }
+    return c;
+}
+
+static char *parse_custom_long(long *ret, char *c, long default_val) {
+    *ret = default_val;
+    
+    if (*c == ',') {
+        c++;
+        c = parse_long(c, ret);
+    }
     return c;
 }
 
 static char *parse_enemy(char *c, int row, int col);
 static char *parse_enemy_type(char *c, EnemyType *type);
 static char *parse_enemy_custom(char *c, EnemyType type, int row, int col);
+static char *parse_kmirror_enemy(char *c, int index);
+
+static char *Goblin_custom(char *c, int row, int col) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 80.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir);
+    return c;
+}
+
+static char *Ghost_custom(char *c, int row, int col) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 200.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir);
+    return c;
+}
+
+static char* BlueFlame_custom(char *c, int row, int col) {
+    double time;
+    long ignore;
+    c = parse_custom_double(&time, c, 1.f);
+    c = parse_custom_long(&ignore, c, 0);
+    add_tilemap_enemy(MT_BlueFlame, row, col, (void*)&time, (void*)0);
+    return c;
+}
 
 static char *parse_enemy(char *c, int row, int col) {
     EnemyType type;
     c = parse_enemy_type(c, &type);
-    c = parse_enemy_custom(enemy, c, type, sprite_initial_pos);
+    c = parse_enemy_custom(c, type, row, col);
     
     return c;
 }
@@ -106,20 +154,16 @@ static char *parse_enemy_type(char *c, EnemyType *type) {
 
 static char *parse_enemy_custom(char *c, EnemyType type, int row, int col) {
     switch(type) {
-        case EnemyType::Goblin: {
-            c = Goblin_custom(s, c);
+        case MT_Goblin: {
+            c = Goblin_custom(c, row, col);
         }break;
         
-        case EnemyType::Ghost: {
-            c = Ghost_custom(s, c);
+        case MT_Ghost: {
+            c = Ghost_custom(c, row, col);
         }break;
         
-        case EnemyType::BlueFlame: {
-            c = BlueFlame_custom(s, c);
-        }break;
-        
-        case EnemyType::KMirror: {
-            c = KMirror_custom(s, c, sprite_initial_pos);
+        case MT_BlueFlame: {
+            c = BlueFlame_custom(c, row, col);
         }break;
     }
     return c;
@@ -133,8 +177,9 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
         false   // Player exists
     };
     
-    const int TILEMAP_COLS = 15;
-    const int TILEMAP_ROWS = 12;
+    const int columns  = 15;
+    const int rows  = 12;
+    int counter_x, counter_y;
     
     char *str = _load_entire_file(filename);
     char *c = str;
@@ -143,7 +188,7 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
         if (errcode) *errcode = 333;
         return false;
     }
-    
+    counter_y = counter_x = 0;
     while (*c) {
         
         switch(*c) {
@@ -163,42 +208,47 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                     return false;
                 }
                 
-                if (counter_x >= TILEMAP_COLS) {
+                if (counter_x >= columns) {
                     counter_x = 0;
                     counter_y++;
                 }
                 
-                if (is_valid_tilemap_object((EntityBaseType) res)) {
-                    add_tilemap_entity(res, counter_y, counter_x);
+                if (is_valid_tilemap_object((EntityType) res)) {
+                    add_tilemap_entity((EntityType)res, counter_y, counter_x);
                     c = parse_tilemap_hidden(c, counter_y, counter_x);
                 } else {
                     
                     if (res == ET_Door) {
                         level_validity[0] = true;
                         add_tilemap_entity(ET_Door, counter_y, counter_x);
-                    } else if (res == eKey) {
+                    } else if (res == ET_Key) {
                         level_validity[1] = true;
                         add_tilemap_entity(ET_Key, counter_y, counter_x);
                     }
                     
                     switch((EntityType)res) {
                         
+                        case ET_Door:
+                        case ET_Key:{
+                            // nop
+                        }break;
+                        
                         case ET_PlayerSpawnPoint:{
                             level_validity[2] = true;
                             add_tilemap_entity(ET_PlayerSpawnPoint, counter_y, counter_x);
                         }break;
                         
-                        case eEnemy: {
+                        case ET_Enemy: {
                             c = parse_enemy(c, counter_y, counter_x);
                         }break;
                         
-                        case ePickup: {
+                        case ET_Pickup: {
                             if (*c == ',') {
                                 c++;
                                 long type;
                                 c = parse_long(c, &type);
                                 if (pickup_type_is_valid((PickupType)type)) {
-                                    add_tilemap_pickup(PickupType type, counter_y, counter_x);
+                                    add_tilemap_pickup((PickupType) type, counter_y, counter_x);
                                 }
                             } else {
                                 add_tilemap_pickup(PT_SolomonsKey, counter_y, counter_x);
@@ -207,7 +257,7 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                         }break;
                         
                         default:{
-                            error("sprite type %Iu not available for make_", res);
+                            // error("sprite type %Iu not available for make_", res);
                             exit(0);
                         }break;
                     }
@@ -230,6 +280,7 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
             } break;
         }
     }
+    return true;
 }
 
 #endif //MAP_H

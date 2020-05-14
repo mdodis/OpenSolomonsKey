@@ -26,8 +26,8 @@ internal void scene_startup_animation(float dt) {
     
     ring = &ring_static;
     
-    const Sprite *const player = find_first_sprite(ePlayer);
-    Sprite *door = find_first_sprite(eDoor);
+    const Sprite *const player = find_first_sprite(ET_Player);
+    Sprite *door = find_first_sprite(ET_Door);
     
     // placeholder
     const fvec2 DOOR = tile_to_position(g_scene.loaded_map.exit_location);
@@ -117,7 +117,7 @@ internal void scene_key_animation(float dt) {
     const int STAR_DOOR = 1;
     bool finished = false;
     const float anim_dur = 1.f;
-    Sprite *key = find_first_sprite(eKey);
+    Sprite *key = find_first_sprite(ET_Key);
     static Sprite effect;
     static Sprite star;
     // update
@@ -145,7 +145,7 @@ internal void scene_key_animation(float dt) {
         }break;
         
         case STAR_DOOR: {
-            Sprite *door = find_first_sprite(eDoor);
+            Sprite *door = find_first_sprite(ET_Door);
             fail_unless(door, "where is the door???");
             
             if (finished) {

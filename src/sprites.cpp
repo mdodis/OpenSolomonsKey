@@ -141,32 +141,31 @@ internal void ePlayer_cast(Sprite* player, float dt) {
     if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch)) {
         target_tile.y = clamp(0, 14,target_tile.y + 1);
     }
-    Sprite *enemy_on_tile = find_first_sprite_on_tile(eEnemy, target_tile);
-    if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(eDoor, target_tile);
+    Sprite *enemy_on_tile = find_first_sprite_on_tile(ET_Enemy, target_tile);
+    if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(ET_Door, target_tile);
     
-    if (enemy_on_tile && get_enemy_type(enemy_on_tile) == EnemyType::BlueFlame) enemy_on_tile = 0;
+    if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
     
     SET_ANIMATION(player, test_player, Cast);
     if (!enemy_on_tile) {
-        EntityBaseType type = (EntityBaseType)scene_get_tile(target_tile);
+        EntityType type = (EntityType)scene_get_tile(target_tile);
         bool should_spawn_flash_effect = true;
         bool put_frail_block;
         
         if (is_frail_block(type)) {
-            scene_set_tile(target_tile, eEmptySpace);
+            scene_set_tile(target_tile, ET_EmptySpace);
             put_frail_block = false;
-        } else if (type == eEmptySpace) {
+        } else if (type == ET_EmptySpace) {
             
             Sprite *blue_flame;
-            blue_flame = find_first_enemy_on_tile(EnemyType::BlueFlame, target_tile);
+            blue_flame = find_first_enemy_on_tile(MT_BlueFlame, target_tile);
             if (blue_flame) {
                 BlueFlame_cast(blue_flame);
                 should_spawn_flash_effect = false;
             } else {
                 put_frail_block = true;
-                scene_set_tile(target_tile, eBlockFrail);
+                scene_set_tile(target_tile, ET_BlockFrail);
             }
-            
         }
         
         u64 pref_id = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
@@ -175,7 +174,7 @@ internal void ePlayer_cast(Sprite* player, float dt) {
             
             Sprite *pref = scene_get_pickup_with_id(pref_id);
             if (pref) {
-                assert(pref->entity.type == ePickup);
+                assert(pref->entity.type == ET_Pickup);
                 pref->entity.params[1].as_u64 = put_frail_block ? 1u : 0u;
             }
             
@@ -306,9 +305,9 @@ should't be eEmptySpace
         side_vector = right;
         side_tile = right_tile;
         
-        bool should_attach = scene_get_tile(side_tile) != eEmptySpace ||
-            (scene_get_tile(side_tile) == eEmptySpace &&
-             scene_get_tile(get_tile_behind(side_tile, forward))  != eEmptySpace);
+        bool should_attach = scene_get_tile(side_tile) != ET_EmptySpace ||
+            (scene_get_tile(side_tile) == ET_EmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != ET_EmptySpace);
         
         if (!should_attach) side_tile = ivec2{-1,-1};
     }
@@ -319,9 +318,9 @@ should't be eEmptySpace
         side_tile = left_tile;
         
         
-        bool should_attach = scene_get_tile(side_tile) != eEmptySpace ||
-            (scene_get_tile(side_tile) == eEmptySpace &&
-             scene_get_tile(get_tile_behind(side_tile, forward))  != eEmptySpace);
+        bool should_attach = scene_get_tile(side_tile) != ET_EmptySpace ||
+            (scene_get_tile(side_tile) == ET_EmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != ET_EmptySpace);
         
         if (!should_attach) side_tile = ivec2{-1,-1};
     }
@@ -332,7 +331,7 @@ should't be eEmptySpace
         
         if (dfire->rotation == 0.f || dfire->rotation == 180) {
             
-            if (scene_get_tile(side_tile) == eEmptySpace) { // columns 1 & 3
+            if (scene_get_tile(side_tile) == ET_EmptySpace) { // columns 1 & 3
                 
                 float col1 = dfire->rotation == 000.f
                     ? (side_tile.x * 64.f - aabb.min_x)
@@ -350,7 +349,7 @@ should't be eEmptySpace
                     
                 }
             }
-            if (scene_get_tile(forward_tile) != eEmptySpace) { // columns 2 & 4
+            if (scene_get_tile(forward_tile) != ET_EmptySpace) { // columns 2 & 4
                 
                 float col2 = dfire->rotation == 000.f
                     ? forward_tile.x * 64.f - aabb.max_x
@@ -383,7 +382,7 @@ should't be eEmptySpace
             
         } else {
             
-            if (scene_get_tile(side_tile) == eEmptySpace) { // columns 1 & 3
+            if (scene_get_tile(side_tile) == ET_EmptySpace) { // columns 1 & 3
                 float col1 = dfire->rotation == 90.f
                     ? (side_tile.y + 0) * 64.f - aabb.min_y
                     : FLT_MAX;
@@ -400,7 +399,7 @@ should't be eEmptySpace
                     goto END_ROT;
                 }
             }
-            if (scene_get_tile(forward_tile) != eEmptySpace) { // columns 2 & 4
+            if (scene_get_tile(forward_tile) != ET_EmptySpace) { // columns 2 & 4
                 
                 float col2 = dfire->rotation == 90.f
                     ? (forward_tile.y * 64.f - aabb.max_y)
@@ -423,7 +422,7 @@ should't be eEmptySpace
         
         // if we haven't attached to a nearby (side) tile.
         // Check the forward tile and react accordingly
-        if (scene_get_tile(forward_tile) != eEmptySpace){
+        if (scene_get_tile(forward_tile) != ET_EmptySpace){
             
             if (dfire->rotation == 180.f) {
                 if ((aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh){
@@ -510,7 +509,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     
     // Key Pickup
     {
-        Sprite *key = find_first_sprite(eKey);
+        Sprite *key = find_first_sprite(ET_Key);
         if (key) {
             AABox key_box = key->get_transformed_AABox();
             AABox player_box = player->get_transformed_AABox();
@@ -523,7 +522,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     
     // Door
     {
-        Sprite *door = find_first_sprite(eDoor);
+        Sprite *door = find_first_sprite(ET_Door);
         assert(door);
         
         AABox box = door->get_transformed_AABox();
@@ -615,7 +614,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
     
     // Chase
     {
-        const Sprite* const player = find_first_sprite(ePlayer);
+        const Sprite* const player = find_first_sprite(ET_Player);
         fail_unless(player, "Player sprite not found scene_get_first_sprite");
         
         fvec2 ppos = player->position;
@@ -665,7 +664,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
                              false, false,
                              NRGBA{1.f, 0.f, 0.f, 1.f});
 #endif
-        if (scene_get_tile(dir_tile_under) == eEmptySpace && scene_get_tile(dir_tile) == eEmptySpace && goblin_tile.y != 11) {
+        if (scene_get_tile(dir_tile_under) == ET_EmptySpace && scene_get_tile(dir_tile) == ET_EmptySpace && goblin_tile.y != 11) {
             SET_ANIMATION(goblin, Goblin, Wait);
             goblin->velocity.x = 0;
         }
@@ -691,7 +690,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
                              false, false,
                              NRGBA{0.f, 1.f, 0.f, 1.f});
 #endif
-        if ((scene_get_tile(tile_index) != eEmptySpace || is_at_edge_of_map) && !(goblin->is_on_air)) {
+        if ((scene_get_tile(tile_index) != ET_EmptySpace || is_at_edge_of_map) && !(goblin->is_on_air)) {
             SET_ANIMATION(goblin, Goblin, Punch);
         }
     }
@@ -759,13 +758,13 @@ internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
                          NRGBA{1.f, 1.f, 1.f, 1.f});
 #endif
     
-    EntityBaseType tile_front = (EntityBaseType)scene_get_tile(ctile);
+    EntityType tile_front = (EntityType)scene_get_tile(ctile);
     
     if (ghost->current_animation == GET_CHAR_ANIMENUM(Ghost, Fly)) {
         
-        if (tile_front == eBlockFrail) {
+        if (tile_front == ET_BlockFrail) {
             SET_ANIMATION(ghost, Ghost, Punch);
-        } else if (tile_front == eBlockSolid) {
+        } else if (tile_front == ET_BlockSolid) {
             ghost->mirror.x = !ghost->mirror.x;
         }
         
@@ -773,7 +772,7 @@ internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
     } else if (ghost->current_animation == GET_CHAR_ANIMENUM(Ghost, Punch)){
         // destroy block if finished
         if (!ghost->animation_playing) {
-            scene_set_tile(ctile, eEmptySpace);
+            scene_set_tile(ctile, ET_EmptySpace);
             ghost->mirror.x = !ghost->mirror.x;
             SET_ANIMATION(ghost, Ghost, Fly);
         }
@@ -817,7 +816,7 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
     //
     
     // get player location
-    Sprite *player = find_first_sprite(ePlayer);
+    Sprite *player = find_first_sprite(ET_Player);
     if (!player) return;
     
     fvec2 f_to_player = normalize(player->position - fairie->position);
@@ -898,7 +897,7 @@ internal void player_pickup(Sprite *player, Sprite *pickup) {
             scene_sprite_add(&flash2);
         } else if (pickup_type_is_valid(type)) {
             
-            if (type == PickupType::Bell) {
+            if (type == PT_Bell) {
                 Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
                 scene_sprite_add(&fairie);
             }

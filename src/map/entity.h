@@ -20,6 +20,16 @@ enum EntityType {
     ET_Count,
 };
 
+static inline bool is_valid_tilemap_object(EntityType type) {
+    return type <= ET_BlockSolid;
+}
+
+static inline bool tile_is_empty(EntityType type) {
+    if (type == ET_Door || type == ET_EmptySpace) return true;
+    
+    return false;
+}
+
 enum PickupType {
     // Bonus Points Items
     PT_Bag10000,
