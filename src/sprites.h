@@ -140,7 +140,7 @@ inline internal EnemyType get_enemy_type(Sprite *spr) {
     return spr->entity.params[0].as_etype;
 }
 
-internal void ePlayer_update(Sprite* spref, InputState* istate, float dt);
+internal void Player_update(Sprite* spref, InputState* istate, float dt);
 internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void Ghost_update(Sprite* spref, InputState* istate, float dt);

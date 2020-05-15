@@ -199,6 +199,170 @@ internal List_Sprite &scene_get_pickup_list() {
     return g_scene.loaded_map.pickups;
 }
 
+
+static Map smap;
+static int hidden_pickup_count = 1;
+internal void scene_reset() {
+    g_scene.paused_for_key_animation = false;
+    g_scene.current_state = SS_STARTUP;
+    g_scene.last_score_timer = 0.f;
+    g_scene.last_score_num = 0;
+    g_scene.player_time = 80.f;
+}
+
+
+// add a normal (non-enemy, non-pickup) entity
+// Current is EmptySpace, Blocks, Door, Key
+bool add_tilemap_entity(EntityType type, int row, int col) {
+    if (is_valid_tilemap_object(type)) {
+        smap.tiles[col][row] = type;
+    } else {
+        Sprite sprite_to_make;
+        fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
+        
+        switch(type) {
+            case ET_Door: {
+                sprite_to_make = make_door(pos);
+                smap.exit_location = ivec2{col, row};
+            }break;
+            
+            case ET_Key: {
+                sprite_to_make = make_key(pos);
+                smap.key_location = ivec2{col, row};
+            }break;
+            
+            case ET_PlayerSpawnPoint: {
+                sprite_to_make = make_player(pos);
+            }break;
+            
+            default: {
+                assert(0);
+            }break;
+        }
+        
+        map_add(&smap, &sprite_to_make);
+    }
+    return true;
+}
+// add a pickup that's hidden in row,col
+bool add_tilemap_hidden_entity(PickupType type, int row, int col) {
+    fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
+    Sprite sprite_to_make = make_pickup(pos, type);
+    sprite_to_make.entity.params[1].as_u64 = 1;
+    //printf("%d %d %d\n", type, row, col);
+    assert(smap.hidden_pickups[col][row] == 0);
+    smap.hidden_pickups[col][row] = hidden_pickup_count;
+    sprite_to_make.entity.params[2].as_u64 = hidden_pickup_count;
+    ++hidden_pickup_count;
+    
+    map_add(&smap, &sprite_to_make);
+    return true;
+}
+// add a normal pickup
+bool add_tilemap_pickup(PickupType type, int row, int col) {
+    fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
+    Sprite sprite_to_make = make_pickup(pos, type);
+    map_add(&smap, &sprite_to_make);
+    return true;
+}
+// add an enemy
+bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *param2, bool kmirror) {
+    fvec2 pos = fvec2{(float)col * 64.f, (float)row * 64.f};
+    Sprite sprite_to_make;
+    
+    switch(type) {
+        case MT_Goblin: {
+            sprite_to_make = make_goblin(pos);
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = true;
+        }break;
+        
+        case MT_Ghost: {
+            sprite_to_make = make_ghost(pos);
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = true;
+        }break;
+        
+        case MT_BlueFlame: {
+            sprite_to_make = make_blueflame(pos);
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+        }break;
+        
+        case MT_KMirror: {
+            sprite_to_make = make_kmirror(pos);
+            sprite_to_make.entity.params[1].as_f64 = 0;
+            sprite_to_make.entity.params[2].as_f64 = 0;
+            sprite_to_make.entity.params[3].as_f64 = *(double*)param1;
+            sprite_to_make.entity.params[4].as_f64 = *(double*)param2;
+            sprite_to_make.entity.params[5].as_ptr = 0;
+            sprite_to_make.entity.params[6].as_ptr = 0;
+        }break;
+        
+        default:{
+            assert(0);
+        }break;
+    }
+    
+    if (kmirror) {
+        Sprite *ksprite = (Sprite*)malloc(sizeof(Sprite));
+        *ksprite = sprite_to_make;
+        assert(ksprite);
+        
+        Sprite *kmirror = find_first_enemy_on_tile(MT_KMirror, ivec2{col, row}, &smap);
+        assert(kmirror);
+        
+        if (!kmirror->entity.params[5].as_ptr) {
+            kmirror->entity.params[5].as_ptr = ksprite;
+        } else {
+            kmirror->entity.params[6].as_ptr = ksprite;
+        }
+        
+    } else {
+        map_add(&smap, &sprite_to_make);
+    }
+    return true;
+}
+
+bool add_tilemap_background(long num) {
+    gl_load_background_texture(num);
+    return true;
+}
+
+internal void clear_map(Map *map) {
+    map->sprites.clear();
+    map->pickups.clear();
+    for (int j = 0; j < TILEMAP_COLS; j += 1){
+        for (int i = 0; i < TILEMAP_ROWS; i += 1){
+            map->tiles[j][i] = ET_EmptySpace;
+            map->hidden_pickups[j][i] = 0;
+        }
+    }
+    
+}
+
+internal void load_map(Map *m, const char *path) {
+    hidden_pickup_count = 1;
+    load_map_from_file(path, 0);
+    *m = smap;
+}
+
+internal void load_next_map() {
+    g_scene.current_level_counter++;
+    
+    clear_map(&smap);
+    
+    static char buf[256];
+    sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
+    
+    
+    scene_reset();
+    load_map(&g_scene.loaded_map, buf);
+    audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
+}
+
+
 #include "animations.cpp"
 
 internal void scene_update(InputState* istate, float dt) {
@@ -247,7 +411,7 @@ internal void scene_update(InputState* istate, float dt) {
             spref->update_animation(dt);
             switch(spref->entity.type) {
                 case ET_Player:{
-                    ePlayer_update(spref, istate, dt);
+                    Player_update(spref, istate, dt);
                 }break;
                 
                 case ET_Enemy: {

@@ -38,11 +38,20 @@ struct Map {
     ivec2 key_location;
 };
 
+enum SceneState {
+    SS_STARTUP,
+    SS_PLAYING,
+    SS_WIN,
+    SS_LOSE,
+};
+
 global struct {
     Map loaded_map;
     b32 playing = false;
     b32 paused_for_key_animation = false;
     int startup_state = 0;
+    
+    int current_state = SS_STARTUP;
     
     long player_score = 0;
     float last_score_timer = 0.f;
@@ -50,23 +59,9 @@ global struct {
     
     float player_time = 80.f;
     int player_lives = 3;
-    bool player_has_key = false;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 1;
+    i32 current_level_counter = 0;
 } g_scene;
-
-internal void reset_scene() {
-    g_scene.playing = false;
-    g_scene.paused_for_key_animation = false;
-    g_scene.startup_state = 0;
-    //g_scene.player_score = 0;
-    g_scene.last_score_timer = 0.f;
-    g_scene.last_score_num = 0u;
-    g_scene.player_time = 80.f;
-    //g_scene.player_lives = 3;
-    g_scene.player_has_key = false;
-    g_scene.time_is_low_enough = false;
-}
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
     return Sprite {

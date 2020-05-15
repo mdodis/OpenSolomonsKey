@@ -124,7 +124,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
 }
 
 
-internal void ePlayer_cast(Sprite* player, float dt) {
+internal void Player_cast(Sprite* player, float dt) {
     // Get the upper left tile based on the center of the player sprite
     ivec2 player_tile = clamp({0,0}, {14,11}, map_position_to_tile_centered(player->position));
     ivec2 target_tile = player_tile;
@@ -465,17 +465,20 @@ should't be eEmptySpace
 }
 
 internal void player_reach_door(Sprite *player, Sprite *door) {
-    if (g_scene.player_has_key) {
+    u64 &has_key = player->entity.params[0].as_u64;
+    if (has_key) {
         SET_ANIMATION(door, Door, Close);
+        play_win_animation();
     }
 }
 
-internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
+internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
     const float RUNNING_JUMP_STRENGTH = 350;
     const float XSPEED = 150;
+    u64 &has_key = player->entity.params[0].as_u64;
     
     float xmove_amount = 0;
     b32 is_crouching = false;
@@ -516,6 +519,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
             
             if (intersect(&player_box, &key_box)) {
                 play_key_get_animation();
+                has_key = true;
             }
         }
     }
@@ -545,7 +549,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
         // cast!
         player->velocity.x = 0;
         player->velocity.y = 0;
-        ePlayer_cast(player, dt);
+        Player_cast(player, dt);
     }
     
     // Fireball Casting
@@ -573,12 +577,7 @@ internal void ePlayer_update(Sprite* player, InputState* _istate, float dt) {
     const i32 jump_strength =
         (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
     
-    player->move_and_collide(dt,
-                             GRAVITY,
-                             MAX_YSPEED,
-                             jump_strength,
-                             xmove_amount,
-                             true);
+    player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, xmove_amount, true);
     
     if (iabs(player->velocity.x) > 0)
     {

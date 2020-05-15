@@ -2,7 +2,6 @@
 global float startup_anim_time = 0.f;
 internal void startup_animation_reset() {
     g_scene.startup_state = 0;
-    g_scene.playing = false;
     startup_anim_time = 0.f;
     
     audio_stop(SoundType::Music);
@@ -36,6 +35,7 @@ internal void scene_startup_animation(float dt) {
     if (GET_KEYPRESS(space_pressed)) {
         g_scene.startup_state = 4;
         //ring->mark_for_removal = true;
+        g_scene.current_state = SS_PLAYING;
         g_scene.playing = true;
     }
     
@@ -74,7 +74,7 @@ internal void scene_startup_animation(float dt) {
             } else {
                 g_scene.startup_state = 4;
                 ring->mark_for_removal = true;
-                g_scene.playing = true;
+                g_scene.current_state = SS_PLAYING;
                 audio_start(SoundType::Music);
             }
             
@@ -131,7 +131,6 @@ internal void scene_key_animation(float dt) {
     
     switch(key_anim_state) {
         case KEYROT: {
-            
             key->rotation = lerp(0.f, 360.f, t);
             fail_unless(key, "da key");
             if (finished) {
@@ -151,7 +150,6 @@ internal void scene_key_animation(float dt) {
             if (finished) {
                 key_anim_state = KEYROT;
                 g_scene.paused_for_key_animation = false;
-                g_scene.player_has_key = true;
                 
                 SET_ANIMATION(door, Door, Open);
             }
@@ -169,23 +167,58 @@ internal void scene_key_animation(float dt) {
     
 }
 
-global float scene_win_animation_timer = 0.f;
-global int   scene_win_animation_state = 0;
+global float win_animation_timer = 0.f;
+global int   win_animation_state = 0;
+
+internal void play_win_animation() {
+    float win_animation_timer = 0.f;
+    int win_animation_state = 0;
+    assert(g_scene.current_state == SS_PLAYING);
+    g_scene.current_state = SS_WIN;
+}
+
 internal void scene_win_animation(float dt) {
     const int STATE_ENTER = 0;
     const int STATE_STAR_RING = 1;
-    const int STATE_END = 2;
-    
+    const float dur = 2.f;
     static Sprite ring_static;
     Sprite *ring = &ring_static;
     
     const fvec2 DOOR = tile_to_position(g_scene.loaded_map.exit_location);
-    const fvec2 DEST = fvec2{960/2.f, 768/2.f};
+    const fvec2 DEST = fvec2{(8.5f*64.f), (6.f*64.f)};
     
-    switch(scene_win_animation_state) {
+    switch(win_animation_state) {
         case STATE_ENTER: {
             ring_static = make_starring(DOOR);
-            scene_win_animation_state = STATE_STAR_RING;
+            win_animation_state = STATE_STAR_RING;
+        }break;
+        
+        case STATE_STAR_RING: {
+            win_animation_timer += dt;
+            if (win_animation_timer > dur) {
+                load_next_map();
+                g_scene.current_state = SS_PLAYING;
+            }
+            
+            float t = win_animation_timer/dur;
+            ring->position = lerp2(DOOR, DEST, t);
+            
+            float radius = (t) * 128.f;
+            radius = MAX(radius, 44.f);
+            float phase = (t) * 90.f;
+            
+            scene_draw_tilemap();
+            for (int i = 0; i < 16; ++i) {
+                Sprite tmp = *ring;
+                
+                float angle = (360.f / 16.f) * i;
+                angle += phase;
+                tmp.position += fvec2{cosf(angle * D2R), sinf(angle * D2R)} * radius;
+                
+                draw(&tmp);
+            }
+            
+            
         }break;
     }
 }
