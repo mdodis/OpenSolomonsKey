@@ -75,6 +75,7 @@ static inline bool pickup_type_is_valid(PickupType t) {
 }
 
 enum EnemyType {
+    
     MT_Chimera,
     MT_Demonhead,
     MT_Dragon,
@@ -88,6 +89,10 @@ enum EnemyType {
     MT_EarthMage,
     MT_SparkBall,
     MT_BlueFlame,
+    MT_DevilsEmblem,
+    MT_Slimegreen,
+    MT_Slimeorange,
+    MT_Slimepurple,
     MT_KMirror,
     
     MT_Count

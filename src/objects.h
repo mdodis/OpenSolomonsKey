@@ -60,7 +60,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 0;
+    i32 current_level_counter = 1;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
@@ -87,8 +87,23 @@ inline internal Sprite make_goblin(fvec2 position) {
             .type = ET_Enemy,
         }
     };
-    
     res.entity.params[0].as_etype = MT_Goblin;
+    
+    return res;
+}
+
+inline internal Sprite make_demon_head(fvec2 position) {
+    Sprite res = {
+        .tilemap = &GET_CHAR_TILEMAP(DemonHead),
+        .position = position,
+        .collision_box = {5,0,45,64},
+        .mirror = {false, false},
+        .animation_set = GET_CHAR_ANIMSET(DemonHead),
+        .entity = {
+            .type = ET_Enemy,
+        }
+    };
+    res.entity.params[0].as_etype = MT_Demonhead;
     
     return res;
 }

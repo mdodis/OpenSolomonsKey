@@ -136,6 +136,15 @@ static char* BlueFlame_custom(char *c, int row, int col, bool kmirror) {
     return c;
 }
 
+static char* DemonHead_custom(char *c, int row, int col, bool kmirror) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 1.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_Demonhead, row, col, (void*)&speed, (void*)&dir, kmirror);
+    return c;
+}
+
 static char *parse_kmirror_enemy(char *c, int row, int col) {
     if (*c == ',') {
         c++;
@@ -201,6 +210,10 @@ static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool 
         
         case MT_KMirror: {
             c = KMirror_custom(c, row, col);
+        }break;
+        
+        case MT_Demonhead: {
+            c = DemonHead_custom(c, row, col, kmirror);
         }break;
     }
     return c;

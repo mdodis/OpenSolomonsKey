@@ -21,6 +21,7 @@ tilemaps.
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,4    ,6  )\
 DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
+DEF_TILEMAP(TM_demonhead       ,"res/demon_head.png"                      ,2    ,8  )\
 DEF_TILEMAP(tmgoblin           ,"res/goblin_all.png"                      ,4    ,7  )\
 DEF_TILEMAP(TM_blueflame       ,"res/blue_flame.png"                      ,2    ,7  )\
 DEF_TILEMAP(tmghost            ,"res/ghost_all.png"                       ,2    ,3  )\
@@ -28,7 +29,7 @@ DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
-DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7 )\
+DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7  )\
 
 struct RESTilemap
 {
@@ -114,6 +115,10 @@ DEF_ANIM(Ghost,        Punch,   .1f,      {0,1}, 3,      false)   \
 DEF_CHARACTER(BlueFlame,   TM_blueflame, 2,                                     \
 DEF_ANIM(BlueFlame,    Normal,  .1f,      {0,0}, 7,      true)    \
 DEF_ANIM(BlueFlame,    Tame,    .1f,      {0,1}, 4,      true)    \
+)                                                                 \
+DEF_CHARACTER(DemonHead,   TM_demonhead, 2,                                     \
+DEF_ANIM(DemonHead,    Normal,  .1f,      {0,0}, 8,      true)    \
+DEF_ANIM(DemonHead,    Fade,    .1f,      {0,1}, 8,      false)   \
 )                                                                 \
 DEF_CHARACTER(DFireball,   tmdana_fire,  3,                                     \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \

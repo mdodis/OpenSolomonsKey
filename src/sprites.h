@@ -145,6 +145,7 @@ internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
 internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
 internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void DemonHead_update(Sprite* head, InputState* istate, float dt);
 internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
 internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
 internal void BlueFlame_cast(Sprite* flame);

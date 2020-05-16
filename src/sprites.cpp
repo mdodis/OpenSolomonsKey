@@ -50,7 +50,6 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                     continue;
                 }
                 
-                
                 if (j == 2 || (start_tile.y <= 1 && j == 1)) {
                     // NOTE(miked): j == 2 is the bottom tile in most cases,
                     // but if y == 1 in tile space, then j will be 1 in that case
@@ -85,20 +84,6 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                 
             }
             
-            
-#ifndef NDEBUG
-            
-#if 0
-            gl_slow_tilemap_draw(
-                                 &GET_TILEMAP_TEXTURE(test),
-                                 {tile_coords.x, tile_coords.y},
-                                 {64, 64},
-                                 0.f,
-                                 5 * 5,
-                                 false, false,
-                                 NRGBA{1,1,1,.7f});
-#endif
-#endif
         }
     }
     
@@ -946,4 +931,73 @@ internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
             KMirror_spawn(kmirror);
         }
     }
+}
+
+internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
+    // TODO(miked): fadeout
+    // TODO(miked): collision box
+    const float speed = 80.f;
+    const float GRAVITY = 900.f;
+    const float MAX_YSPEED = 500.f;
+    
+    head->velocity.x = speed * head->direction();
+    head->velocity.y += GRAVITY * dt;
+    head->velocity.y = clamp(0.f, MAX_YSPEED, head->velocity.y);
+    
+    head->position += head->velocity * dt;
+    fvec2 ipos = head->position;
+    ivec2 start_tile = map_position_to_tile_centered(ipos) - 1;
+    
+    b32 collided_on_bottom = false;
+    
+    for (i32 j = 0; j < 3; ++j) {
+        for (i32 i = 0; i < 3; ++i) {
+            if (scene_tile_empty(ivec2{start_tile.x + i,start_tile.y + j})) continue;
+            
+            fvec2 tile_coords =
+            {
+                (start_tile.x + i) * 64.f,
+                (start_tile.y + j) * 64.f
+            };
+            
+            AABox collision = {0, 0, 64, 64};
+            collision = collision.translate(tile_coords);
+            AABox head_trans = head->get_transformed_AABox();
+            
+            fvec2 diff;
+            b32 collided = aabb_minkowski(&head_trans, &collision, &diff);
+            if (collided) {
+                head->position = head->position - (diff);
+                
+                // If we are moving up and diff moved us in the Y dir,
+                // then negate the collision.
+                // (fixes bouncing when hitting corner of a tile)
+                if (head->velocity.y < 0 && iabs(diff.y) < 5) {
+                    head->position.y += diff.y;
+                    continue;
+                }
+                
+                if (j == 2 || (start_tile.y <= 1 && j == 1)) {
+                    // NOTE(miked): j == 2 is the bottom tile in most cases,
+                    // but if y == 1 in tile space, then j will be 1 in that case
+                    
+                    collided_on_bottom = true;
+                    if (iabs(diff.y) > 0) {
+                        head->is_on_air = false;
+                        head->velocity.y = 0;
+                    }
+                }
+                
+                if (j == 1 && i != 1 && !head->is_on_air) {
+                    head->mirror.x = !head->mirror.x;
+                }
+            }
+            
+        }
+    }
+    
+    
+    if (!collided_on_bottom && head->velocity.y != 0)
+        head->is_on_air = true;
+    
 }

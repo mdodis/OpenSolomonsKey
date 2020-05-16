@@ -250,7 +250,9 @@ bool add_tilemap_hidden_entity(PickupType type, int row, int col) {
     Sprite sprite_to_make = make_pickup(pos, type);
     sprite_to_make.entity.params[1].as_u64 = 1;
     //printf("%d %d %d\n", type, row, col);
-    assert(smap.hidden_pickups[col][row] == 0);
+    if (!(smap.hidden_pickups[col][row] == 0)) {
+        assert(false);
+    }
     smap.hidden_pickups[col][row] = hidden_pickup_count;
     sprite_to_make.entity.params[2].as_u64 = hidden_pickup_count;
     ++hidden_pickup_count;
@@ -298,6 +300,12 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             sprite_to_make.entity.params[4].as_f64 = *(double*)param2;
             sprite_to_make.entity.params[5].as_ptr = 0;
             sprite_to_make.entity.params[6].as_ptr = 0;
+        }break;
+        
+        case MT_Demonhead: {
+            sprite_to_make = make_demon_head(pos);
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = true;
         }break;
         
         default:{
@@ -431,6 +439,10 @@ internal void scene_update(InputState* istate, float dt) {
                         
                         case MT_KMirror: {
                             KMirror_update(spref, istate,dt);
+                        }break;
+                        
+                        case MT_Demonhead: {
+                            DemonHead_update(spref, istate,dt);
                         }break;
                         
                     }

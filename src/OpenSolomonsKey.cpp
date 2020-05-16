@@ -3,9 +3,6 @@ TODO:
 - level 2
 - Goblin can live from a fall if it's falling and a block appears near it; SEE: https:youtu.be/jNi6DQEX3xQ?t=12
 - Goblin can only fall _IF_ its currently in the walking, chasing, or waiting state. If it were in a punch state, it would have to finish that first, and then proceed to die by gravity
-- Pickup secrets (add+destroy block in empty space)
-- Sound resource system
-- Make effects into single tilemap!
 - WIN32: don't jump when maximizing through shortcut
 - Better pixel shader: see casey's video (handmade char on octopath traveller)
   NOTE:
@@ -192,8 +189,7 @@ void draw_ui(float dt) {
     draw_num(dt * 1000.f, 1);
 }
 
-void cb_render(InputState istate, u64 audio_sample_count, float dt)
-{
+void cb_render(InputState istate, u64 audio_sample_count, float dt) {
     glClearColor( 0.0, 0.0,  0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
