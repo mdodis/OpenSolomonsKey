@@ -124,7 +124,8 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     
-    load_next_map();
+    gl_load_background_texture(17);
+    
     return;
 }
 
@@ -189,7 +190,42 @@ void draw_ui(float dt) {
     draw_num(dt * 1000.f, 1);
 }
 
+void scene_menu(float dt);
+
 void cb_render(InputState istate, u64 audio_sample_count, float dt) {
+    
+    if (g_scene.current_state == SS_MENU) {
+        scene_menu(dt);
+    } else {
+        glClearColor( 0.0, 0.0,  0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        
+        draw_extra_stuff();
+        
+        gl_background_draw();
+        
+        if (dt > 0.13f) dt = 0.13f;
+        
+        switch(g_scene.current_state) {
+            
+            case SS_STARTUP: {
+                scene_startup_animation(dt);
+            }break;
+            case SS_PLAYING: {
+                scene_update(&istate, dt);
+            }break;
+            case SS_WIN: {
+                scene_win_animation(dt);
+            }break;
+            case SS_LOSE: {
+            }break;
+        }
+        
+        draw_ui(dt);
+    }
+}
+
+void scene_menu(float dt) {
     glClearColor( 0.0, 0.0,  0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -197,23 +233,9 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt) {
     
     gl_background_draw();
     
-    if (dt > 0.13f) dt = 0.13f;
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_logo), fvec2{32.f*6.0f,32.f*3}, fvec2{644.f,352.f}, 0.f, 0, false, false, NRGBA{1,1,1,1}, false);
     
-    
-    switch(g_scene.current_state) {
-        case SS_STARTUP: {
-            scene_startup_animation(dt);
-        }break;
-        case SS_PLAYING: {
-            scene_update(&istate, dt);
-        }break;
-        case SS_WIN: {
-            scene_win_animation(dt);
-        }break;
-        case SS_LOSE: {
-        }break;
-    }
-    
-    draw_ui(dt);
-    
+    draw_text("Start",6,5,true, 64.f);
+    draw_text("Select",8,5,true, 64.f);
+    draw_text("Quit",10,5,true, 64.f);
 }

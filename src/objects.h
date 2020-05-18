@@ -39,6 +39,7 @@ struct Map {
 };
 
 enum SceneState {
+    SS_MENU,
     SS_STARTUP,
     SS_PLAYING,
     SS_WIN,
@@ -51,7 +52,7 @@ global struct {
     b32 paused_for_key_animation = false;
     int startup_state = 0;
     
-    int current_state = SS_STARTUP;
+    int current_state = SS_MENU;
     
     long player_score = 0;
     float last_score_timer = 0.f;
@@ -60,7 +61,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 1;
+    i32 current_level_counter = 0;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {

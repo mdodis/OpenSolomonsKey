@@ -8,7 +8,7 @@
 // put your entity handling code here
 
 // add a normal (non-enemy, non-pickup) entity
-bool add_tilemap_entity(EntityType type, int row, int col);
+bool add_tilemap_entity(EntityType type, int row, int col, void *custom1 = 0);
 // add a pickup that's hidden in row,col
 bool add_tilemap_hidden_entity(PickupType type, int row, int col);
 // add a normal pickup
@@ -101,6 +101,20 @@ static char *parse_custom_long(long *ret, char *c, long default_val) {
         c++;
         c = parse_long(c, ret);
     }
+    return c;
+}
+
+static char *Dana_custom(char *c, int row, int col) {
+    long dir;
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_entity(ET_PlayerSpawnPoint, row, col, (void*)&dir);
+    return c;
+}
+
+static char *Key_custom(char *c, int row, int col) {
+    long type;
+    c = parse_custom_long(&type, c, 0);
+    add_tilemap_entity(ET_Key, row, col, (void*)&type);
     return c;
 }
 
@@ -273,7 +287,8 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                         add_tilemap_entity(ET_Door, counter_y, counter_x);
                     } else if (res == ET_Key) {
                         level_validity[1] = true;
-                        add_tilemap_entity(ET_Key, counter_y, counter_x);
+                        
+                        c = Key_custom(c, counter_y, counter_x);
                     }
                     
                     switch((EntityType)res) {
@@ -285,7 +300,8 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                         
                         case ET_PlayerSpawnPoint:{
                             level_validity[2] = true;
-                            add_tilemap_entity(ET_PlayerSpawnPoint, counter_y, counter_x);
+                            c = Dana_custom(c, counter_y, counter_x);
+                            
                         }break;
                         
                         case ET_Enemy: {

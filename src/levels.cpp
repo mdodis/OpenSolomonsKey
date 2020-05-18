@@ -213,7 +213,7 @@ internal void scene_reset() {
 
 // add a normal (non-enemy, non-pickup) entity
 // Current is EmptySpace, Blocks, Door, Key
-bool add_tilemap_entity(EntityType type, int row, int col) {
+bool add_tilemap_entity(EntityType type, int row, int col, void *custom1) {
     if (is_valid_tilemap_object(type)) {
         smap.tiles[col][row] = type;
     } else {
@@ -229,10 +229,12 @@ bool add_tilemap_entity(EntityType type, int row, int col) {
             case ET_Key: {
                 sprite_to_make = make_key(pos);
                 smap.key_location = ivec2{col, row};
+                // TODO(miked): do key type thingy
             }break;
             
             case ET_PlayerSpawnPoint: {
                 sprite_to_make = make_player(pos);
+                sprite_to_make.mirror.x = (*((long*)custom1)) == 1;
             }break;
             
             default: {

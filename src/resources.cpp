@@ -18,6 +18,7 @@ tilemaps.
 */
 #define ALL_TILEMAPS \
 /*          NAME               PATH IN FOLDER                             rows cols*/\
+DEF_TILEMAP(TM_logo            ,"res/logo2.png"                           ,1    ,1  )\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,4    ,6  )\
 DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
