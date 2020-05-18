@@ -360,7 +360,7 @@ internal void load_map(Map *m, const char *path) {
 
 internal void load_next_map() {
     g_scene.current_level_counter++;
-    
+    g_scene.current_state = SS_STARTUP;
     clear_map(&smap);
     
     static char buf[256];

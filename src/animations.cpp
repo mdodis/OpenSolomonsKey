@@ -197,7 +197,6 @@ internal void scene_win_animation(float dt) {
             win_animation_timer += dt;
             if (win_animation_timer > dur) {
                 load_next_map();
-                g_scene.current_state = SS_PLAYING;
             }
             
             float t = win_animation_timer/dur;
