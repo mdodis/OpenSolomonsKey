@@ -9,6 +9,8 @@ KEYDOWN (move_right    , XK_Right , VK_RIGHT    ) \
 KEYDOWN (move_left     , XK_Left  , VK_LEFT     ) \
 KEYDOWN (move_down     , XK_Down  , VK_DOWN     ) \
 KEYPRESS(move_up       , XK_Up    , VK_UP       ) \
+KEYPRESS(move_up_menu  , XK_Up    , VK_UP       ) \
+KEYPRESS(move_down_menu, XK_Down  , VK_DOWN     ) \
 KEYDOWN (fmove_right   , XK_D     , VK_RIGHT    ) \
 KEYDOWN (fmove_left    , XK_A     , VK_LEFT     ) \
 KEYDOWN (fmove_down    , XK_S     , VK_DOWN     ) \

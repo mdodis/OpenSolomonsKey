@@ -29,9 +29,7 @@ void draw_num(float num,
                                  false, false, tint,
                                  account_for_offset);
             
-        }
-        else if (*c == '.')
-        {
+        } else if (*c == '.') {
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
                                  fvec2{xoffset * size + increment, line * size},
                                  fvec2{size, size},
@@ -48,18 +46,11 @@ void draw_num(float num,
 }
 
 
-void draw_text(char* text,
-               int line,
-               int xoffset = 0,
-               bool account_for_offset = true,
-               float size = 16.f,
-               NRGBA tint = {1,1,1,1})
-{
+void draw_text(char* text, int line, int xoffset = 0, bool account_for_offset = true, float size = 16.f, NRGBA tint = {1,1,1,1}) {
     char* c = text;
     float increment = 0.f;
     
-    while(*c)
-    {
+    while(*c) {
         int c_to_font = -1;
         
         if (*c >= 'a' && *c <= 'z')
@@ -69,8 +60,7 @@ void draw_text(char* text,
         else if (*c >= '0' && *c <= '?')
             c_to_font = (*c - 48) + (1 * 16);
         
-        if (c_to_font != -1)
-        {
+        if (c_to_font != -1) {
             gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(font),
                                  fvec2{xoffset * size + increment,line * size},
                                  fvec2{size, size},
