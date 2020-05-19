@@ -939,6 +939,20 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
     const float speed = 80.f;
     const float GRAVITY = 900.f;
     const float MAX_YSPEED = 500.f;
+    const float LIFE_DUR = 5.f; // TODO(miked): this could be a custom param
+    double &life_timer = head->entity.params[1].as_f64;
+    
+    life_timer += dt;
+    if (life_timer > LIFE_DUR) {
+        
+        if (head->current_animation == GET_CHAR_ANIMENUM(DemonHead, Fade)) {
+            if (!head->animation_playing) {
+                head->mark_for_removal = true;
+            }
+        } else {
+            SET_ANIMATION(head, DemonHead, Fade);
+        }
+    }
     
     head->velocity.x = speed * head->direction();
     head->velocity.y += GRAVITY * dt;
@@ -995,7 +1009,6 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
             
         }
     }
-    
     
     if (!collided_on_bottom && head->velocity.y != 0)
         head->is_on_air = true;

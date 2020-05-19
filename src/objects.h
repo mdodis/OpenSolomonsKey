@@ -61,7 +61,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 0;
+    i32 current_level_counter = 1;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
