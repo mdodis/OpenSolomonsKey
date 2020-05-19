@@ -457,6 +457,32 @@ internal void player_reach_door(Sprite *player, Sprite *door) {
     }
 }
 
+internal void player_die(Sprite *player) {
+    player->mark_for_removal = true;
+}
+
+internal void player_enemy_test(Sprite *player) {
+    for (int i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
+        Sprite *spr = &g_scene.loaded_map.sprites[i];
+        
+        if (spr->entity.type == ET_Enemy) {
+            
+            // TODO(miked): maybe check just the ones close to us tile-wise?
+            AABox ebox = spr->get_transformed_AABox();
+            AABox pbox = player->get_transformed_AABox();
+            
+            if (intersect(&ebox, &pbox)) {
+                player_die(player);
+                break;
+            }
+            
+        } else {
+            continue;
+        }
+    }
+    
+}
+
 internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
@@ -494,6 +520,8 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
             }
         }
     }
+    
+    player_enemy_test(player);
     
     // Key Pickup
     {
