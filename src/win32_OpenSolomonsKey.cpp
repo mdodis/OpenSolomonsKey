@@ -590,6 +590,23 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 #undef KEYPRESS
 }
 
+#include <vector>
+std::vector<char *> win32_list_maps() {
+    std::vector<char *> result;
+    WIN32_FIND_DATAA find_data;
+    HANDLE find_handle = FindFirstFileA("level_*.osk", &find_data);
+    
+    if (find_handle != INVALID_HANDLE_VALUE) {
+        result.push_back(strdup(find_data.cFileName));
+    }
+    
+    while(FindNextFileA(find_handle, &find_data)) {
+        result.push_back(strdup(find_data.cFileName));
+    }
+    
+    return result;
+}
+
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nShowCmd) {
 #if defined(OSK_WIN32_CONSOLE)
     AllocConsole();

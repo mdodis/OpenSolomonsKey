@@ -18,7 +18,7 @@ KEYDOWN (fmove_up      , XK_W     , VK_UP       ) \
 KEYPRESS(space_pressed , XK_space , VK_SPACE    ) \
 KEYPRESS(restart       , XK_R     , 'R'         ) \
 KEYPRESS(fireball      , XK_X     , 'X'         ) \
-KEYPRESS(cast          , XK_C     , 'C'         ) \
+KEYPRESS(cast          , XK_C     , VK_CONTROL  ) \
 KEYPRESS(sound_down    , XK_9     , '9'         ) \
 KEYPRESS(sound_up      , XK_0     , '0'         ) \
 
