@@ -893,28 +893,29 @@ internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
     }
 }
 
+internal void do_pickup_effect(Sprite *player, Sprite *pickup) {
+    PickupType type = (PickupType)pickup->entity.params[0].as_u64;
+    
+    if (type == PT_Bell) {
+        Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+        scene_sprite_add(&fairie);
+    }
+}
+
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
     if (pickup->entity.params[1].as_u64 == 0) {
         
         pickup->mark_for_removal = true;
         PickupType type = (PickupType)pickup->entity.params[0].as_u64;
-        
-        if (pickup_type_is_non_effect(type)) {
-            long score_to_add = get_pickup_worth(type);
-            
+        long score_to_add = get_pickup_worth(type);
+        if (score_to_add != 0)
             add_score(score_to_add);
-            
-            Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
-            scene_sprite_add(&flash2);
-        } else if (pickup_type_is_valid(type)) {
-            
-            if (type == PT_Bell) {
-                Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
-                scene_sprite_add(&fairie);
-            }
-            
-        }
+        Sprite flash2 = make_effect(pickup->position, GET_CHAR_ANIM_HANDLE(Effect, Flash2));
+        scene_sprite_add(&flash2);
+        
+        do_pickup_effect(player, pickup);
+        
     }
 }
 
