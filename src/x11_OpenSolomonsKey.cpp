@@ -196,10 +196,10 @@ x11_init()
     root = DefaultRootWindow(dpy);
     
     fail_unless(
-        glXQueryVersion(dpy, &glx_major, &glx_minor) && 
-        (glx_major != 1  || glx_minor >= 3) &&
-        (glx_major >= 1),
-        "Invalid GLX version");
+                glXQueryVersion(dpy, &glx_major, &glx_minor) && 
+                (glx_major != 1  || glx_minor >= 3) &&
+                (glx_major >= 1),
+                "Invalid GLX version");
     
     int elemc;
     GLXFBConfig *fbcfg = glXChooseFBConfig(dpy, screen, att, &elemc);
@@ -361,14 +361,14 @@ x11_update_all_keys()
     
 #define KEYDOWN(name, keysym, ...) g_input_state.name = x11_get_key_state(keysym);
 #define KEYPRESS(name, keysym, ...) { \
-        b32 now = x11_get_key_state(keysym); \
-        g_input_state.name[1] = (now && !g_input_state.name[0]); \
-        g_input_state.name[0] = g_input_state.name[1] || now; \
-        \
-    } \
+b32 now = x11_get_key_state(keysym); \
+g_input_state.name[1] = (now && !g_input_state.name[0]); \
+g_input_state.name[0] = g_input_state.name[1] || now; \
+    \
+} \
     
     KEYMAP
-    
+        
 #undef KEYDOWN
 #undef KEYPRESS
 }
@@ -388,6 +388,29 @@ alsa_init()
     pthread_create(&g_audiothread, 0, alsa_cb_audio, 0);
     
 }
+
+
+#include <vector>
+#include <dirent.h>
+std::vector<char *> list_maps() {
+    std::vector<char *> result;
+    
+    struct dirent **namelist;
+    int n;
+    
+    n= scandir(".", &namelist, 0, alphasort);
+    if (n >= 0) {
+        while(n--) {
+            if (strncmp(namelist[n]->d_name, "level_", 6) == 0) {
+                result.push_back(strdup(namelist[n]->d_name));
+            }
+        }
+        free(namelist);
+    }
+    
+    return result;
+}
+
 
 int main(int argc, char *argv[])
 {

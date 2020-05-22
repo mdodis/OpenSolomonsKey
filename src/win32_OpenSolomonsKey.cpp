@@ -591,7 +591,7 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 }
 
 #include <vector>
-std::vector<char *> win32_list_maps() {
+std::vector<char *> list_maps() {
     std::vector<char *> result;
     WIN32_FIND_DATAA find_data;
     HANDLE find_handle = FindFirstFileA("level_*.osk", &find_data);

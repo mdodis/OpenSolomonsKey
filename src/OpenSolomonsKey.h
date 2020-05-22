@@ -2,6 +2,7 @@
 #define OSK_HH
 #include <stdint.h>
 #include <assert.h>
+#include <stdarg.h>
 
 /* Compile Time options:
 OSK_ROUND_TO_POW_2
@@ -50,6 +51,7 @@ void exit_error(const char *fmt, ...) {
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", ##__VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", ##__VA_ARGS__)
+#define error(fmt, ...) printf("[ERROR] " fmt "\n", ##__VA_ARGS__)
 #endif
 
 #define internal static

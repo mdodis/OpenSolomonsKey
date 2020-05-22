@@ -126,7 +126,7 @@ void cb_init() {
     load_tilemap_textures();
     load_sound_resources();
     gl_load_background_texture(17);
-    g_map_list = win32_list_maps();
+    g_map_list = list_maps();
     
     return;
 }

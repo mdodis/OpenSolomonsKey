@@ -512,10 +512,10 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     // Item pickup
     {
         List_Sprite &pickups = scene_get_pickup_list();
-        AABox *player_box = &player->get_transformed_AABox();
+        AABox player_box = player->get_transformed_AABox();
         for (Sprite &s : pickups) {
-            AABox *s_box = &s.get_transformed_AABox();
-            if (intersect(player_box, s_box)) {
+            AABox s_box = s.get_transformed_AABox();
+            if (intersect(&player_box, &s_box)) {
                 player_pickup(player, &s);
             }
         }
