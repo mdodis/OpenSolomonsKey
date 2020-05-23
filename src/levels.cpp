@@ -336,7 +336,12 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
     return true;
 }
 
-bool add_tilemap_background(long num) {
+internal void scene_lose() {
+    g_scene.player_is_dead = true;
+    g_scene.current_state = SS_LOSE;
+}
+
+internal bool add_tilemap_background(long num) {
     gl_load_background_texture(num);
     return true;
 }
@@ -373,6 +378,14 @@ internal void load_next_map() {
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
 }
 
+internal void reload_map() {
+    clear_map(&smap);
+    
+    static char buf[256];
+    sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
+    
+    load_map(&g_scene.loaded_map, buf);
+}
 
 #include "animations.cpp"
 

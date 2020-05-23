@@ -18,8 +18,8 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
     
     // Get the upper left tile based on the center of the this sprite
     fvec2 ipos = {this->position.x, this->position.y};
-    ivec2 start_tile = clamp(ivec2{0,0}, ivec2{14,11},
-                             map_position_to_tile_centered(ipos) - 1);
+    //ivec2 start_tile = clamp(ivec2{0,0}, ivec2{14,11}, map_position_to_tile_centered(ipos) - 1);
+    ivec2 start_tile = map_position_to_tile_centered(ipos) - 1;
     
     b32 collided_on_bottom = false;
     
@@ -91,6 +91,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
     
+#if 0    
     // NOTE(miked): collision checking for the bounds
     AABox bound_bottom = {0, 12 * 64, 64*15 , 12 * 64};
     AABox bound_right  = {15 * 64, 0, 16 * 64, 12 * 64};
@@ -106,6 +107,8 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
     
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {bound_left.min_x + 32, bound_left.min_y}, {bound_left.max_x + 32, bound_left.max_y}, 0.f, 1* 5 + 1,false, false, NRGBA{0,1,1,.7f});
 #endif
+#endif
+    
 }
 
 
@@ -467,6 +470,7 @@ internal void player_die(Sprite *player) {
 
 internal void player_dead(Sprite *player) {
     player->mark_for_removal = true;
+    scene_lose();
 }
 
 internal void player_enemy_test(Sprite *player) {
