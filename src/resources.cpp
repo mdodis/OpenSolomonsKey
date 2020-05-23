@@ -20,7 +20,7 @@ tilemaps.
 /*          NAME               PATH IN FOLDER                             rows cols*/\
 DEF_TILEMAP(TM_logo            ,"res/logo2.png"                           ,1    ,1  )\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
-DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,4    ,6  )\
+DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,5    ,6  )\
 DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
 DEF_TILEMAP(TM_demonhead       ,"res/demon_head.png"                      ,2    ,8  )\
 DEF_TILEMAP(tmgoblin           ,"res/goblin_all.png"                      ,4    ,7  )\
@@ -92,12 +92,13 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                              \
 /*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(test_player, dana,         4,                                     \
+DEF_CHARACTER(Dana, dana,         5,                                     \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(test_player,  Idle,    .1f,      {0,0}, 1,      false)   \
-DEF_ANIM(test_player,  Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(test_player,  Cast,    .05f,     {0,2}, 3,      false)   \
-DEF_ANIM(test_player,  Crouch,  .05f,     {0,3}, 1,      true )   \
+DEF_ANIM(Dana,         Idle,    .1f,      {0,0}, 1,      false)   \
+DEF_ANIM(Dana,         Run ,    .1f,      {0,1}, 5,      true )   \
+DEF_ANIM(Dana,         Cast,    .05f,     {0,2}, 3,      false)   \
+DEF_ANIM(Dana,         Crouch,  .05f,     {0,3}, 1,      true )   \
+DEF_ANIM(Dana,         Die,     .1f,      {0,4}, 4,      false)   \
 )                                                                 \
 DEF_CHARACTER(Goblin,      tmgoblin,     5,                                     \
 /*       Character,    Name     Duration, Start, Frames, Loop*/   \

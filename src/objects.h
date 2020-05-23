@@ -128,14 +128,14 @@ inline internal Sprite make_ghost(fvec2 position) {
 
 inline internal Sprite make_player(fvec2 position) {
     Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(test_player),
+        .tilemap = &GET_CHAR_TILEMAP(Dana),
         .size = fvec2{64, 64},
         .position = position,
         .collision_box = {5, 14, 45, 50},
         .mirror = {true, false},
         .mark_for_removal = false,
         
-        .animation_set = GET_CHAR_ANIMSET(test_player),
+        .animation_set = GET_CHAR_ANIMSET(Dana),
         .entity = {
             ET_Player,
             {0,0}

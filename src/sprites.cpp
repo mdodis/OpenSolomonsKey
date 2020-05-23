@@ -123,7 +123,7 @@ internal void Player_cast(Sprite* player, float dt) {
     }
     
     // if we were crouching: special condition
-    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Crouch)) {
+    if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Crouch)) {
         target_tile.y = clamp(0, 14,target_tile.y + 1);
     }
     Sprite *enemy_on_tile = find_first_sprite_on_tile(ET_Enemy, target_tile);
@@ -131,7 +131,7 @@ internal void Player_cast(Sprite* player, float dt) {
     
     if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
     
-    SET_ANIMATION(player, test_player, Cast);
+    SET_ANIMATION(player, Dana, Cast);
     if (!enemy_on_tile) {
         EntityType type = (EntityType)scene_get_tile(target_tile);
         bool should_spawn_flash_effect = true;
@@ -458,6 +458,14 @@ internal void player_reach_door(Sprite *player, Sprite *door) {
 }
 
 internal void player_die(Sprite *player) {
+    u64 &is_dead = player->entity.params[1].as_u64;
+    if (!is_dead) {
+        is_dead = true;
+        SET_ANIMATION(player, Dana, Die);
+    }
+}
+
+internal void player_dead(Sprite *player) {
     player->mark_for_removal = true;
 }
 
@@ -490,10 +498,22 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     const float RUNNING_JUMP_STRENGTH = 350;
     const float XSPEED = 150;
     u64 &has_key = player->entity.params[0].as_u64;
+    u64 &is_dead = player->entity.params[1].as_u64;
     
     float xmove_amount = 0;
     b32 is_crouching = false;
     b32 did_jump     = false;
+    
+    // Die functionality
+    {
+        if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Die) && !player->animation_playing) {
+            player_dead(player);
+        }
+    }
+    
+    player_enemy_test(player);
+    if (is_dead) return;
+    
     
     // NOTE(miked): maybe not have it be a local-global?
     persist i32 player_last_yspeed;
@@ -520,8 +540,6 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
             }
         }
     }
-    
-    player_enemy_test(player);
     
     // Key Pickup
     {
@@ -556,7 +574,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     }
     
     // Casting
-    if (GET_KEYPRESS(cast) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
+    if (GET_KEYPRESS(cast) && player->current_animation != GET_CHAR_ANIMENUM(Dana, Cast)) {
         // save yspeed
         player_last_yspeed = player->velocity.y;
         // cast!
@@ -566,7 +584,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     }
     
     // Fireball Casting
-    if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(test_player, Cast)) {
+    if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(Dana, Cast)) {
         
         Sprite f = make_dfireball(player->position + fvec2{16, 10});
         
@@ -575,7 +593,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
         
     }
     
-    if (player->current_animation == GET_CHAR_ANIMENUM(test_player, Cast)) {
+    if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Cast)) {
         
         if (player->animation_playing)
             return;
@@ -594,11 +612,11 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     
     if (iabs(player->velocity.x) > 0)
     {
-        SET_ANIMATION(player, test_player, Run);
+        SET_ANIMATION(player, Dana, Run);
         player->mirror.x = player->velocity.x > 0;
     }
-    else if (is_crouching) SET_ANIMATION(player, test_player, Crouch);
-    else                   SET_ANIMATION(player, test_player, Idle);
+    else if (is_crouching) SET_ANIMATION(player, Dana, Crouch);
+    else                   SET_ANIMATION(player, Dana, Idle);
 }
 
 internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
