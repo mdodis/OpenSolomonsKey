@@ -93,64 +93,69 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                              \
 /*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(Dana, dana,                     5,                                \
-/*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(Dana,         Idle,    .1f,      {0,0}, 1,      false)   \
-DEF_ANIM(Dana,         Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(Dana,         Cast,    .05f,     {0,2}, 3,      false)   \
-DEF_ANIM(Dana,         Crouch,  .05f,     {0,3}, 1,      true )   \
-DEF_ANIM(Dana,         Die,     .1f,      {0,4}, 4,      false)   \
+DEF_CHARACTER(Dana,                  dana,              5,                      \
+/*       Character,             Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
+DEF_ANIM(Dana,                  Run ,    .1f,      {0,1}, 5,      true )   \
+DEF_ANIM(Dana,                  Cast,    .05f,     {0,2}, 3,      false)   \
+DEF_ANIM(Dana,                  Crouch,  .05f,     {0,3}, 1,      true )   \
+DEF_ANIM(Dana,                  Die,     .1f,      {0,4}, 4,      false)   \
 )                                                                 \
-DEF_CHARACTER(Goblin,      tmgoblin,          5,                                \
-/*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(Goblin,       Walk,    .2f,      {0,0}, 6,      true )   \
-DEF_ANIM(Goblin,       Punch,   .18f,     {0,1}, 4,      false)   \
-DEF_ANIM(Goblin,       Chase,   .15f,     {0,2}, 7,      true )   \
-DEF_ANIM(Goblin,       Wait,    1.f,      {5,0}, 1,      false)   \
-DEF_ANIM(Goblin,       Fall,    .1f,      {0,3}, 2,      true )   \
+DEF_CHARACTER(Goblin,                tmgoblin,          5,                      \
+/*       Character,             Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(Goblin,                Walk,    .2f,      {0,0}, 6,      true )   \
+DEF_ANIM(Goblin,                Punch,   .18f,     {0,1}, 4,      false)   \
+DEF_ANIM(Goblin,                Chase,   .15f,     {0,2}, 7,      true )   \
+DEF_ANIM(Goblin,                Wait,    1.f,      {5,0}, 1,      false)   \
+DEF_ANIM(Goblin,                Fall,    .1f,      {0,3}, 2,      true )   \
 )                                                                 \
-DEF_CHARACTER(Ghost,       tmghost,           2,                                \
-/*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(Ghost,        Fly,     .1f,      {0,0}, 3,      true )   \
-DEF_ANIM(Ghost,        Punch,   .1f,      {0,1}, 3,      false)   \
+DEF_CHARACTER(Ghost,                 tmghost,           2,                      \
+/*       Character,             Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(Ghost,                 Fly,     .1f,      {0,0}, 3,      true )   \
+DEF_ANIM(Ghost,                 Punch,   .1f,      {0,1}, 3,      false)   \
 )                                                                 \
-DEF_CHARACTER(BlueFlame,   TM_blueflame,      2,                                \
-DEF_ANIM(BlueFlame,    Normal,  .1f,      {0,0}, 7,      true)    \
-DEF_ANIM(BlueFlame,    Tame,    .1f,      {0,1}, 4,      true)    \
+DEF_CHARACTER(BlueFlame,             TM_blueflame,      2,                      \
+DEF_ANIM(BlueFlame,             Normal,  .1f,      {0,0}, 7,      true )   \
+DEF_ANIM(BlueFlame,             Tame,    .1f,      {0,1}, 4,      true )   \
 )                                                                 \
-DEF_CHARACTER(DemonHead,   TM_demonhead,      2,                                \
-DEF_ANIM(DemonHead,    Normal,  .1f,      {0,0}, 8,      true)    \
-DEF_ANIM(DemonHead,    Fade,    .1f,      {0,1}, 8,      false)   \
+DEF_CHARACTER(DemonHead,             TM_demonhead,      2,                      \
+DEF_ANIM(DemonHead,             Normal,  .1f,      {0,0}, 8,      true )   \
+DEF_ANIM(DemonHead,             Fade,    .1f,      {0,1}, 8,      false)   \
 )                                                                 \
-DEF_CHARACTER(PanelMonster,TM_panelmonster,   2,                                \
-DEF_ANIM(PanelMonster, Wait,    0.f,      {0,0}, 1,      true )   \
-DEF_ANIM(PanelMonster, Fire,    0.1f,     {0,0}, 5,      false)   \
+DEF_CHARACTER(PanelMonster,          TM_panelmonster,   2,                      \
+DEF_ANIM(PanelMonster,          Wait,    0.1f,     {0,0}, 1,      true )   \
+DEF_ANIM(PanelMonster,          Fire,    0.1f,     {0,0}, 5,      false)   \
 )                                                                 \
-DEF_CHARACTER(DFireball,   tmdana_fire,       3,                                \
-/*       Character,    Name     Duration, Start, Frames, Loop*/   \
-DEF_ANIM(DFireball,    Down,    .1f,      {0,0}, 1,      true )   \
-DEF_ANIM(DFireball,    Middle,  .1f,      {0,1}, 1,      true )   \
-DEF_ANIM(DFireball,    Up,      .1f,      {0,2}, 1,      true )   \
+DEF_CHARACTER(PanelMonsterFlame,     TM_panelmonster,   3,                      \
+DEF_ANIM(PanelMonsterFlame,     Create,  0.2f,     {0,1}, 3,      false)   \
+DEF_ANIM(PanelMonsterFlame,     Default, 0.2f,     {0,2}, 4,      true )   \
+DEF_ANIM(PanelMonsterFlame,     Hit,     0.2f,     {3,1}, 2,      false)   \
 )                                                                 \
-DEF_CHARACTER(Effect,      TM_effects,        5,                                \
-DEF_ANIM(Effect,       Smoke,   .1f,      {0,0}, 4,      false)   \
-DEF_ANIM(Effect,       Star,    .1f,      {0,1}, 3,      true )   \
-DEF_ANIM(Effect,       Flash,   .1f,      {0,2}, 2,      false)   \
-DEF_ANIM(Effect,       Flash2,  .1f,      {0,3}, 3,      false)   \
-DEF_ANIM(Effect,       Hit,     .1f,      {0,4}, 4,      false)   \
+DEF_CHARACTER(DFireball,             tmdana_fire,       3,                      \
+/*       Character,             Name     Duration, Start, Frames, Loop*/   \
+DEF_ANIM(DFireball,             Down,    .1f,      {0,0}, 1,      true )   \
+DEF_ANIM(DFireball,             Middle,  .1f,      {0,1}, 1,      true )   \
+DEF_ANIM(DFireball,             Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Door,        TM_essentials,     2,                                \
-DEF_ANIM(Door,         Close,   .1f,      {0,2}, 5,      false)   \
-DEF_ANIM(Door,         Open,    .1f,      {0,3}, 5,      false)   \
+DEF_CHARACTER(Effect,                TM_effects,        5,                      \
+DEF_ANIM(Effect,                Smoke,   .1f,      {0,0}, 4,      false)   \
+DEF_ANIM(Effect,                Star,    .1f,      {0,1}, 3,      true )   \
+DEF_ANIM(Effect,                Flash,   .1f,      {0,2}, 2,      false)   \
+DEF_ANIM(Effect,                Flash2,  .1f,      {0,3}, 3,      false)   \
+DEF_ANIM(Effect,                Hit,     .1f,      {0,4}, 4,      false)   \
 )                                                                 \
-DEF_CHARACTER(Key,         TM_essentials,     1,                                \
-DEF_ANIM(Key,          Default, .1f,      {0,4}, 1,      false)   \
+DEF_CHARACTER(Door,                  TM_essentials,     2,                      \
+DEF_ANIM(Door,                  Close,   .1f,      {0,2}, 5,      false)   \
+DEF_ANIM(Door,                  Open,    .1f,      {0,3}, 5,      false)   \
 )                                                                 \
-DEF_CHARACTER(Fairie,      TM_fairies,        1,                                \
-DEF_ANIM(Fairie,       Default, .1f,      {0,0}, 2,      true )   \
+DEF_CHARACTER(Key,                   TM_essentials,     1,                      \
+DEF_ANIM(Key,                   Default, .1f,      {0,4}, 1,      false)   \
 )                                                                 \
-DEF_CHARACTER(KMirror,     TM_essentials,     1,                                \
-DEF_ANIM(KMirror,      Default, .1f,      {3,1}, 1,      false)   \
+DEF_CHARACTER(Fairie,                TM_fairies,        1,                      \
+DEF_ANIM(Fairie,                Default, .1f,      {0,0}, 2,      true )   \
+)                                                                 \
+DEF_CHARACTER(KMirror,               TM_essentials,     1,                      \
+DEF_ANIM(KMirror,               Default, .1f,      {3,1}, 1,      false)   \
 )                                                                 \
 
 #define DEF_ANIM(character, name, ...) CHARACTER_##character##_anim_##name,

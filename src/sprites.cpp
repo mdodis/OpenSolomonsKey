@@ -184,8 +184,7 @@ internal void Player_cast(Sprite* player, float dt) {
 }
 
 
-internal void eDFireball_update(Sprite* dfire, InputState* _istate, float dt)
-{
+internal void DFireball_update(Sprite* dfire, InputState* _istate, float dt) {
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
     
@@ -839,7 +838,7 @@ internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt) {
     }
 }
 
-internal void eFairie_update(Sprite* fairie, InputState* istate, float dt) {
+internal void Fairie_update(Sprite* fairie, InputState* istate, float dt) {
     u64 &state          = fairie->entity.params[0].as_u64;
     double &time_passed = fairie->entity.params[1].as_f64;
     
@@ -1064,4 +1063,25 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
     if (!collided_on_bottom && head->velocity.y != 0)
         head->is_on_air = true;
     
+}
+
+internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
+    const double &interval = pm->entity.params[1].as_f64;
+    double &timer = pm->entity.params[2].as_f64;
+    
+    if (pm->current_animation == GET_CHAR_ANIMENUM(PanelMonster, Wait)) {
+        timer += dt;
+        
+        if (timer > interval) {
+            SET_ANIMATION(pm, PanelMonster, Fire);
+        }
+    } else {
+        if (!pm->animation_playing) {
+            
+            Sprite flame = make_panel_monster_flame(pm->position);
+            scene_sprite_add(&flame);
+            SET_ANIMATION(pm, PanelMonster, Wait);
+            timer = 0.0;
+        }
+    }
 }

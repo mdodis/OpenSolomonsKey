@@ -95,6 +95,9 @@ enum EnemyType {
     MT_Slimepurple,
     MT_KMirror,
     
+    // enemies that can't be in level
+    MT_PanelMonsterFlame,
+    
     MT_Count
 };
 

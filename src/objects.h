@@ -324,7 +324,7 @@ inline internal Sprite make_panel_monster(fvec2 position) {
         .size = {64,64},
         .position = position,
         .collision_box = {0,0,64,64},
-        .animation_playing = false,
+        .animation_playing = true,
         .current_animation = GET_CHAR_ANIMENUM(PanelMonster, Wait),
         .animation_set = GET_CHAR_ANIMSET(PanelMonster),
         .entity = {
@@ -334,6 +334,25 @@ inline internal Sprite make_panel_monster(fvec2 position) {
     };
     
     result.entity.params[0].as_etype = MT_PanelMonster;
+    return result;
+}
+
+inline internal Sprite make_panel_monster_flame(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(PanelMonsterFlame),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .animation_playing = false,
+        .current_animation = GET_CHAR_ANIMENUM(PanelMonsterFlame, Create),
+        .animation_set = GET_CHAR_ANIMSET(PanelMonsterFlame),
+        .entity = {
+            ET_Enemy,
+            {0,0,0,0,0,}
+        }
+    };
+    
+    result.entity.params[0].as_etype = MT_PanelMonsterFlame;
     return result;
 }
 

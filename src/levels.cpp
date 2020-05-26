@@ -329,6 +329,7 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
                 sprite_to_make.rotation = 270.f;
             }
             
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
         }break;
         
         default:{
@@ -474,13 +475,16 @@ internal void scene_update(InputState* istate, float dt) {
                         }break;
                         
                         case MT_KMirror: {
-                            KMirror_update(spref, istate,dt);
+                            KMirror_update(spref, istate, dt);
                         }break;
                         
                         case MT_Demonhead: {
-                            DemonHead_update(spref, istate,dt);
+                            DemonHead_update(spref, istate, dt);
                         }break;
                         
+                        case MT_PanelMonster: {
+                            PanelMonster_update(spref, istate, dt);
+                        }break;
                     }
                 } break;
                 
@@ -491,11 +495,11 @@ internal void scene_update(InputState* istate, float dt) {
                 }break;
                 
                 case ET_DFireball:{
-                    eDFireball_update(spref, istate, dt);
+                    DFireball_update(spref, istate, dt);
                 }break;
                 
                 case ET_Fairie: {
-                    eFairie_update(spref, istate,dt);
+                    Fairie_update(spref, istate,dt);
                 }break;
                 
                 default:

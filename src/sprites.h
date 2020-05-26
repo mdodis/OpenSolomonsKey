@@ -141,14 +141,16 @@ inline internal EnemyType get_enemy_type(Sprite *spr) {
 }
 
 internal void Player_update(Sprite* spref, InputState* istate, float dt);
+internal void player_pickup(Sprite *player, Sprite *pickup);
 internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
-internal void eDFireball_update(Sprite* spref, InputState* istate, float dt);
+internal void DFireball_update(Sprite* spref, InputState* istate, float dt);
 internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
 internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
+internal void BlueFlame_cast(Sprite* flame);
 internal void DemonHead_update(Sprite* head, InputState* istate, float dt);
 internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
-internal void eFairie_update(Sprite* fairie, InputState* istate, float dt);
-internal void BlueFlame_cast(Sprite* flame);
-internal void player_pickup(Sprite *player, Sprite *pickup);
+internal void Fairie_update(Sprite* fairie, InputState* istate, float dt);
+internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt);
+
 
 #endif //SPRITES_H

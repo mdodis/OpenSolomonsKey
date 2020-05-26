@@ -162,7 +162,7 @@ static char* DemonHead_custom(char *c, int row, int col, bool kmirror) {
 static char *PanelMonster_custom(char *c, int row, int col) {
     double interval;
     long dir;
-    c = parse_custom_double(&interval, c, 0.5f);
+    c = parse_custom_double(&interval, c, 1.0f);
     c = parse_custom_long(&dir, c, 0);
     add_tilemap_enemy(MT_PanelMonster, row, col, (void*)&interval, (void*)&dir, false);
     return c;
