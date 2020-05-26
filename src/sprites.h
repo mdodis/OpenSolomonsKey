@@ -151,6 +151,7 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt);
 internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
 internal void Fairie_update(Sprite* fairie, InputState* istate, float dt);
 internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt);
+internal void PanelMonsterFlame_update(Sprite* pm, InputState* istate, float dt);
 
 
 #endif //SPRITES_H

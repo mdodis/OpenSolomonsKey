@@ -312,9 +312,11 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
         }break;
         
         case MT_PanelMonster: {
-            long *dir = (long*)param2;
             sprite_to_make = make_panel_monster(pos);
             
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+            
+            long *dir = (long*)param2;
             if (*dir == 0) {
                 sprite_to_make.mirror.x = false;
                 sprite_to_make.rotation = 0.f;
@@ -326,10 +328,9 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
                 sprite_to_make.rotation = 90.f;
             } else if (*dir == 3) {
                 sprite_to_make.mirror.x = false;
-                sprite_to_make.rotation = 270.f;
+                sprite_to_make.rotation = 90.f;
             }
             
-            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
         }break;
         
         default:{
@@ -484,6 +485,10 @@ internal void scene_update(InputState* istate, float dt) {
                         
                         case MT_PanelMonster: {
                             PanelMonster_update(spref, istate, dt);
+                        }break;
+                        
+                        case MT_PanelMonsterFlame: {
+                            PanelMonsterFlame_update(spref, istate, dt);
                         }break;
                     }
                 } break;

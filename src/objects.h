@@ -342,8 +342,9 @@ inline internal Sprite make_panel_monster_flame(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(PanelMonsterFlame),
         .size = {64,64},
         .position = position,
-        .collision_box = {0,0,64,64},
-        .animation_playing = false,
+        .collision_box = {10,16,42,32},
+        .mirror = {true, false},
+        .animation_playing = true,
         .current_animation = GET_CHAR_ANIMENUM(PanelMonsterFlame, Create),
         .animation_set = GET_CHAR_ANIMSET(PanelMonsterFlame),
         .entity = {

@@ -123,7 +123,7 @@ DEF_ANIM(DemonHead,             Normal,  .1f,      {0,0}, 8,      true )   \
 DEF_ANIM(DemonHead,             Fade,    .1f,      {0,1}, 8,      false)   \
 )                                                                 \
 DEF_CHARACTER(PanelMonster,          TM_panelmonster,   2,                      \
-DEF_ANIM(PanelMonster,          Wait,    0.1f,     {0,0}, 1,      true )   \
+DEF_ANIM(PanelMonster,          Wait,    0.0f,     {0,0}, 1,      true )   \
 DEF_ANIM(PanelMonster,          Fire,    0.1f,     {0,0}, 5,      false)   \
 )                                                                 \
 DEF_CHARACTER(PanelMonsterFlame,     TM_panelmonster,   3,                      \

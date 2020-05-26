@@ -1077,11 +1077,61 @@ internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
         }
     } else {
         if (!pm->animation_playing) {
-            
             Sprite flame = make_panel_monster_flame(pm->position);
+            
+            if (pm->mirror.x) {
+                if (pm->rotation == 0.f) {
+                    flame.rotation = 0.f;
+                } else {
+                    flame.rotation = 90.f;
+                }
+            } else {
+                if (pm->rotation == 0.f) {
+                    flame.rotation = 180.f;
+                } else {
+                    flame.rotation = 270.f;
+                }
+            }
+            
             scene_sprite_add(&flame);
             SET_ANIMATION(pm, PanelMonster, Wait);
             timer = 0.0;
         }
     }
+}
+
+internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt) {
+    fvec2 direction = direction_from_rotation(D2R * pmf->rotation);
+    
+    if (pmf->current_animation == GET_CHAR_ANIMENUM(PanelMonsterFlame, Create)) {
+        if (!pmf->animation_playing) {
+            SET_ANIMATION(pmf, PanelMonsterFlame, Default);
+        }
+    } else if (pmf->current_animation == GET_CHAR_ANIMENUM(PanelMonsterFlame, Default)) {
+        pmf->position += direction * 100.f * dt;
+        
+        AABox pmf_box = pmf->get_transformed_AABox();
+        ivec2 start_tile = map_position_to_tile_centered(pmf->position);
+        
+        for (i32 j = 0; j < 3; ++j) {
+            for (i32 i = 0; i < 3; ++i) {
+                ivec2 current = start_tile + ivec2{i, j};
+                if (scene_tile_empty(current)) continue;
+                
+                fvec2 tile_coords = {current.x * 64.f, current.y * 64.f};
+                AABox collision = {0, 0, 64, 64};
+                collision = collision.translate(tile_coords);
+                
+                if (intersect(&pmf_box, &collision)) {
+                    SET_ANIMATION(pmf, PanelMonsterFlame, Hit);
+                }
+            }
+        }
+        
+    } else if (pmf->current_animation == GET_CHAR_ANIMENUM(PanelMonsterFlame, Hit)) {
+        if (!pmf->animation_playing) {
+            pmf->mark_for_removal = true;
+        }
+    }
+    
 }
