@@ -61,7 +61,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 1;
+    i32 current_level_counter = -1;
     bool player_is_dead = false;
 } g_scene;
 
@@ -318,22 +318,24 @@ inline internal Sprite make_kmirror(fvec2 position) {
     return result;
 }
 
-#if 0
-internal char *KMirror_custom(Sprite *mirror, char *c, fvec2 pos) {
-    // NOTE(miked): we dont store exact enemy info in the params
-    // (we'd have to add a lot of custom params then). Instead we malloc a Sprite,
-    // parse the params for it and add a pointer to it in the mirror. Whenever its
-    // spawned we just clone that pointer with map_add
-    // TODO(NAME): highly propable memory leak!
-    mirror->entity.params[1].as_f64 = 0.f;
-    mirror->entity.params[2].as_f64 = 0.f;
-    c = parse_custom_double(mirror, c, 3, 1.f);
-    c = parse_custom_double(mirror, c, 4, 1.f);
-    c = parse_kmirror_enemy(mirror, c, 5, 0, pos);
-    c = parse_kmirror_enemy(mirror, c, 6, 0, pos);
-    return c;
+inline internal Sprite make_panel_monster(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(PanelMonster),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .animation_playing = false,
+        .current_animation = GET_CHAR_ANIMENUM(PanelMonster, Wait),
+        .animation_set = GET_CHAR_ANIMSET(PanelMonster),
+        .entity = {
+            ET_Enemy,
+            {0,0,0, 0, 0,}
+        }
+    };
+    
+    result.entity.params[0].as_etype = MT_PanelMonster;
+    return result;
 }
-#endif
 
 internal void draw(Sprite const * sprite) {
     

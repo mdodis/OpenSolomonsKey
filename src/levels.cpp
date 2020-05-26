@@ -311,6 +311,26 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             sprite_to_make.entity.params[1].as_f64 = 0.0;
         }break;
         
+        case MT_PanelMonster: {
+            long *dir = (long*)param2;
+            sprite_to_make = make_panel_monster(pos);
+            
+            if (*dir == 0) {
+                sprite_to_make.mirror.x = false;
+                sprite_to_make.rotation = 0.f;
+            } else if (*dir == 1) {
+                sprite_to_make.mirror.x = true;
+                sprite_to_make.rotation = 0.f;
+            } else if (*dir == 2) {
+                sprite_to_make.mirror.x = true;
+                sprite_to_make.rotation = 90.f;
+            } else if (*dir == 3) {
+                sprite_to_make.mirror.x = false;
+                sprite_to_make.rotation = 270.f;
+            }
+            
+        }break;
+        
         default:{
             assert(0);
         }break;

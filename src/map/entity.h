@@ -76,22 +76,22 @@ static inline bool pickup_type_is_valid(PickupType t) {
 
 enum EnemyType {
     
-    MT_Chimera,
+    MT_Chimera = 0,
     MT_Demonhead,
     MT_Dragon,
-    MT_Gargoyle,
+    MT_Gargoyle = 3,
     MT_Ghost,
     MT_Goblin,
     MT_Nuel,
-    MT_Salamander,
+    MT_Salamander = 7,
     MT_Wyvern,
     MT_PanelMonster,
     MT_EarthMage,
-    MT_SparkBall,
+    MT_SparkBall = 11,
     MT_BlueFlame,
     MT_DevilsEmblem,
     MT_Slimegreen,
-    MT_Slimeorange,
+    MT_Slimeorange = 15,
     MT_Slimepurple,
     MT_KMirror,
     
