@@ -60,9 +60,14 @@ void scene_menu(float dt) {
         
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_logo), fvec2{32.f*6.0f,32.f*3}, fvec2{644.f,352.f}, 0.f, 0, false, false, NRGBA{1,1,1,1}, false);
         
-        draw_text("Start",6,5,true, 64.f, current_menu_item == MENU_START ? NRGBA{sr,sg,sb,1} : NRGBA{1,1,1,1});
-        draw_text("Select",8,5,true, 64.f, current_menu_item == MENU_SELECT ? NRGBA{sr,sg,sb,1} : NRGBA{1,1,1,1});
-        draw_text("Quit",10,5,true, 64.f, current_menu_item == MENU_QUIT ? NRGBA{sr,sg,sb,1} : NRGBA{1,1,1,1});
+        NRGBA sel_color = NRGBA{sr,sg,sb,1};
+        NRGBA norm = NRGBA{1,1,1,1};
+        
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_demonhead), fvec2{128.f * 2, 128.f * current_menu_item + 128.f * 3}, fvec2{64.f,64.f}, 0.f, 0);
+        
+        draw_text("Start",6,5,true, 64.f, current_menu_item == MENU_START ? sel_color:norm);
+        draw_text("Select",8,5,true, 64.f, current_menu_item == MENU_SELECT ? sel_color:norm);
+        draw_text("Quit",10,5,true, 64.f, current_menu_item == MENU_QUIT ? sel_color:norm);
     } else if (current_menu_state == MENU_SELECT) {
         
         if (GET_KEYPRESS(move_down_menu)) select_menu_current_level++;
