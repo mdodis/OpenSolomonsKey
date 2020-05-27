@@ -1123,6 +1123,11 @@ internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt
                 collision = collision.translate(tile_coords);
                 
                 if (intersect(&pmf_box, &collision)) {
+                    
+                    if (is_frail_block(scene_get_tile(current))) {
+                        scene_set_tile(current, ET_EmptySpace);
+                    }
+                    
                     SET_ANIMATION(pmf, PanelMonsterFlame, Hit);
                 }
             }

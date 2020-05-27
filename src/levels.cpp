@@ -166,6 +166,9 @@ inline internal bool is_frail_block(EntityType type) {
     return (type == ET_BlockFrail || type == ET_BlockFrailHalf);
 }
 
+inline internal bool is_out_of_bounds(fvec2 p) {
+    return (p.x > 960 || p.x < -64) || (p.y > 768 || p.y < -64);
+}
 
 // Decreases block's health properly
 inline internal void scene_hit_frail_block(ivec2 tile) {
@@ -363,7 +366,7 @@ internal void scene_lose() {
     g_scene.current_state = SS_LOSE;
 }
 
-internal bool add_tilemap_background(long num) {
+bool add_tilemap_background(long num) {
     gl_load_background_texture(num);
     return true;
 }
@@ -523,7 +526,7 @@ internal void scene_update(InputState* istate, float dt) {
 #endif
         draw(&l[i]);
     }
-    
+    draw_num_long(g_scene.loaded_map.sprites.size(), 4);
     if (!g_scene.paused_for_key_animation) {
         g_scene.player_time -= dt;
         
