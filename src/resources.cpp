@@ -20,14 +20,15 @@ tilemaps.
 /*          NAME               PATH IN FOLDER                             rows cols*/\
 DEF_TILEMAP(TM_logo            ,"res/logo2.png"                           ,1    ,1  )\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
-DEF_TILEMAP(dana               ,"res/dana_all.png"                        ,5    ,6  )\
+DEF_TILEMAP(TM_dana            ,"res/dana_all.png"                        ,5    ,6  )\
+DEF_TILEMAP(TM_dana_fire       ,"res/dana_fireball.png"                   ,3    ,1  )\
 DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
 DEF_TILEMAP(TM_demonhead       ,"res/demon_head.png"                      ,2    ,8  )\
-DEF_TILEMAP(tmgoblin           ,"res/goblin_all.png"                      ,4    ,7  )\
+DEF_TILEMAP(TM_goblin          ,"res/goblin_all.png"                      ,4    ,7  )\
 DEF_TILEMAP(TM_blueflame       ,"res/blue_flame.png"                      ,2    ,7  )\
-DEF_TILEMAP(tmghost            ,"res/ghost_all.png"                       ,2    ,3  )\
+DEF_TILEMAP(TM_ghost           ,"res/ghost_all.png"                       ,2    ,3  )\
 DEF_TILEMAP(TM_panelmonster    ,"res/panel_monster_all.png"               ,3    ,5  )\
-DEF_TILEMAP(tmdana_fire        ,"res/dana_fireball.png"                   ,3    ,1  )\
+DEF_TILEMAP(TM_wyvern          ,"res/wyvern_all.png"                      ,2    ,3  )\
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
@@ -93,7 +94,7 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                              \
 /*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(Dana,                  dana,              5,                      \
+DEF_CHARACTER(Dana,                  TM_dana,            5,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(Dana,                  Run ,    .1f,      {0,1}, 5,      true )   \
@@ -101,7 +102,7 @@ DEF_ANIM(Dana,                  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(Dana,                  Crouch,  .05f,     {0,3}, 1,      true )   \
 DEF_ANIM(Dana,                  Die,     .1f,      {0,4}, 4,      false)   \
 )                                                                 \
-DEF_CHARACTER(Goblin,                tmgoblin,          5,                      \
+DEF_CHARACTER(Goblin,                TM_goblin,          5,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,                Walk,    .2f,      {0,0}, 6,      true )   \
 DEF_ANIM(Goblin,                Punch,   .18f,     {0,1}, 4,      false)   \
@@ -109,7 +110,7 @@ DEF_ANIM(Goblin,                Chase,   .15f,     {0,2}, 7,      true )   \
 DEF_ANIM(Goblin,                Wait,    1.f,      {5,0}, 1,      false)   \
 DEF_ANIM(Goblin,                Fall,    .1f,      {0,3}, 2,      true )   \
 )                                                                 \
-DEF_CHARACTER(Ghost,                 tmghost,           2,                      \
+DEF_CHARACTER(Ghost,                 TM_ghost,           2,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Ghost,                 Fly,     .1f,      {0,0}, 3,      true )   \
 DEF_ANIM(Ghost,                 Punch,   .1f,      {0,1}, 3,      false)   \
@@ -131,7 +132,11 @@ DEF_ANIM(PanelMonsterFlame,     Create,  0.2f,     {0,1}, 3,      false)   \
 DEF_ANIM(PanelMonsterFlame,     Default, 0.2f,     {0,2}, 4,      true )   \
 DEF_ANIM(PanelMonsterFlame,     Hit,     0.2f,     {3,1}, 2,      false)   \
 )                                                                 \
-DEF_CHARACTER(DFireball,             tmdana_fire,       3,                      \
+DEF_CHARACTER(Wyvern,                TM_wyvern,         2,                      \
+DEF_ANIM(Wyvern,                Default, 0.1f,     {0,0}, 3,      true )   \
+DEF_ANIM(Wyvern,                Hit,     0.1f,     {0,0}, 3,      false)   \
+)                                                                 \
+DEF_CHARACTER(DFireball,             TM_dana_fire,       3,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(DFireball,             Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,             Middle,  .1f,      {0,1}, 1,      true )   \
@@ -216,13 +221,6 @@ ALL_CHARACTERS
 // Get the identifier of the animation
 #define GET_CHAR_ANIMENUM(character, name) CHARACTER_##character##_anim_##name
 
-////////////////////////////////
-////////////////////////////////
-////////////////////////////////
-////////////////////////////////
-////////////////////////////////
-////////////////////////////////
-
 internal u8*
 load_image_as_rgba_pixels(const char* const name, i32* out_width, i32* out_height, i32* out_n) {
     int i_w, i_h, i_n;
@@ -230,7 +228,6 @@ load_image_as_rgba_pixels(const char* const name, i32* out_width, i32* out_heigh
     
     return data;
 }
-
 
 internal void gl_load_background_texture(long bgn) {
     i32 w,h,n;

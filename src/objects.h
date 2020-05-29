@@ -61,7 +61,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = 1;
+    i32 current_level_counter = -1;
     bool player_is_dead = false;
 } g_scene;
 
@@ -127,6 +127,22 @@ inline internal Sprite make_ghost(fvec2 position) {
     return res;
 }
 
+inline internal Sprite make_wyvern(fvec2 position) {
+    Sprite res = {
+        .tilemap = &GET_CHAR_TILEMAP(Wyvern),
+        .position = position,
+        .collision_box = {0, 0, 64, 64},
+        .mirror = {false, false},
+        .animation_set = GET_CHAR_ANIMSET(Wyvern),
+        .entity = {
+            .type = ET_Enemy
+        }
+    };
+    
+    res.entity.params[0].as_etype = MT_Wyvern;
+    return res;
+}
+
 inline internal Sprite make_player(fvec2 position) {
     Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Dana),
@@ -162,33 +178,27 @@ inline internal Sprite make_door(fvec2 position) {
     };
 }
 
-inline internal Sprite make_dfireball(fvec2 position)
-{
-    Sprite res =
-    {
+inline internal Sprite make_dfireball(fvec2 position) {
+    Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(DFireball),
         .size = {55,55},
         .position = position,
         .collision_box = {8,8,40,40},
         .mirror = {true, false},
         .animation_set = GET_CHAR_ANIMSET(DFireball),
-        
-        .entity =
-        {
+        .entity = {
             ET_DFireball,
             {0,0}
         }
     };
     
     SET_ANIMATION(&res, DFireball, Middle);
-    
     return res;
 }
 
 
 inline internal Sprite make_starring(fvec2 position) {
-    Sprite res =
-    {
+    Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Effect),
         .size = {64,64},
         .position = position,

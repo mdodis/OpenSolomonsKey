@@ -174,11 +174,11 @@ void draw_ui(float dt) {
     draw_text("Bonus", 0, 12, false, 32, NRGBA{1,1,0.5,1});
     draw_num(long(g_scene.player_time * 100), 1, 13 , false, 40, true);
     
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(dana), {0, 13 * 64 + 8}, {1024, 64}, 0, 2,
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_dana), {0, 13 * 64 + 8}, {1024, 64}, 0, 2,
                          false, false, NRGBA{0,0,0,1}, false);
     for (int i = 0; i < g_scene.player_lives; ++i) {
         
-        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(dana), {i * 32.f, 13 * 64}, {64, 64}, 0, 5,
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_dana), {i * 32.f, 13 * 64}, {64, 64}, 0, 5,
                              false, false, NRGBA{1,1,1,1}, false);
         
     }

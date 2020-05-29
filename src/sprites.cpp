@@ -1150,3 +1150,42 @@ internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt
     }
     
 }
+
+internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
+    const double &speed = wy->entity.params[1].as_f64;
+    const float turn_offset = wy->direction() * 64 - wy->direction() * 32;
+    
+    ivec2 ctile = map_position_to_tile_centered(wy->position + fvec2{turn_offset, 0.f});
+    if (wy->position.x < 0) {
+        ctile.x = -1;
+    }
+    
+#ifndef NDEBUG
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
+                         {ctile.x * 64.f, ctile.y * 64.f},
+                         {64, 64},
+                         0,1 * 5 + 2,
+                         false, false,
+                         NRGBA{1.f, 1.f, 1.f, 1.f});
+#endif
+    
+    EntityType tile_front = (EntityType)scene_get_tile(ctile);
+    
+    if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Default)) {
+        
+        if (tile_front == ET_BlockFrail) {
+            SET_ANIMATION(wy, Ghost, Punch);
+        } else if (tile_front == ET_BlockSolid) {
+            wy->mirror.x = !wy->mirror.x;
+        }
+        
+        wy->position.x += wy->direction() * speed * dt;
+    } else if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Hit)){
+        // destroy block if finished
+        if (!wy->animation_playing) {
+            scene_set_tile(ctile, ET_EmptySpace);
+            wy->mirror.x = !wy->mirror.x;
+            SET_ANIMATION(wy, Wyvern, Default);
+        }
+    }
+}

@@ -159,6 +159,15 @@ static char* DemonHead_custom(char *c, int row, int col, bool kmirror) {
     return c;
 }
 
+static char* Wyvern_custom(char *c, int row, int col, bool kmirror) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 200.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_Wyvern, row, col, (void*)&speed, (void*)&dir, kmirror);
+    return c;
+}
+
 static char *PanelMonster_custom(char *c, int row, int col) {
     double interval;
     long dir;
@@ -239,9 +248,14 @@ static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool 
             c = DemonHead_custom(c, row, col, kmirror);
         }break;
         
+        case MT_Wyvern: {
+            c = Wyvern_custom(c, row, col, kmirror);
+        }break;
+        
         case MT_PanelMonster: {
             c = PanelMonster_custom(c, row, col);
         }break;
+        
     }
     return c;
 }
