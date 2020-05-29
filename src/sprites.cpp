@@ -984,7 +984,6 @@ internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
 }
 
 internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
-    // TODO(miked): fadeout
     // TODO(miked): collision box
     const float speed = 80.f;
     const float GRAVITY = 900.f;
@@ -1004,7 +1003,13 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
         }
     }
     
-    head->velocity.x = speed * head->direction();
+    // NOTE(miked): heads dont move horizontally while they're falling
+    if (head->is_on_air) {
+        head->velocity.x = 0;
+    } else {
+        head->velocity.x = speed * head->direction();
+    }
+    
     head->velocity.y += GRAVITY * dt;
     head->velocity.y = clamp(0.f, MAX_YSPEED, head->velocity.y);
     
@@ -1017,11 +1022,12 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
     for (i32 j = 0; j < 3; ++j) {
         for (i32 i = 0; i < 3; ++i) {
             if (scene_tile_empty(ivec2{start_tile.x + i,start_tile.y + j})) continue;
+            ivec2 current_tile = ivec2{start_tile.x + i, start_tile.y + j};
             
             fvec2 tile_coords =
             {
-                (start_tile.x + i) * 64.f,
-                (start_tile.y + j) * 64.f
+                current_tile.x * 64.f,
+                current_tile.y * 64.f
             };
             
             AABox collision = {0, 0, 64, 64};
@@ -1049,6 +1055,10 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
                     if (iabs(diff.y) > 0) {
                         head->is_on_air = false;
                         head->velocity.y = 0;
+                    }
+                } else {
+                    if (is_frail_block(scene_get_tile(current_tile))) {
+                        scene_set_tile(current_tile, ET_EmptySpace);
                     }
                 }
                 

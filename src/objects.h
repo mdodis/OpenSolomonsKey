@@ -61,7 +61,7 @@ global struct {
     float player_time = 80.f;
     int player_lives = 3;
     bool time_is_low_enough = false;
-    i32 current_level_counter = -1;
+    i32 current_level_counter = 1;
     bool player_is_dead = false;
 } g_scene;
 
