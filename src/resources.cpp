@@ -1,16 +1,13 @@
 #if !defined(OSK_RES_H)
 #define OSK_RES_H
 
-struct Animation
-{
+struct Animation {
     float duration = 1.f;
     fvec2 start = {0, 0};
     u32 size = 1;
     b32 loop = true;
 };
 
-////////////////////////////////
-////////////////////////////////
 /* Tilemaps
 Define all of the tilemaps by associating them with a name, and pass
 the extra required information. All of the rendering is done through
@@ -34,8 +31,7 @@ DEF_TILEMAP(font               ,"res/font.png"                            ,6    
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7  )\
 
-struct RESTilemap
-{
+struct RESTilemap {
     const char* const name;
     i32 rows, cols;
 };
@@ -49,12 +45,10 @@ enum E_TILEMAPS { ALL_TILEMAPS TILEMAP_COUNT };
 
 #define GET_TILEMAP_TEXTURE(name) g_tilemap_textures[TILEMAP_##name]
 global GLTilemapTexture g_tilemap_textures[TILEMAP_COUNT];
-////////////////////////////////
-////////////////////////////////
 
-////////////////////////////////
-// Backgrounds
-
+/* Backgrounds
+Lol
+*/
 #define ALL_BACKGROUNDS \
 B("res/bg/0.png")\
 B("res/bg/1.png")\
@@ -86,8 +80,6 @@ RESBackground g_background_files[] {
 #undef B
 };
 
-////////////////////////////////
-////////////////////////////////
 /* ANIMATIONS
 You can group animations by "character", and the macro ugliness here
 should prevent name collisions, if you input different character names.
@@ -242,16 +234,14 @@ internal void load_tilemap_textures()
     i32 width, height, bpp;
     u8* data;
     
-    const RESTilemap RES_TILEMAPS[TILEMAP_COUNT] =
-    {
+    const RESTilemap RES_TILEMAPS[TILEMAP_COUNT] = {
         ALL_TILEMAPS
     };
 #undef DEF_TILEMAP
     
     assert(TILEMAP_COUNT > 0);
     
-    for (u32 i = 0 ;i < TILEMAP_COUNT; ++i)
-    {
+    for (u32 i = 0 ;i < TILEMAP_COUNT; ++i) {
         inform("loading tilemap: %s...",RES_TILEMAPS[i].name);
         data = load_image_as_rgba_pixels(
                                          RES_TILEMAPS[i].name,
@@ -266,8 +256,7 @@ internal void load_tilemap_textures()
     }
     
     GLenum err = glGetError();
-    if (err != GL_NO_ERROR)
-    {
+    if (err != GL_NO_ERROR) {
         printf("TMerr: %d\n", err);
         exit(-1);
     }

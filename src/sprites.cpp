@@ -111,6 +111,10 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
     
 }
 
+#define SPAWN_EFFECT(pos, type) do{ Sprite effect;\
+effect = make_effect((pos), GET_CHAR_ANIM_HANDLE(Effect, type)); \
+scene_sprite_add(&effect); \
+}while(0)
 
 internal void Player_cast(Sprite* player, float dt) {
     // Get the upper left tile based on the center of the player sprite
@@ -1172,7 +1176,6 @@ internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
     EntityType tile_front = (EntityType)scene_get_tile(ctile);
     
     if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Default)) {
-        
         if (tile_front == ET_BlockFrail) {
             SET_ANIMATION(wy, Ghost, Punch);
         } else if (tile_front == ET_BlockSolid) {
@@ -1183,6 +1186,8 @@ internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
     } else if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Hit)){
         // destroy block if finished
         if (!wy->animation_playing) {
+            
+            SPAWN_EFFECT(tile_to_position(ctile), Flash);
             scene_set_tile(ctile, ET_EmptySpace);
             wy->mirror.x = !wy->mirror.x;
             SET_ANIMATION(wy, Wyvern, Default);
