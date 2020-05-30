@@ -22,7 +22,8 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
-
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include "OpenSolomonsKey.h"
@@ -31,6 +32,7 @@ AspectRatio: 0.875 (height/width, height = width * 0.875)
 #include <alsa/asoundlib.h>
 #include <pthread.h>
 #include <semaphore.h>
+
 
 timespec timespec_diff(timespec start, timespec end)
 {
@@ -220,7 +222,7 @@ x11_init()
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLE_BUFFERS, &samp_buf );
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLES       , &samples  );
             
-            inform("Matching fbconfig %2d, visual ID 0x%03x: SAMPLE_BUFFERS = %d,"
+            inform("Matching fbconfig %2d, visual ID 0x%03lx: SAMPLE_BUFFERS = %d,"
                    " samples = %d",
                    i, t_vi->visualid, samp_buf, samples );
             
@@ -236,14 +238,14 @@ x11_init()
     XFree(fbcfg);
     
     vi = glXGetVisualFromFBConfig(dpy, bestFbc);
-    inform("Chosen visual ID = 0x%x", vi->visualid );
+    inform("Chosen visual ID = 0x%lx", vi->visualid );
     
     cmap = XCreateColormap(dpy, root, vi->visual, AllocNone);
     
     swa.colormap = cmap;
     swa.background_pixmap = None;
     swa.border_pixel = 0;
-    swa.event_mask = ExposureMask | KeyPressMask;
+    swa.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask;
     
     win = XCreateWindow(dpy, root, 0, 0, 700, 700, 0, vi->depth, InputOutput, vi->visual, CWColormap | CWEventMask, &swa);
     
@@ -396,24 +398,43 @@ std::vector<char *> list_maps() {
     std::vector<char *> result;
     
     struct dirent **namelist;
-    int n;
+    int n, i;
     
-    n= scandir(".", &namelist, 0, alphasort);
+    n = scandir(".", &namelist, 0, alphasort);
     if (n >= 0) {
-        while(n--) {
-            if (strncmp(namelist[n]->d_name, "level_", 6) == 0) {
-                result.push_back(strdup(namelist[n]->d_name));
+        for (i = 0; i < n; ++i) {
+            if (strncmp(namelist[i]->d_name, "level_", 6) == 0) {
+                result.push_back(strdup(namelist[i]->d_name));
             }
         }
         free(namelist);
     }
-    
     return result;
 }
 
+global bool is_fullscreen = false;
+void toggle_fullscreen(Display* dpy, Window win) {
+    Atom wm_state = XInternAtom(dpy, "_NET_WM_STATE", False);
+    Atom fullscreen_state = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN",  False);
 
-int main(int argc, char *argv[])
-{
+    XEvent xev;
+    memset(&xev, 0, sizeof(xev));
+    xev.type = ClientMessage;
+    xev.xclient.window = win;
+    xev.xclient.message_type = wm_state;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = is_fullscreen;
+    xev.xclient.data.l[1] = fullscreen_state;
+    xev.xclient.data.l[2] = 0;
+    
+    XSendEvent(dpy, DefaultRootWindow(dpy), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
+    XFlush(dpy);
+
+    is_fullscreen = !is_fullscreen;
+
+}
+
+int main(int argc, char *argv[]) {
     x11_init();
     gl_load();
     
@@ -427,22 +448,23 @@ int main(int argc, char *argv[])
     
     cb_init();
     while(1) {
-        while (XCheckMaskEvent(dpy, KeyPressMask | ExposureMask, &xev) != False)
-        {
-            switch(xev.type)
-            {
-                case Expose:
-                {
+        while (XCheckMaskEvent(dpy, KeyPressMask | KeyReleaseMask | ExposureMask, &xev) != False) {
+            switch(xev.type) {
+                case Expose: {
                     XGetWindowAttributes(dpy, win, &gwa);
                     g_wind_width = gwa.width;
                     g_wind_height = gwa.height;
                     cb_resize();
                 } break;
-                
+
             }
         }
         
         x11_update_all_keys();
+
+        if (GET_KEYPRESS(go_fullscreen)) {
+            toggle_fullscreen(dpy, win);
+        }
         
         float delta = timer.get_elapsed_secs();
         timer.reset();

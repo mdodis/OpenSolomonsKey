@@ -28,7 +28,7 @@ void draw_num(float num, int line = 0, int xoffset = 0, bool account_for_offset 
 void draw_num_long(long  num, int line = 0, int xoffset = 0, bool account_for_offset = true, float size = 16.f, bool trunc = false, NRGBA tint = {1,1,1,1}) {
     char buf[20] = "";
     
-    sprintf(buf, trunc ? "%0.0f" : "%d", num);
+    sprintf(buf, "%ld", num);
     
     char* c = buf;
     float increment = 0;
