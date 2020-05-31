@@ -1086,7 +1086,7 @@ internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
     if (pm->current_animation == GET_CHAR_ANIMENUM(PanelMonster, Wait)) {
         timer += dt;
         
-        if (timer > interval) {
+        if (timer >= interval) {
             SET_ANIMATION(pm, PanelMonster, Fire);
         }
     } else {

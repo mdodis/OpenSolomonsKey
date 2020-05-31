@@ -421,6 +421,68 @@ internal void reload_map() {
 
 #include "animations.cpp"
 
+#define UPDATE_ENTITY_FUNC(name) void name(Sprite *spref, InputState *istate, float dt)
+typedef UPDATE_ENTITY_FUNC(UpdateEntityFunc);
+
+global UpdateEntityFunc *enemy_update_table[] = {
+    0,
+    DemonHead_update,
+    0,
+    0,
+    Ghost_update,
+    Goblin_update,
+    0,
+    0,
+    Wyvern_update,
+    PanelMonster_update,
+    0,
+    0,
+    BlueFlame_update,
+    0,
+    0,
+    0,
+    0,
+    KMirror_update,
+    PanelMonsterFlame_update
+};
+
+
+UPDATE_ENTITY_FUNC(Enemy_update) {
+    if (enemy_update_table[spref->entity.params[0].as_etype] != 0) {
+        (*enemy_update_table[spref->entity.params[0].as_etype])(spref, istate, dt);
+    } else {
+        exit_error("Enemy_update");
+    }
+}
+
+UPDATE_ENTITY_FUNC(Effect_update) {
+    if (!spref->animation_playing) {
+        spref->mark_for_removal = true;
+    }
+}
+
+global UpdateEntityFunc *entity_update_table[] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+    Player_update,
+    Enemy_update,
+    0,
+    0,
+    0,
+    Fairie_update,
+    Effect_update,
+    DFireball_update
+};
+
+UPDATE_ENTITY_FUNC(Entity_update) {
+    if (entity_update_table[spref->entity.type] != 0) {
+        (*entity_update_table[spref->entity.type])(spref, istate, dt);
+    }
+}
+
 internal void scene_update(InputState* istate, float dt) {
     
     for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
@@ -465,65 +527,7 @@ internal void scene_update(InputState* istate, float dt) {
         
         if (!g_scene.paused_for_key_animation) {
             spref->update_animation(dt);
-            switch(spref->entity.type) {
-                case ET_Player:{
-                    Player_update(spref, istate, dt);
-                }break;
-                
-                case ET_Enemy: {
-                    
-                    switch(spref->entity.params[0].as_etype) {
-                        case MT_Goblin: {
-                            Goblin_update(spref, istate, dt);
-                        }break;
-                        
-                        case MT_Ghost: {
-                            Ghost_update(spref, istate,dt);
-                        }break;
-                        
-                        case MT_BlueFlame: {
-                            BlueFlame_update(spref, istate,dt);
-                        }break;
-                        
-                        case MT_KMirror: {
-                            KMirror_update(spref, istate, dt);
-                        }break;
-                        
-                        case MT_Demonhead: {
-                            DemonHead_update(spref, istate, dt);
-                        }break;
-                        
-                        case MT_PanelMonster: {
-                            PanelMonster_update(spref, istate, dt);
-                        }break;
-                        
-                        case MT_PanelMonsterFlame: {
-                            PanelMonsterFlame_update(spref, istate, dt);
-                        }break;
-                        
-                        case MT_Wyvern: {
-                            Wyvern_update(spref, istate,dt);
-                        }break;
-                    }
-                } break;
-                
-                case ET_Effect:{
-                    if (!spref->animation_playing) {
-                        spref->mark_for_removal = true;
-                    }
-                }break;
-                
-                case ET_DFireball:{
-                    DFireball_update(spref, istate, dt);
-                }break;
-                
-                case ET_Fairie: {
-                    Fairie_update(spref, istate,dt);
-                }break;
-                
-                default:
-                break;
-            }
+            Entity_update(spref, istate, dt);
         }
 #ifndef NDEBUG
         // Draw the Bounding box sprite
