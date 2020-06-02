@@ -223,6 +223,10 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt) {
                 reload_map();
                 g_scene.player_is_dead = false;
             }break;
+            
+            default: {
+                assert(false);
+            }break;
         }
         
         draw_ui(dt);

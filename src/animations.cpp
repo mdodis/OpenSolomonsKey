@@ -3,9 +3,6 @@ global float startup_anim_time = 0.f;
 internal void startup_animation_reset() {
     g_scene.startup_state = 0;
     startup_anim_time = 0.f;
-    
-    audio_stop(SoundType::Music);
-    audio_reset(SoundType::Music);
 }
 
 // One star from door to key
@@ -27,23 +24,19 @@ internal void scene_startup_animation(float dt) {
     
     const Sprite *const player = find_first_sprite(ET_Player);
     Sprite *door = find_first_sprite(ET_Door);
-    
+    assert(door);
     // placeholder
     const fvec2 DOOR = tile_to_position(g_scene.loaded_map.exit_location);
     const fvec2 KEY = tile_to_position(g_scene.loaded_map.key_location);
     
     if (GET_KEYPRESS(space_pressed)) {
-        g_scene.startup_state = 4;
-        //ring->mark_for_removal = true;
-        g_scene.current_state = SS_PLAYING;
-        g_scene.playing = true;
+        goto STARTUP_ANIMATION_FINISH;
     }
     
     switch (g_scene.startup_state) {
         
         case STATE_START: {
             ring_static = make_starring(DOOR);
-            
             g_scene.startup_state = STATE_SHOW_KEY;
             audio_play_sound(GET_SOUND(SND_show_key));
         } break;
@@ -72,10 +65,7 @@ internal void scene_startup_animation(float dt) {
                 ring->position = lerp2(KEY, player->position, (startup_anim_time/anim_dur));
                 startup_anim_time = clamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
-                g_scene.startup_state = 4;
-                ring->mark_for_removal = true;
-                g_scene.current_state = SS_PLAYING;
-                audio_start(SoundType::Music);
+                goto STARTUP_ANIMATION_FINISH;
             }
             
             if (startup_anim_time < anim_dur) {
@@ -101,6 +91,16 @@ internal void scene_startup_animation(float dt) {
             
         } break;
     }
+    return;
+    
+    
+    STARTUP_ANIMATION_FINISH:
+    startup_animation_reset();
+    g_scene.current_state = SS_PLAYING;
+    g_scene.playing = true;
+    audio_start(SoundType::Music);
+    
+    return;
 }
 
 global float key_anim_time = 0.f;
@@ -171,8 +171,8 @@ global float win_animation_timer = 0.f;
 global int   win_animation_state = 0;
 
 internal void play_win_animation() {
-    float win_animation_timer = 0.f;
-    int win_animation_state = 0;
+    win_animation_timer = 0.f;
+    win_animation_state = 0;
     assert(g_scene.current_state == SS_PLAYING);
     g_scene.current_state = SS_WIN;
 }

@@ -188,7 +188,7 @@ internal void Player_cast(Sprite* player, float dt) {
 }
 
 
-internal void DFireball_update(Sprite* dfire, InputState* _istate, float dt) {
+UPDATE_ENTITY_FUNC2(DFireball_update, dfire) {
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
     
@@ -498,7 +498,7 @@ internal void player_enemy_test(Sprite *player) {
     
 }
 
-internal void Player_update(Sprite* player, InputState* _istate, float dt) {
+UPDATE_ENTITY_FUNC2(Player_update, player) {
     const float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
@@ -626,7 +626,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     else                   SET_ANIMATION(player, Dana, Idle);
 }
 
-internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
+UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     /*
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
     so invert direction vector to get the axis-compliant direction in X.
@@ -772,7 +772,7 @@ internal void Goblin_update(Sprite* goblin, InputState* _istate, float dt) {
 }
 
 // eGhost
-internal void Ghost_update(Sprite* ghost, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(Ghost_update, ghost) {
     const float ghost_turn_offset_amount = 64;
     double &ghost_speed = ghost->entity.params[1].as_f64;
     
@@ -827,7 +827,7 @@ internal void BlueFlame_cast(Sprite* flame) {
 }
 
 // eBlueFlame
-internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(BlueFlame_update, flame) {
     const double &flame_tame_dur   = flame->entity.params[1].as_f64;
     double &flame_tame_timer       = flame->entity.params[2].as_f64;
     
@@ -842,7 +842,7 @@ internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt) {
     }
 }
 
-internal void Fairie_update(Sprite* fairie, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(Fairie_update, fairie) {
     u64 &state          = fairie->entity.params[0].as_u64;
     double &time_passed = fairie->entity.params[1].as_f64;
     
@@ -962,7 +962,7 @@ internal void KMirror_spawn(Sprite *kmirror, InputState *istate, float sim = 0.f
     }
 }
 
-internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(KMirror_update, kmirror) {
     double &current_timer = kmirror->entity.params[1].as_f64;
     double &current_delay_timer = kmirror->entity.params[2].as_f64;
     const double &delay = kmirror->entity.params[3].as_f64;
@@ -996,7 +996,7 @@ internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
     }
 }
 
-internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(DemonHead_update, head) {
     // TODO(mdodis): collision box
     const float speed = 80.f;
     const float GRAVITY = 900.f;
@@ -1088,7 +1088,7 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
     
 }
 
-internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(PanelMonster_update, pm) {
     // TODO(mdodis): Do Panel Monsters die?
     const double &interval = pm->entity.params[1].as_f64;
     double &timer = pm->entity.params[2].as_f64;
@@ -1124,7 +1124,7 @@ internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
     }
 }
 
-internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(PanelMonsterFlame_update, pmf) {
     fvec2 direction = direction_from_rotation(D2R * pmf->rotation);
     
     if (pmf->current_animation == GET_CHAR_ANIMENUM(PanelMonsterFlame, Create)) {
@@ -1165,7 +1165,7 @@ internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt
     
 }
 
-internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
+UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
     // TODO(mdodis): die condition
     const double &speed = wy->entity.params[1].as_f64;
     const float turn_offset = wy->direction() * 64 - wy->direction() * 32;
@@ -1176,12 +1176,7 @@ internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
     }
     
 #ifndef NDEBUG
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials),
-                         {ctile.x * 64.f, ctile.y * 64.f},
-                         {64, 64},
-                         0,1 * 5 + 2,
-                         false, false,
-                         NRGBA{1.f, 1.f, 1.f, 1.f});
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {ctile.x * 64.f, ctile.y * 64.f}, {64, 64}, 0,1 * 5 + 2, false, false, NRGBA{1.f, 1.f, 1.f, 1.f});
 #endif
     
     EntityType tile_front = (EntityType)scene_get_tile(ctile);
@@ -1206,5 +1201,6 @@ internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
 }
 
 UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
+    const double &speed = dragon->entity.params[1].as_f64;
     
 }
