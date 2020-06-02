@@ -369,6 +369,25 @@ inline internal Sprite make_panel_monster_flame(fvec2 position) {
     return result;
 }
 
+inline internal Sprite make_dragon(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(Dragon),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {10,16,42,32},
+        .mirror = {true, false},
+        .animation_playing = true,
+        .current_animation = GET_CHAR_ANIMENUM(Dragon, Walk),
+        .animation_set = GET_CHAR_ANIMSET(Dragon),
+        .entity = {
+            ET_Enemy,
+            {0,0,0,0,0,}
+        }
+    };
+    result.entity.params[0].as_etype = MT_Dragon;
+    return result;
+}
+
 internal void draw(Sprite const * sprite) {
     
     if (!sprite->tilemap) {
@@ -410,3 +429,4 @@ draw_pickup(Sprite const *sprite) {
                              sprite->mirror.x, sprite->mirror.y);
     }
 }
+

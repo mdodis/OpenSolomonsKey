@@ -339,6 +339,13 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             
         }break;
         
+        case MT_Dragon: {
+            sprite_to_make = make_dragon(pos);
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = true;
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+        }break;
+        
         default:{
             assert(0);
         }break;
@@ -417,13 +424,12 @@ internal void reload_map() {
 
 #include "animations.cpp"
 
-#define UPDATE_ENTITY_FUNC(name) void name(Sprite *spref, InputState *istate, float dt)
 typedef UPDATE_ENTITY_FUNC(UpdateEntityFunc);
 
 global UpdateEntityFunc *enemy_update_table[] = {
     0,
     DemonHead_update,
-    0,
+    Dragon_update,
     0,
     Ghost_update,
     Goblin_update,

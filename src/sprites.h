@@ -140,19 +140,19 @@ inline internal EnemyType get_enemy_type(Sprite *spr) {
     return spr->entity.params[0].as_etype;
 }
 
-internal void Player_update(Sprite* spref, InputState* istate, float dt);
-internal void player_pickup(Sprite *player, Sprite *pickup);
-internal void Goblin_update(Sprite* spref, InputState* istate, float dt);
-internal void DFireball_update(Sprite* spref, InputState* istate, float dt);
-internal void Ghost_update(Sprite* spref, InputState* istate, float dt);
-internal void BlueFlame_update(Sprite* flame, InputState* istate, float dt);
+UPDATE_ENTITY_FUNC(Player_update);
+UPDATE_ENTITY_FUNC(Goblin_update);
+UPDATE_ENTITY_FUNC(DFireball_update);
+UPDATE_ENTITY_FUNC(Ghost_update);
+UPDATE_ENTITY_FUNC(BlueFlame_update);
+UPDATE_ENTITY_FUNC(DemonHead_update);
+UPDATE_ENTITY_FUNC(KMirror_update);
+UPDATE_ENTITY_FUNC(PanelMonster_update);
+UPDATE_ENTITY_FUNC(PanelMonsterFlame_update);
+UPDATE_ENTITY_FUNC(Wyvern_update);
+UPDATE_ENTITY_FUNC(Fairie_update);
+UPDATE_ENTITY_FUNC(Dragon_update);
+
 internal void BlueFlame_cast(Sprite* flame);
-internal void DemonHead_update(Sprite* head, InputState* istate, float dt);
-internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt);
-internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt);
-internal void PanelMonsterFlame_update(Sprite* pm, InputState* istate, float dt);
-internal void Wyvern_update(Sprite* wy, InputState* istate, float dt);
-internal void Fairie_update(Sprite* fairie, InputState* istate, float dt);
-
-
+internal void player_pickup(Sprite *player, Sprite *pickup);
 #endif //SPRITES_H

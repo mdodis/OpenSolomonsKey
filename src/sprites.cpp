@@ -1089,6 +1089,7 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
 }
 
 internal void PanelMonster_update(Sprite* pm, InputState* istate, float dt) {
+    // TODO(mdodis): Do Panel Monsters die?
     const double &interval = pm->entity.params[1].as_f64;
     double &timer = pm->entity.params[2].as_f64;
     
@@ -1165,6 +1166,7 @@ internal void PanelMonsterFlame_update(Sprite* pmf, InputState* istate, float dt
 }
 
 internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
+    // TODO(mdodis): die condition
     const double &speed = wy->entity.params[1].as_f64;
     const float turn_offset = wy->direction() * 64 - wy->direction() * 32;
     
@@ -1195,11 +1197,14 @@ internal void Wyvern_update(Sprite* wy, InputState* istate, float dt) {
     } else if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Hit)){
         // destroy block if finished
         if (!wy->animation_playing) {
-            
             SPAWN_EFFECT(tile_to_position(ctile), Flash);
             scene_set_tile(ctile, ET_EmptySpace);
             wy->mirror.x = !wy->mirror.x;
             SET_ANIMATION(wy, Wyvern, Default);
         }
     }
+}
+
+UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
+    
 }

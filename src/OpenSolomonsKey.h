@@ -158,5 +158,7 @@ global struct
 #define M_PI 3.14159265359
 #define LAST_SCORE_TIME 1.5f
 
+#define UPDATE_ENTITY_FUNC2(name, sp) void name(Sprite *sp, InputState *istate, float dt)
+#define UPDATE_ENTITY_FUNC(name) void name(Sprite *spref, InputState *istate, float dt)
 
 #endif //! OSK_HH
