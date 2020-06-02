@@ -54,20 +54,26 @@ void scene_menu(float dt) {
         glClearColor( 0.0, 0.0,  0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
         
+        NRGBA sel_color = NRGBA{sr,sg,sb,1};
+        NRGBA norm = NRGBA{1,1,1,1};
+        
         draw_extra_stuff();
         
         gl_background_draw();
         
+        
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_logo), fvec2{32.f*6.0f,32.f*3}, fvec2{644.f,352.f}, 0.f, 0, false, false, NRGBA{1,1,1,1}, false);
         
-        NRGBA sel_color = NRGBA{sr,sg,sb,1};
-        NRGBA norm = NRGBA{1,1,1,1};
+        draw_text("Open", 3, 2, false, 50.f, norm);
         
-        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_demonhead), fvec2{128.f * 2, 128.f * current_menu_item + 128.f * 3}, fvec2{64.f,64.f}, 0.f, 0);
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_demonhead), fvec2{100.f * 2, 100.f * current_menu_item + 128.f * 3}, fvec2{64.f,64.f}, 0.f, 0);
         
-        draw_text("Start",6,5,true, 64.f, current_menu_item == MENU_START ? sel_color:norm);
-        draw_text("Select",8,5,true, 64.f, current_menu_item == MENU_SELECT ? sel_color:norm);
-        draw_text("Quit",10,5,true, 64.f, current_menu_item == MENU_QUIT ? sel_color:norm);
+        draw_text("Start",8,7,true, 50.f, current_menu_item == MENU_START ? sel_color:norm);
+        draw_text("Select",10,7,true, 50.f, current_menu_item == MENU_SELECT ? sel_color:norm);
+        draw_text("Quit",12,7,true, 50.f, current_menu_item == MENU_QUIT ? sel_color:norm);
+        
+        draw_text("Made by Michael Dodis", 30, 0, true, 24.f, NRGBA{1.f,1.f,0.f,1});
+        draw_text("All rights belong to TECMO", 31, 0, true, 24.f, NRGBA{1.f,1.f,0.f,1});
     } else if (current_menu_state == MENU_SELECT) {
         
         if (GET_KEYPRESS(move_down_menu)) select_menu_current_level++;
@@ -94,9 +100,9 @@ void scene_menu(float dt) {
             
             
             if (select_menu_current_level == i) {
-                draw_text(g_map_list[i], i + 2, 2 + 1, true, 64.f, NRGBA{sr,sg,sb,1});
+                draw_text(g_map_list[i], i + 3, 4 + 1, true, 50.f, NRGBA{sr,sg,sb,1});
             } else {
-                draw_text(g_map_list[i], i + 2, 2, true, 64.f);
+                draw_text(g_map_list[i], i + 3, 4, true, 50.f);
             }
             
             i++;
