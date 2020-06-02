@@ -45,7 +45,7 @@ struct Sprite {
                 goto finished;
             }
             
-            // NOTE(miked): if on top?
+            // NOTE(mdodis): if on top?
             if (this_collision.min_y < target->min_y) {
                 collided_on_bottom = true;
                 if (iabs(diff.y) > 0) {
@@ -126,7 +126,7 @@ struct Sprite {
         {
             this->velocity.y = -strength;
             this->is_on_air = true;
-            // TODO(miked): return if we jumped
+            // TODO(mdodis): return if we jumped
             //audio_play_sound(&this_jump_sound);
             
             return true;

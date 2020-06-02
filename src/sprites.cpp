@@ -3,7 +3,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
     this->velocity.y += GRAVITY * dt;
     this->velocity.y = clamp(-JUMP_STRENGTH, MAX_YSPEED, this->velocity.y);
     
-    // NOTE(miked): This should teach me not to mix integers
+    // NOTE(mdodis): This should teach me not to mix integers
     // and floats ever again:
 #if 0
     // This would cause less movement in Y. pos.x + vel.y * dt
@@ -51,7 +51,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                 }
                 
                 if (j == 2 || (start_tile.y <= 1 && j == 1)) {
-                    // NOTE(miked): j == 2 is the bottom tile in most cases,
+                    // NOTE(mdodis): j == 2 is the bottom tile in most cases,
                     // but if y == 1 in tile space, then j will be 1 in that case
                     
                     collided_on_bottom = true;
@@ -92,7 +92,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
         this->is_on_air = true;
     
 #if 0    
-    // NOTE(miked): collision checking for the bounds
+    // NOTE(mdodis): collision checking for the bounds
     AABox bound_bottom = {0, 12 * 64, 64*15 , 12 * 64};
     AABox bound_right  = {15 * 64, 0, 16 * 64, 12 * 64};
     AABox bound_left   = {-64, 0, 0, 12 * 64};
@@ -352,7 +352,7 @@ should't be eEmptySpace
                 
                 //printf("2 is %f 4 is %f\n", col2, col4);
                 
-                // NOTE(miked): when the fireball is spawned right next
+                // NOTE(mdodis): when the fireball is spawned right next
                 // to a tile it could attach, it's basically already inside the
                 // tile, so special to case to make it behave
                 if (col2 < 0.f) {
@@ -482,7 +482,7 @@ internal void player_enemy_test(Sprite *player) {
         
         if (spr->entity.type == ET_Enemy) {
             
-            // TODO(miked): maybe check just the ones close to us tile-wise?
+            // TODO(mdodis): maybe check just the ones close to us tile-wise?
             AABox ebox = spr->get_transformed_AABox();
             AABox pbox = player->get_transformed_AABox();
             
@@ -522,7 +522,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     if (is_dead) return;
     
     
-    // NOTE(miked): maybe not have it be a local-global?
+    // NOTE(mdodis): maybe not have it be a local-global?
     persist i32 player_last_yspeed;
     
     if      (GET_KEYDOWN(move_right)) xmove_amount = XSPEED;
@@ -610,7 +610,7 @@ internal void Player_update(Sprite* player, InputState* _istate, float dt) {
     
     if (is_crouching) xmove_amount = 0;
     
-    // NOTE(miked): A running jump results in a 1-block
+    // NOTE(mdodis): A running jump results in a 1-block
     // height-displacement rather than a 2 block displacement
     const i32 jump_strength =
         (player->velocity.x != 0) ? RUNNING_JUMP_STRENGTH : JUMP_STRENGTH;
@@ -944,17 +944,17 @@ internal void player_pickup(Sprite *player, Sprite *pickup) {
     }
 }
 
-internal void KMirror_spawn(Sprite *kmirror) {
+internal void KMirror_spawn(Sprite *kmirror, InputState *istate, float sim = 0.f) {
     Sprite *mv1 = (Sprite *)kmirror->entity.params[5].as_ptr;
     Sprite *mv2 = (Sprite *)kmirror->entity.params[6].as_ptr;
     
     if (mv1) {
-        const Sprite *sp = mv1;
-        scene_sprite_add(sp);
+        const Sprite *const sp = mv1;
+        
+        Sprite *s = scene_sprite_add(sp);
+        Entity_update(s, istate, sim);
     }
     
-    //printf("%p %p\n", mv1, mv2);
-    // swap spawn sprite primitives
     if (mv2 != 0) {
         Sprite tmp = *mv1;
         *mv1 = *mv2;
@@ -972,27 +972,36 @@ internal void KMirror_update(Sprite* kmirror, InputState* istate, float dt) {
         // initial delay
         current_delay_timer += dt;
         
-        if (current_delay_timer > delay) {
+        if (current_delay_timer >= delay) {
+            float remain = current_delay_timer - delay;
+            assert(remain >= 0.f);
             current_delay_timer = -1.f;
-            KMirror_spawn(kmirror);
+            KMirror_spawn(kmirror, istate, remain);
         }
         
     } else {
         
         current_timer += dt;
-        if (current_timer > interval) {
+        if (current_timer >= interval) {
+            float remain;
+            remain = current_timer - interval;
+            printf("%f %f %f\n", current_timer, interval, remain);
+            while (remain >= 0.f) {
+                KMirror_spawn(kmirror, istate, remain);
+                remain -= interval;
+            }
+            
             current_timer = 0.f;
-            KMirror_spawn(kmirror);
         }
     }
 }
 
 internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
-    // TODO(miked): collision box
+    // TODO(mdodis): collision box
     const float speed = 80.f;
     const float GRAVITY = 900.f;
     const float MAX_YSPEED = 500.f;
-    const float LIFE_DUR = 5.f; // TODO(miked): this could be a custom param
+    const float LIFE_DUR = 5.f; // TODO(mdodis): this could be a custom param
     double &life_timer = head->entity.params[1].as_f64;
     
     life_timer += dt;
@@ -1007,7 +1016,7 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
         }
     }
     
-    // NOTE(miked): heads dont move horizontally while they're falling
+    // NOTE(mdodis): heads dont move horizontally while they're falling
     if (head->is_on_air) {
         head->velocity.x = 0;
     } else {
@@ -1052,7 +1061,7 @@ internal void DemonHead_update(Sprite* head, InputState* istate, float dt) {
                 }
                 
                 if (j == 2 || (start_tile.y <= 1 && j == 1)) {
-                    // NOTE(miked): j == 2 is the bottom tile in most cases,
+                    // NOTE(mdodis): j == 2 is the bottom tile in most cases,
                     // but if y == 1 in tile space, then j will be 1 in that case
                     
                     collided_on_bottom = true;

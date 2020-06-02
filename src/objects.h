@@ -51,7 +51,7 @@ global struct {
     b32 playing = false;
     b32 paused_for_key_animation = false;
     int startup_state = 0;
-    
+    List_Sprite sprite_buffer;
     int current_state = SS_MENU;
     
     long player_score = 0;
@@ -320,10 +320,12 @@ inline internal Sprite make_kmirror(fvec2 position) {
     };
     
     result.entity.params[0].as_etype = MT_KMirror;
-    result.entity.params[1].as_f64 = 1.f;
-    result.entity.params[2].as_f64 = 1.f;
-    result.entity.params[3].as_ptr = 0;
-    result.entity.params[4].as_ptr = 0;
+    result.entity.params[1].as_f64 = 0.f;
+    result.entity.params[2].as_f64 = 0.f;
+    result.entity.params[3].as_f64 = 1.f;
+    result.entity.params[4].as_f64 = 1.f;
+    result.entity.params[5].as_ptr = 0;
+    result.entity.params[6].as_ptr = 0;
     
     return result;
 }

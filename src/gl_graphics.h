@@ -5,23 +5,20 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-struct GLTilemapTexture
-{
+struct GLTilemapTexture {
     u32 texture_id;
     i32 width, height;
     i32 rows, cols;
 };
 
-struct GLShader
-{
+struct GLShader {
     u32 id = 0;
     
     void apply();
     void create(const char* const vsrc, const char* const fsrc);
 };
 
-internal GLTilemapTexture
-gl_load_rgba_tilemap(u8* data, i32 width, i32 height, i32 tilemap_rows, i32 tilemap_cols);
+internal GLTilemapTexture gl_load_rgba_tilemap(u8* data, i32 width, i32 height, i32 tilemap_rows, i32 tilemap_cols);
 
 internal void
 gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 pos, fvec2 size, float rotate = 0.f, i32 tm_index = 0, b32 mirrorx = false, b32 mirrory = false, NRGBA tint = NRGBA{1.f, 1.f, 1.f, 1.f}, b32 account_for_offset = true);

@@ -22,16 +22,15 @@ internal Sprite *map_add(Map *map, const Sprite *sprite) {
     }
 }
 
-internal Sprite *scene_sprite_add(const Sprite *sprite)
-{
+internal Sprite *scene_sprite_add(const Sprite *const sprite) {
     fail_unless(sprite, "Passing null sprite to scene_add");
-    
     if (sprite->entity.type == ET_Pickup) {
         g_scene.loaded_map.pickups.push_back(*sprite);
         return &g_scene.loaded_map.pickups.back();
     } else {
-        g_scene.loaded_map.sprites.push_back(*sprite);
-        return &g_scene.loaded_map.sprites.back();
+        // NOTE(mdodis): Sprites like enemies etc sometimes add new sprites to the scene on their update loop, so buffer them per-frame and add them to the central object next frame
+        g_scene.sprite_buffer.push_back(*sprite);
+        return &g_scene.sprite_buffer.back();
     }
 }
 
@@ -232,7 +231,7 @@ bool add_tilemap_entity(EntityType type, int row, int col, void *custom1) {
             case ET_Key: {
                 sprite_to_make = make_key(pos);
                 smap.key_location = ivec2{col, row};
-                // TODO(miked): do key type thingy
+                // TODO(mdodis): do key type thingy
             }break;
             
             case ET_PlayerSpawnPoint: {
@@ -299,12 +298,9 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
         
         case MT_KMirror: {
             sprite_to_make = make_kmirror(pos);
-            sprite_to_make.entity.params[1].as_f64 = 0;
-            sprite_to_make.entity.params[2].as_f64 = 0;
             sprite_to_make.entity.params[3].as_f64 = *(double*)param1;
             sprite_to_make.entity.params[4].as_f64 = *(double*)param2;
-            sprite_to_make.entity.params[5].as_ptr = 0;
-            sprite_to_make.entity.params[6].as_ptr = 0;
+            assert(sprite_to_make.entity.params[6].as_ptr == 0);
         }break;
         
         case MT_Demonhead: {
@@ -356,7 +352,7 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
         Sprite *kmirror = find_first_enemy_on_tile(MT_KMirror, ivec2{col, row}, &smap);
         assert(kmirror);
         
-        if (!kmirror->entity.params[5].as_ptr) {
+        if (kmirror->entity.params[5].as_ptr == 0) {
             kmirror->entity.params[5].as_ptr = ksprite;
         } else {
             kmirror->entity.params[6].as_ptr = ksprite;
@@ -520,6 +516,12 @@ internal void scene_update(InputState* istate, float dt) {
     
     if (g_scene.paused_for_key_animation)
         scene_key_animation(dt);
+    
+    
+    while(g_scene.sprite_buffer.size() != 0) {
+        g_scene.loaded_map.sprites.push_back(g_scene.sprite_buffer.back());
+        g_scene.sprite_buffer.pop_back();
+    }
     
     List_Sprite &l = g_scene.loaded_map.sprites;
     for (int i = 0; i < l.size(); ++i) {

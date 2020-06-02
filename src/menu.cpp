@@ -25,9 +25,9 @@ void scene_menu(float dt) {
     
     menu_timer += dt * 4.f;
     
-    sr = (sinf(menu_timer) + 1.f) / 2.f;
-    sg = (cosf(menu_timer) + 1.f) / 2.f;
-    sb = 0.5f * (sinf(menu_timer) + 1.f) / 2.f + 0.5f * (cosf(menu_timer) + 1.f) / 2.f;
+    sr = (sinf(menu_timer) + 1.f) / 4.f + (cosf(menu_timer) + 1.f) / 4.f;
+    sg = (sinf(menu_timer + M_PI * 2) + 1.f) / 4.f + (cosf(menu_timer + M_PI) + 1.f) / 4.f;
+    sb = (sinf(menu_timer - M_PI) + 1.f) / 4.f + (cosf(menu_timer - M_PI * 2) + 1.f) / 4.f;
     
     if (current_menu_state == MENU_MAIN) {
         

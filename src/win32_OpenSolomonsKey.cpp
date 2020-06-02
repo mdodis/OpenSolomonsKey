@@ -46,7 +46,7 @@ struct Timer {
 //////// CONTEXT CREATION
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// NOTE(miked): Thank you https://gist.github.com/nickrolfe/1127313ed1dbf80254b614a721b3ee9c
+// NOTE(mdodis): Thank you https://gist.github.com/nickrolfe/1127313ed1dbf80254b614a721b3ee9c
 // Modern Opengl is a bitch to init on Windows
 typedef HGLRC WINAPI wglCreateContextAttribsARB_type(HDC hdc, HGLRC hShareContext,const int *attribList);
 typedef const char* PFNwglGetExtensionsStringARB(HDC hdc);
@@ -73,8 +73,7 @@ wglChoosePixelFormatARB_type *wglChoosePixelFormatARB;
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
-b32 wgl_is_extension_supported(char* extname,  char* ext_string)
-{
+b32 wgl_is_extension_supported(char* extname,  char* ext_string) {
     char* csearch = extname;
     char* chay = ext_string;
     
@@ -244,8 +243,7 @@ internal DWORD dsound_cb_audio(void *unused);
 #define DIRECT_SOUND_CREATE(name) HRESULT WINAPI name(LPGUID lpGuid, LPDIRECTSOUND* ppDS, LPUNKNOWN  pUnkOuter)
 typedef DIRECT_SOUND_CREATE(FNDirectSoundCreate);
 
-internal void win32_dsound_init(HWND window_handle)
-{
+internal void win32_dsound_init(HWND window_handle) {
     // load dsound
     HMODULE dsound_lib = LoadLibraryA("dsound.dll");
     fail_unless(dsound_lib, "dsound failed to load");
@@ -293,20 +291,14 @@ internal void win32_dsound_init(HWND window_handle)
     HRESULT err = g_secondary_buffer->Play(0, 0, DSBPLAY_LOOPING);
     
     DWORD audio_thread_id;
-    HANDLE audio_thread = CreateThread(
-                                       0,0,
-                                       dsound_cb_audio,
-                                       0,
-                                       0,
-                                       &audio_thread_id);
+    HANDLE audio_thread = CreateThread( 0,0, dsound_cb_audio, 0, 0, &audio_thread_id);
     
     g_dsound_sem = CreateSemaphoreA(0,0,1,0);
     
 }
 
 internal void
-win32_dsound_get_bytes_to_output(DWORD* byte_to_lock, DWORD* bytes_to_write)
-{
+win32_dsound_get_bytes_to_output(DWORD* byte_to_lock, DWORD* bytes_to_write) {
     const float target_framerate = .0166f;
     DWORD play_cursor, write_cursor;
     if (!SUCCEEDED(g_secondary_buffer->GetCurrentPosition(&play_cursor, &write_cursor)))
@@ -344,23 +336,18 @@ win32_dsound_get_bytes_to_output(DWORD* byte_to_lock, DWORD* bytes_to_write)
     
 }
 
-internal void win32_dsound_copy_to_sound_buffer(DWORD byte_to_lock, DWORD bytes_to_write)
-{
+internal void win32_dsound_copy_to_sound_buffer(DWORD byte_to_lock, DWORD bytes_to_write) {
     
     void* region1; DWORD region1_size;
     void* region2; DWORD region2_size;
     
     if (bytes_to_write == 0) return;
     
-    HRESULT error = g_secondary_buffer->Lock(
-                                             byte_to_lock, bytes_to_write,
-                                             &region1, &region1_size,
-                                             &region2, &region2_size, 0);
+    HRESULT error = g_secondary_buffer->Lock( byte_to_lock, bytes_to_write, &region1, &region1_size, &region2, &region2_size, 0);
     
     assert(region1_size + region2_size == bytes_to_write);
     assert(bytes_to_write <= AUDIO_BUFFER_SIZE);
-    if (!SUCCEEDED(error))
-    {
+    if (!SUCCEEDED(error)) {
         printf(" \t%d %d\n %x\n", byte_to_lock, bytes_to_write,  error);
         _exit_with_message("Lock failed");
     }
@@ -370,33 +357,27 @@ internal void win32_dsound_copy_to_sound_buffer(DWORD byte_to_lock, DWORD bytes_
     
     i16* sample_in = (i16*)g_audio.buffer;
     i16* sample_out = (i16*) region1;
-    for (DWORD sample_idx = 0; sample_idx < region1_samples; sample_idx++)
-    {
+    for (DWORD sample_idx = 0; sample_idx < region1_samples; sample_idx++) {
         *sample_out++ = *sample_in++;
         *sample_out++ = *sample_in++;
         g_sample_counter++;
     }
     
     sample_out = (i16*) region2;
-    for (DWORD sample_idx = 0; sample_idx < region2_samples; sample_idx++)
-    {
+    for (DWORD sample_idx = 0; sample_idx < region2_samples; sample_idx++) {
         *sample_out++ = *sample_in++;
         *sample_out++ = *sample_in++;
         g_sample_counter++;
     }
     
-    fail_unless(SUCCEEDED(g_secondary_buffer->Unlock(
-                                                     region1, region1_size,
-                                                     region2, region2_size)), "");
+    fail_unless(SUCCEEDED(g_secondary_buffer->Unlock(region1, region1_size, region2, region2_size)), "");
 }
 
-internal DWORD dsound_cb_audio(void *unused)
-{
+internal DWORD dsound_cb_audio(void *unused) {
     
     i16 *buffer = (i16*)g_audio.buffer;
     
-    for(;;)
-    {
+    for(;;) {
         DWORD byte_to_lock, bytes_to_write;
         win32_dsound_get_bytes_to_output(&byte_to_lock, &bytes_to_write);
         
@@ -418,7 +399,7 @@ internal DWORD dsound_cb_audio(void *unused)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////// WINDOWING
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// NOTE(miked): Win32's DefWindowProc function takes the liberty of
+// NOTE(mdodis): Win32's DefWindowProc function takes the liberty of
 // blocking the whole thread whilst moving the window (via the title bar),
 // so we us these two bools to check for that, and NOT update.
 // Done using WM_ENTERSIZEMOVE / WM_EXITSIZEMOVE
@@ -430,13 +411,10 @@ global bool     g_running = true;
 
 Timer g_window_timer;
 
-internal void win32_update_and_render(HDC dc)
-{
+internal void win32_update_and_render(HDC dc) {
     float delta_time = g_window_timer.get_elapsed_secs(true);
     
-    if (was_previously_moving_or_resizing &&
-        !is_currently_moving_or_resizing)
-    {
+    if (was_previously_moving_or_resizing && !is_currently_moving_or_resizing) {
         delta_time = 0.f;
         was_previously_moving_or_resizing = false;
     }
@@ -463,11 +441,10 @@ internal void win32_update_and_render(HDC dc)
 
 const LONG NORMAL_STYLE = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
 
-
 internal void toggle_fullscreen(HWND hwnd) {
     
     if (GetWindowLongPtr(hwnd, GWL_STYLE) & WS_POPUP) {
-        // TODO(miked): maybe remember previous configuration?
+        // TODO(mdodis): maybe remember previous configuration?
         SetWindowLongPtrA(hwnd, GWL_STYLE, NORMAL_STYLE);
         SetWindowPos(hwnd, 0, 0, 0, 640, 480, SWP_FRAMECHANGED);
         
@@ -480,30 +457,22 @@ internal void toggle_fullscreen(HWND hwnd) {
 }
 
 internal LRESULT CALLBACK
-win32_windproc(_In_ HWND   hwnd,
-               _In_ UINT   msg,
-               _In_ WPARAM wparam,
-               _In_ LPARAM lparam)
-{
+win32_windproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
     LRESULT result = 0;
     
-    switch(msg)
-    {
-        case WM_DESTROY:
-        {
+    switch(msg) {
+        case WM_DESTROY: {
             PostQuitMessage(0);
             g_running = false;
         }break;
         
-        case WM_PAINT:
-        {
+        case WM_PAINT: {
             PAINTSTRUCT ps;
             BeginPaint(hwnd, &ps);
             EndPaint(hwnd, &ps);
         } break;
         
-        case WM_SIZE:
-        {
+        case WM_SIZE: {
             g_wind_width = LOWORD(lparam);
             g_wind_height =  HIWORD(lparam);
             glViewport(0,0,g_wind_width, g_wind_height);
@@ -519,15 +488,12 @@ win32_windproc(_In_ HWND   hwnd,
         }break;
         
         case WM_ENTERSIZEMOVE:
-        case WM_EXITSIZEMOVE:
-        {
-            
+        case WM_EXITSIZEMOVE: {
             was_previously_moving_or_resizing = is_currently_moving_or_resizing;
             is_currently_moving_or_resizing = msg == WM_ENTERSIZEMOVE;
         } break;
         
-        default:
-        {
+        default: {
             result = DefWindowProc(hwnd, msg, wparam, lparam);
         } break;
     }
@@ -535,8 +501,7 @@ win32_windproc(_In_ HWND   hwnd,
 }
 
 internal void
-win32_init(HINSTANCE hInstance)
-{
+win32_init(HINSTANCE hInstance) {
     // create the actual window
     WNDCLASSA window_class = {
         .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
@@ -548,8 +513,7 @@ win32_init(HINSTANCE hInstance)
     };
     fail_unless(RegisterClassA(&window_class), "Failed to register class");
     
-    RECT rect =
-    {
+    RECT rect = {
         .right = 640,
         .bottom = 480
     };
@@ -557,14 +521,7 @@ win32_init(HINSTANCE hInstance)
     DWORD window_style = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&rect, window_style, false);
     
-    g_wind = CreateWindowExA(0,
-                             OSK_CLASS_NAME,
-                             "Open Solomon's Key",
-                             window_style,
-                             CW_USEDEFAULT, CW_USEDEFAULT,
-                             rect.right - rect.left,
-                             rect.bottom - rect.top,
-                             0, 0, hInstance, 0);
+    g_wind = CreateWindowExA(0, OSK_CLASS_NAME, "Open Solomon's Key", window_style, CW_USEDEFAULT, CW_USEDEFAULT, rect.right - rect.left, rect.bottom - rect.top, 0, 0, hInstance, 0);
     fail_unless(g_wind, "Failed to create window");
 }
 
@@ -574,8 +531,7 @@ win32_init(HINSTANCE hInstance)
 b32 win32_get_key_state(i32 key) {return GetAsyncKeyState(key);}
 
 // Auto-generate the list of keys to update
-internal void win32_update_all_keys()
-{
+internal void win32_update_all_keys() {
 #define KEYDOWN(name, _X, keysym) g_input_state.name = win32_get_key_state(keysym);
 #define KEYPRESS(name, _X, keysym) { \
 b32 now = win32_get_key_state(keysym); \
@@ -626,11 +582,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,int nS
     QueryPerformanceFrequency(&g_performace_frequency);
     
     g_window_timer.reset();
-    while (g_running)
-    {
+    while (g_running) {
         MSG message;
-        while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE))
-        {
+        while (PeekMessage(&message, g_wind, 0, 0, PM_REMOVE)) {
             TranslateMessage(&message);
             DispatchMessage(&message);
         }

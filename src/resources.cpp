@@ -235,8 +235,7 @@ internal void gl_load_background_texture(long bgn) {
     free(data);
 }
 
-internal void load_tilemap_textures()
-{
+internal void load_tilemap_textures() {
     i32 width, height, bpp;
     u8* data;
     

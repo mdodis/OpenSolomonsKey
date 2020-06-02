@@ -322,7 +322,7 @@ aabb_minkowski(const AABox* const a,
         
         fvec2 penetration = {0,0};
         float min = FLT_MAX;
-        /*NOTE(miked): prefer Y axis over X on collision*/
+        /*NOTE(mdodis): prefer Y axis over X on collision*/
         
         if (glm::abs(result.min_x) < min) {
             min = glm::abs(result.min_x);

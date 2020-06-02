@@ -1,6 +1,5 @@
 
-void GLShader::create(const char* const vsrc, const char* const fsrc)
-{
+void GLShader::create(const char* const vsrc, const char* const fsrc) {
     u32 vertex, fragment;
     
     int success;
@@ -13,8 +12,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     // print compile errors if any
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     
-    if(!success)
-    {
+    if(!success) {
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
         exit(0);
@@ -26,8 +24,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     glCompileShader(fragment);
     // print compile errors if any
     glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
+    if(!success) {
         glGetShaderInfoLog(fragment, 512, NULL, infoLog);
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n",infoLog);
         assert(0);
@@ -40,8 +37,7 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     glLinkProgram(this->id);
     // print linking errors if any
     glGetProgramiv(this->id, GL_LINK_STATUS, &success);
-    if(!success)
-    {
+    if(!success) {
         glGetProgramInfoLog(this->id, 512, NULL, infoLog);
         printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n",infoLog);
         exit(0);
@@ -53,14 +49,11 @@ void GLShader::create(const char* const vsrc, const char* const fsrc)
     
 }
 
-void GLShader::apply()
-{
+void GLShader::apply() {
     glUseProgram(this->id);
 }
 
-internal u32
-gl_load_rgba_texture(u8* data, i32 width, i32 height)
-{
+internal u32 gl_load_rgba_texture(u8* data, i32 width, i32 height) {
     u32 result;
     glGenTextures(1, &result);
     glBindTexture(GL_TEXTURE_2D, result);
@@ -70,15 +63,7 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    glTexImage2D(
-                 GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 width, height,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     
     fail_unless(glGetError() == GL_NO_ERROR, "");
     
@@ -87,8 +72,7 @@ gl_load_rgba_texture(u8* data, i32 width, i32 height)
 
 
 internal void
-gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex)
-{
+gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex) {
     glBindTexture(GL_TEXTURE_2D, tex);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -96,14 +80,7 @@ gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 width, height,
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
@@ -143,15 +120,7 @@ internal GLTilemapTexture gl_load_rgba_tilemap(u8* data, i32 width, i32 height, 
     for (i32 y = 0; y < tilemap_rows; y++) {
         for (i32 x = 0; x < tilemap_cols; x++) {
             
-            glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
-                            0, 0, 0,
-                            //count,
-                            y * tilemap_cols + x,
-                            tile_width, tile_height, 1,
-                            GL_RGBA,
-                            GL_UNSIGNED_BYTE,
-                            data + (y * tile_width * width + x * tile_width) * 4);
-            
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, y * tilemap_cols + x, tile_width, tile_height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data + (y * tile_width * width + x * tile_width) * 4);
             count++;
         }
     }
@@ -186,7 +155,7 @@ internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 _pos, fvec2
     // ORIGIN on TOP-LEFT
     model = glm::translate(model, glm::vec3(pos, 0.0f));
     
-    // NOTE(miked): translate half width inwards, and full width outwards
+    // NOTE(mdodis): translate half width inwards, and full width outwards
     // to keep space for the textures on the sides, should probably color them
     // as well
     if (account_for_offset)
@@ -196,14 +165,12 @@ internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 _pos, fvec2
     model = glm::rotate(model, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::translate(model, glm::vec3(-0.5f * size.x,-.5*size.y, 0.0f));
     
-    if (mirrory)
-    {
+    if (mirrory) {
         model = glm::translate(model, glm::vec3(0, 1.f * size.y, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, -1.f,1.f));
     }
     
-    if (mirrorx)
-    {
+    if (mirrorx) {
         model = glm::translate(model, glm::vec3(1.f* size.x, 0, 0.0f));
         model = glm::scale(model, glm::vec3(-1.0f, 1.f,1.f));
     }

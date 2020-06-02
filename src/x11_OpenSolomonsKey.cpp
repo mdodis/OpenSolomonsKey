@@ -332,7 +332,7 @@ x11_init()
     inform("%s", "Making context current");
     glXMakeCurrent( dpy, win, glc );
     
-    // NOTE(miked): if this ever fails, switch to a windowing lib.
+    // NOTE(mdodis): if this ever fails, switch to a windowing lib.
     // I'm not doing this again
 }
 
@@ -416,7 +416,7 @@ global bool is_fullscreen = false;
 void toggle_fullscreen(Display* dpy, Window win) {
     Atom wm_state = XInternAtom(dpy, "_NET_WM_STATE", False);
     Atom fullscreen_state = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN",  False);
-
+    
     XEvent xev;
     memset(&xev, 0, sizeof(xev));
     xev.type = ClientMessage;
@@ -429,9 +429,9 @@ void toggle_fullscreen(Display* dpy, Window win) {
     
     XSendEvent(dpy, DefaultRootWindow(dpy), False, SubstructureRedirectMask | SubstructureNotifyMask, &xev);
     XFlush(dpy);
-
+    
     is_fullscreen = !is_fullscreen;
-
+    
 }
 
 int main(int argc, char *argv[]) {
@@ -456,12 +456,12 @@ int main(int argc, char *argv[]) {
                     g_wind_height = gwa.height;
                     cb_resize();
                 } break;
-
+                
             }
         }
         
         x11_update_all_keys();
-
+        
         if (GET_KEYPRESS(go_fullscreen)) {
             toggle_fullscreen(dpy, win);
         }
