@@ -1168,7 +1168,7 @@ UPDATE_ENTITY_FUNC2(PanelMonsterFlame_update, pmf) {
 UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
     // TODO(mdodis): die condition
     const double &speed = wy->entity.params[1].as_f64;
-    const float turn_offset = wy->direction() * 64 - wy->direction() * 32;
+    const float turn_offset = wy->direction() * 32;
     
     ivec2 ctile = map_position_to_tile_centered(wy->position + fvec2{turn_offset, 0.f});
     if (wy->position.x < 0) {
@@ -1202,5 +1202,43 @@ UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
 
 UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
     const double &speed = dragon->entity.params[1].as_f64;
+    const float turn_offset = dragon->direction() * 32;
     
+    ivec2 ctile = map_position_to_tile_centered(dragon->position + fvec2{turn_offset, 0.f});
+    if (dragon->position.x < 0) {
+        ctile.x = -1;
+    }
+    
+    EntityType tile_front = (EntityType)scene_get_tile(ctile);
+    if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Walk)) {
+        if (!tile_is_empty(tile_front)) {
+            SET_ANIMATION(dragon, Dragon, TurnWait);
+        }
+        
+        // Player checking
+        {
+            const Sprite* const player = find_first_sprite(ET_Player);
+            ivec2 player_tile = map_position_to_tile_centered(player->position);
+            ivec2 dragon_tile = map_position_to_tile_centered(dragon->position);
+            if (dragon_tile.y == player_tile.y) {
+                
+                i32 diff = player_tile.x - dragon_tile.x;
+                
+                if ((abs(diff) <= 1) && (sgn(diff) == i32(dragon->direction()))) {
+                    SET_ANIMATION(dragon, Dragon, FireWait);
+                }
+            }
+        }
+        
+        dragon->position.x += dragon->direction() * speed * dt;
+    } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, TurnWait)) {
+        if (!dragon->animation_playing) {
+            SET_ANIMATION(dragon, Dragon, Turn);
+        }
+    } else if(dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Turn)) {
+        if (!dragon->animation_playing) {
+            dragon->mirror.x = !dragon->mirror.x;
+            SET_ANIMATION(dragon, Dragon, Walk);
+        }
+    }
 }

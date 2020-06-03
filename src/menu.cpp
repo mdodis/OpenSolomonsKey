@@ -64,8 +64,6 @@ void scene_menu(float dt) {
         
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_logo), fvec2{32.f*6.0f,32.f*3}, fvec2{644.f,352.f}, 0.f, 0, false, false, NRGBA{1,1,1,1}, false);
         
-        draw_text("Open", 3, 2, false, 50.f, norm);
-        
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_demonhead), fvec2{100.f * 2, 100.f * current_menu_item + 128.f * 3}, fvec2{64.f,64.f}, 0.f, 0);
         
         draw_text("Start",8,7,true, 50.f, current_menu_item == MENU_START ? sel_color:norm);

@@ -15,7 +15,7 @@ tilemaps.
 */
 #define ALL_TILEMAPS \
 /*          NAME               PATH IN FOLDER                             rows cols*/\
-DEF_TILEMAP(TM_logo            ,"res/logo2.png"                           ,1    ,1  )\
+DEF_TILEMAP(TM_logo            ,"res/logo3.png"                           ,1    ,1  )\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(TM_dana            ,"res/dana_all.png"                        ,5    ,6  )\
 DEF_TILEMAP(TM_dana_fire       ,"res/dana_fireball.png"                   ,3    ,1  )\
@@ -129,10 +129,12 @@ DEF_CHARACTER(Wyvern,                TM_wyvern,         2,                      
 DEF_ANIM(Wyvern,                Default, 0.1f,     {0,0}, 3,      true )   \
 DEF_ANIM(Wyvern,                Hit,     0.1f,     {0,0}, 3,      false)   \
 )                                                                 \
-DEF_CHARACTER(Dragon,                TM_dragon,         3,                       \
+DEF_CHARACTER(Dragon,                TM_dragon,         5,                      \
 DEF_ANIM(Dragon,                Walk,    0.2f,     {0,0}, 5,      true )   \
 DEF_ANIM(Dragon,                Fire,    0.2f,     {0,1}, 3,      false)   \
 DEF_ANIM(Dragon,                Turn,    0.2f,     {4,3}, 1,      false)   \
+DEF_ANIM(Dragon,                TurnWait,2.2f,     {4,0}, 1,      false)   \
+DEF_ANIM(Dragon,                FireWait,0.34f,    {0,1}, 3,      false)   \
 )                                                                 \
 DEF_CHARACTER(DFireball,             TM_dana_fire,       3,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \

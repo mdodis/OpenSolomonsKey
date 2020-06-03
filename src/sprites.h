@@ -96,7 +96,6 @@ struct Sprite {
 #define SET_ANIMATION(spr, c, n) (spr)->set_animation_index(GET_CHAR_ANIMENUM(c, n))
     void set_animation_index(u32 anim_idx) {
         fail_unless(this->current_animation >= 0, "set_animation_index, invalid animation index!");
-        
         if (this->current_animation != anim_idx) {
             this->animation_playing = true;
             this->current_animation = anim_idx;
