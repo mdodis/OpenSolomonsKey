@@ -1235,10 +1235,27 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
         if (!dragon->animation_playing) {
             SET_ANIMATION(dragon, Dragon, Turn);
         }
-    } else if(dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Turn)) {
+    } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Turn)) {
         if (!dragon->animation_playing) {
             dragon->mirror.x = !dragon->mirror.x;
             SET_ANIMATION(dragon, Dragon, Walk);
         }
+    } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, FireWait)) {
+        if (!dragon->animation_playing) {
+            SET_ANIMATION(dragon, Dragon, Fire);
+            Sprite dfire = make_dragon_fire(dragon->position + fvec2{64 * dragon->direction(),0});
+            
+            dfire.mirror.x = dragon->mirror.x;
+            
+            scene_sprite_add(&dfire);
+        }
+    } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Fire)) {
+        
+    }
+}
+
+UPDATE_ENTITY_FUNC2(DragonFire_update, dfire) {
+    if (!dfire->animation_playing) {
+        dfire->mark_for_removal = true;
     }
 }

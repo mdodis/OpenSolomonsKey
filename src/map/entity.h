@@ -97,6 +97,7 @@ enum EnemyType {
     
     // enemies that can't be in level
     MT_PanelMonsterFlame,
+    MT_DragonFire,
     
     MT_Count
 };

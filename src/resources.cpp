@@ -131,10 +131,13 @@ DEF_ANIM(Wyvern,                Hit,     0.1f,     {0,0}, 3,      false)   \
 )                                                                 \
 DEF_CHARACTER(Dragon,                TM_dragon,         5,                      \
 DEF_ANIM(Dragon,                Walk,    0.2f,     {0,0}, 5,      true )   \
-DEF_ANIM(Dragon,                Fire,    0.2f,     {0,1}, 3,      false)   \
+DEF_ANIM(Dragon,                Fire,    0.2f,     {3,1}, 1,      true )   \
 DEF_ANIM(Dragon,                Turn,    0.2f,     {4,3}, 1,      false)   \
 DEF_ANIM(Dragon,                TurnWait,2.2f,     {4,0}, 1,      false)   \
 DEF_ANIM(Dragon,                FireWait,0.34f,    {0,1}, 3,      false)   \
+)                                                                 \
+DEF_CHARACTER(DragonFire,            TM_dragon,         1,                      \
+DEF_ANIM(DragonFire,            Default, 0.2f,     {0,2}, 4,      false)   \
 )                                                                 \
 DEF_CHARACTER(DFireball,             TM_dana_fire,       3,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \

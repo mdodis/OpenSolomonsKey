@@ -388,6 +388,25 @@ inline internal Sprite make_dragon(fvec2 position) {
     return result;
 }
 
+inline internal Sprite make_dragon_fire(fvec2 position) {
+    Sprite result = {
+        .tilemap = &GET_CHAR_TILEMAP(Dragon),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {0,0,64,64},
+        .mirror = {false, false},
+        .animation_playing = true,
+        .current_animation = GET_CHAR_ANIMENUM(DragonFire, Default),
+        .animation_set = GET_CHAR_ANIMSET(DragonFire),
+        .entity = {
+            ET_Enemy,
+            {0,0,0,0,0,}
+        }
+    };
+    result.entity.params[0].as_etype = MT_DragonFire;
+    return result;
+}
+
 internal void draw(Sprite const * sprite) {
     
     if (!sprite->tilemap) {

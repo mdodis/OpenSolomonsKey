@@ -444,7 +444,8 @@ global UpdateEntityFunc *enemy_update_table[] = {
     0,
     0,
     KMirror_update,
-    PanelMonsterFlame_update
+    PanelMonsterFlame_update,
+    DragonFire_update,
 };
 
 
@@ -479,6 +480,7 @@ global UpdateEntityFunc *entity_update_table[] = {
 };
 
 UPDATE_ENTITY_FUNC(Entity_update) {
+    spref->update_animation(dt);
     if (entity_update_table[spref->entity.type] != 0) {
         (*entity_update_table[spref->entity.type])(spref, istate, dt);
     }
@@ -533,7 +535,6 @@ internal void scene_update(InputState* istate, float dt) {
         Sprite* spref = &l[i];
         
         if (!g_scene.paused_for_key_animation) {
-            spref->update_animation(dt);
             Entity_update(spref, istate, dt);
         }
 #ifndef NDEBUG
