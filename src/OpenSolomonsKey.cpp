@@ -183,6 +183,8 @@ void draw_ui(float dt) {
         
     }
     
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon0), {64 * 5,64 * 12.1}, {330,54}, 0.f, 0, false, false, NRGBA{1,1,1,1}, true);
+    
     draw_text("ROUND..", 27, 24, false, 32.f);
     
     draw_score(dt);
@@ -204,7 +206,6 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt) {
         draw_extra_stuff();
         
         gl_background_draw();
-        
         if (dt > 0.13f) dt = 0.13f;
         
         switch(g_scene.current_state) {

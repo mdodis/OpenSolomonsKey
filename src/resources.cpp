@@ -31,6 +31,7 @@ DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7  )\
+DEF_TILEMAP(TM_ribbon0         ,"res/ribbons/4.png"                       ,1    ,1  )\
 
 struct RESTilemap {
     const char* const name;
@@ -253,22 +254,18 @@ internal void load_tilemap_textures() {
     
     for (u32 i = 0 ;i < TILEMAP_COUNT; ++i) {
         inform("loading tilemap: %s...",RES_TILEMAPS[i].name);
-        data = load_image_as_rgba_pixels(
-                                         RES_TILEMAPS[i].name,
+        data = load_image_as_rgba_pixels(RES_TILEMAPS[i].name,
                                          &width, &height, &bpp);
         assert(data);
         
-        g_tilemap_textures[i] = gl_load_rgba_tilemap(
-                                                     data,
-                                                     width, height,
-                                                     RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
+        g_tilemap_textures[i] = gl_load_rgba_tilemap(data, width, height, RES_TILEMAPS[i].rows, RES_TILEMAPS[i].cols);
         
     }
     
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
-        printf("TMerr: %d\n", err);
-        exit(-1);
+        fprintf(stderr, "TMerr: %d\n", err);
+        exit(4);
     }
     
 }
