@@ -453,6 +453,23 @@ should't be eEmptySpace
     float output_rotation = dfire->rotation;
     dfire->position += direction_from_rotation(D2R * (output_rotation)) * 200.f * dt;
     
+    // collision detection against enemies
+    for (Sprite &spr : g_scene.loaded_map.sprites) {
+        AABox enemy_box, dfire_box;
+        
+        enemy_box = spr.get_transformed_AABox();
+        dfire_box = dfire->get_transformed_AABox();
+        
+        if (is_killable_enemy(&spr)) {
+            if (intersect(&dfire_box, &enemy_box)) {
+                // TODO(mdodis): kill enemy function
+                spr.mark_for_removal = true;
+                dfire->mark_for_removal = true;
+            }
+        }
+        
+    }
+    
 }
 
 internal void player_reach_door(Sprite *player, Sprite *door) {

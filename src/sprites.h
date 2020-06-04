@@ -139,6 +139,12 @@ inline internal EnemyType get_enemy_type(Sprite *spr) {
     return spr->entity.params[0].as_etype;
 }
 
+inline internal bool is_killable_enemy(Sprite *s) {
+    EnemyType et = get_enemy_type(s);
+    return ((s->entity.type == ET_Enemy) &&
+            (et != MT_DragonFire));
+}
+
 UPDATE_ENTITY_FUNC(Player_update);
 UPDATE_ENTITY_FUNC(Goblin_update);
 UPDATE_ENTITY_FUNC(DFireball_update);
