@@ -1204,6 +1204,8 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
     const double &speed = dragon->entity.params[1].as_f64;
     const float turn_offset = dragon->direction() * 32;
     
+    static u64 current_fire_id = 1;
+    
     ivec2 ctile = map_position_to_tile_centered(dragon->position + fvec2{turn_offset, 0.f});
     if (dragon->position.x < 0) {
         ctile.x = -1;
@@ -1246,16 +1248,22 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
             Sprite dfire = make_dragon_fire(dragon->position + fvec2{64 * dragon->direction(),0});
             
             dfire.mirror.x = dragon->mirror.x;
-            
+            dragon->entity.params[2].as_u64 = current_fire_id;
+            dfire.entity.params[1].as_u64 = current_fire_id;
+            current_fire_id++;
             scene_sprite_add(&dfire);
         }
     } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Fire)) {
-        
+        if (!dragon->animation_playing) {
+            SET_ANIMATION(dragon, Dragon , Walk);
+            
+            Sprite *spr = find_dragon_fire_sprite(dragon->entity.params[2].as_u64);
+            assert(spr);
+            spr->mark_for_removal = true;
+        }
     }
 }
 
 UPDATE_ENTITY_FUNC2(DragonFire_update, dfire) {
-    if (!dfire->animation_playing) {
-        dfire->mark_for_removal = true;
-    }
+    
 }

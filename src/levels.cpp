@@ -123,6 +123,17 @@ internal Sprite *scene_find_nthsprite(EntityType type, int *n, Map *opt_map = 0)
     return 0;
 }
 
+internal Sprite *find_dragon_fire_sprite(u64 id) {
+    for (i32 i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
+        Sprite *result = &g_scene.loaded_map.sprites[i];
+        
+        if (result->entity.type == ET_Enemy && get_enemy_type(result) == MT_DragonFire && result->entity.params[1].as_u64 == id) {
+            return result;
+        }
+    }
+    return 0;
+}
+
 internal Sprite *find_first_enemy_on_tile(EnemyType type, ivec2 tile, Map *opt_map = 0) {
     int n = 0;
     

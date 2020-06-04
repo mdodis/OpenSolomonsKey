@@ -162,6 +162,7 @@ win32_init_gl_extensions() {
         if (wgl_is_extension_supported("WGL_EXT_swap_control", ext_string)) {
             inform("wglSwapInterval is supported!");
             wglSwapIntervalEXT = (PFNwglSwapIntervalEXT*)wglGetProcAddress("wglSwapIntervalEXT");
+            wglSwapIntervalEXT(1);
             
         }
     }
