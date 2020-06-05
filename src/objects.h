@@ -374,7 +374,7 @@ inline internal Sprite make_dragon(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(Dragon),
         .size = {64,64},
         .position = position,
-        .collision_box = {10,16,42,32},
+        .collision_box = {10,0,54,64},
         .mirror = {true, false},
         .animation_playing = true,
         .current_animation = GET_CHAR_ANIMENUM(Dragon, Walk),

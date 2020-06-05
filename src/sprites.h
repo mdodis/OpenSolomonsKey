@@ -10,6 +10,7 @@ struct Sprite {
     AABox collision_box = {0,0,64,64};
     ivec2 mirror = {false, false};
     fvec2 velocity = {0,0};
+    b32 enabled = true;
     b32 is_on_air = false;
     b32 mark_for_removal = false;                 // set to true to remove the sprite
     

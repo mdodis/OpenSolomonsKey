@@ -497,7 +497,7 @@ internal void player_enemy_test(Sprite *player) {
     for (int i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite *spr = &g_scene.loaded_map.sprites[i];
         
-        if (spr->entity.type == ET_Enemy) {
+        if (spr->entity.type == ET_Enemy && spr->enabled) {
             
             // TODO(mdodis): maybe check just the ones close to us tile-wise?
             AABox ebox = spr->get_transformed_AABox();
@@ -1219,18 +1219,23 @@ UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
 
 UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
     const double &speed = dragon->entity.params[1].as_f64;
-    const float turn_offset = dragon->direction() * 32;
-    
+    const float turn_offset = dragon->direction() * 36;
+    // TODO(mdodis): Movement like goblins 
     static u64 current_fire_id = 1;
     
     ivec2 ctile = map_position_to_tile_centered(dragon->position + fvec2{turn_offset, 0.f});
     if (dragon->position.x < 0) {
         ctile.x = -1;
     }
-    
     EntityType tile_front = (EntityType)scene_get_tile(ctile);
+    
+#ifndef NDEBUG    
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {ctile.x * 64.f, ctile.y * 64.f}, {64, 64}, 0,1 * 5 + 1, false, false, NRGBA{1.f, 0.f, 0.f, 1.f});
+#endif
+    
     if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Walk)) {
         if (!tile_is_empty(tile_front)) {
+            dragon->velocity = fvec2{0,0};
             SET_ANIMATION(dragon, Dragon, TurnWait);
         }
         
@@ -1249,8 +1254,22 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
             }
         }
         
-        dragon->position.x += dragon->direction() * speed * dt;
+        dragon->move_and_collide(dt, 900, 450, 0, dragon->direction() * speed);
+        
+        if (dragon->is_on_air) {
+            dragon->enabled = false;
+            SET_ANIMATION(dragon, Dragon, Die);
+        }
+        
     } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, TurnWait)) {
+        
+        dragon->move_and_collide(dt, 900, 450, 0, 0);
+        
+        if (dragon->is_on_air) {
+            dragon->enabled = false;
+            SET_ANIMATION(dragon, Dragon, Die);
+        }
+        
         if (!dragon->animation_playing) {
             SET_ANIMATION(dragon, Dragon, Turn);
         }
@@ -1277,6 +1296,11 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
             Sprite *spr = find_dragon_fire_sprite(dragon->entity.params[2].as_u64);
             assert(spr);
             spr->mark_for_removal = true;
+        }
+    } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Die)) {
+        dragon->position.y += dt * 200.f;
+        if (dragon->position.y > (12 * 64)) {
+            dragon->mark_for_removal = true;
         }
     }
 }
