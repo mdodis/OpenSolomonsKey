@@ -545,11 +545,22 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     if      (GET_KEYDOWN(move_right)) xmove_amount = XSPEED;
     else if (GET_KEYDOWN(move_left )) xmove_amount = -XSPEED;
     
+    
+    
+    
     if (GET_KEYDOWN(move_down) && !player->is_on_air)
         is_crouching = true;
     
-    if (GET_KEYPRESS(move_up) && !is_crouching)
+    if (GET_KEYPRESS(move_up) && !is_crouching) {
+        SET_ANIMATION(player, Dana, JumpWait);
+    }
+    
+    if (player->current_animation == GET_CHAR_ANIMENUM(Dana, JumpWait) && !player->animation_playing) {
         did_jump = player->jump(JUMP_STRENGTH);
+        SET_ANIMATION(player, Dana, Idle);
+    }
+    
+    xmove_amount = player->current_animation == GET_CHAR_ANIMENUM(Dana, JumpWait) ? 0 : xmove_amount;
     
     if (did_jump)  audio_play_sound(GET_SOUND(SND_jump));
     
@@ -634,13 +645,16 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     
     player->move_and_collide(dt, GRAVITY, MAX_YSPEED, jump_strength, xmove_amount, true);
     
-    if (iabs(player->velocity.x) > 0)
-    {
-        SET_ANIMATION(player, Dana, Run);
-        player->mirror.x = player->velocity.x > 0;
+    if (player->current_animation != GET_CHAR_ANIMENUM(Dana, JumpWait)) {
+        
+        if (iabs(player->velocity.x) > 0)
+        {
+            SET_ANIMATION(player, Dana, Run);
+            player->mirror.x = player->velocity.x > 0;
+        }
+        else if (is_crouching) SET_ANIMATION(player, Dana, Crouch);
+        else                   SET_ANIMATION(player, Dana, Idle);
     }
-    else if (is_crouching) SET_ANIMATION(player, Dana, Crouch);
-    else                   SET_ANIMATION(player, Dana, Idle);
 }
 
 UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {

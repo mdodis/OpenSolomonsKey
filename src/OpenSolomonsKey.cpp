@@ -150,12 +150,7 @@ cb_resize() {
     
     g_shd_2d.apply();
     GLuint loc = glGetUniformLocation(g_shd_2d.id, "projection");
-    glUniformMatrix4fv(
-                       loc,
-                       1,
-                       GL_FALSE,
-                       glm::value_ptr(g_projection));
-    
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(g_projection));
     
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
