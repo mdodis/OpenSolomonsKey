@@ -1234,10 +1234,6 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
 #endif
     
     if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, Walk)) {
-        if (!tile_is_empty(tile_front)) {
-            dragon->velocity = fvec2{0,0};
-            SET_ANIMATION(dragon, Dragon, TurnWait);
-        }
         
         // Player checking
         {
@@ -1259,6 +1255,17 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
         if (dragon->is_on_air) {
             dragon->enabled = false;
             SET_ANIMATION(dragon, Dragon, Die);
+        }
+        
+        if (!tile_is_empty(tile_front)) {
+            dragon->velocity = fvec2{0,0};
+            SET_ANIMATION(dragon, Dragon, TurnWait);
+        }
+        ivec2 dragon_tile = map_position_to_tile_centered(dragon->position);
+        ivec2 ctile_under = ctile + ivec2{0,1};
+        if (scene_get_tile(ctile_under) == ET_EmptySpace && scene_get_tile(ctile) == ET_EmptySpace && dragon_tile.y != 11) {
+            SET_ANIMATION(dragon, Dragon, TurnWait);
+            dragon->velocity.x = 0;
         }
         
     } else if (dragon->current_animation == GET_CHAR_ANIMENUM(Dragon, TurnWait)) {
