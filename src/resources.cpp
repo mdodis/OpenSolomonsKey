@@ -32,7 +32,7 @@ DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7  )\
-DEF_TILEMAP(TM_ribbon0         ,"res/ribbons/4.png"                       ,1    ,1  )\
+DEF_TILEMAP(TM_ribbon          ,"res/ribbons.png"                         ,1    ,3  )\
 
 struct RESTilemap {
     const char* const name;

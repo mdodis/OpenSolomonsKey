@@ -160,7 +160,28 @@ cb_resize() {
     g_pixel_scale = (float)g_tile_scale / 64.0f;
 }
 
-void draw_ui(float dt) {
+internal void draw_ribbon(float dt) {
+    const int num_ribbons = 3;
+    int i;
+    fvec2 ribbon_start_pos = fvec2{64 * 9 + 46, 64 * 12};
+    
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), {64 * 10, 64 * 12}, {64,64}, 0, 2);
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), ribbon_start_pos, {64,64}, 0, 1);
+    
+    for (i = 0; i < num_ribbons; i += 1) {
+        // actual ribbon slot width is 46x46
+        fvec2 pos = ribbon_start_pos - fvec2{float(i) * 46, 0};
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), pos, {64,64}, 0, 1);
+    }
+    
+    fvec2 pos = ribbon_start_pos - fvec2{float(i) * 46, 0};
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), pos, {64,64}, 0, 0);
+    
+    
+    
+}
+
+internal void draw_ui(float dt) {
     
     // 1p
     persist float text_1p_t = 0.f;
@@ -183,7 +204,7 @@ void draw_ui(float dt) {
         
     }
     
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon0), {64 * 6,64 * 12.1}, {330,54}, 0.f, 0, false, false, NRGBA{1,1,1,1}, true);
+    draw_ribbon(dt);
     
 #if 0    
     // TODO(mdodis): draw the actual ui thingy
