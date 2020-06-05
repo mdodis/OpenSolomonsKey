@@ -177,6 +177,15 @@ static char *Dragon_custom(char *c, int row, int col, bool kmirror) {
     return c;
 }
 
+static char *SparkBall_custom(char *c, int row, int col, bool kmirror) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 100.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_SparkBall, row, col, (void*)&speed, (void*)&dir, kmirror);
+    return c;
+}
+
 static char *PanelMonster_custom(char *c, int row, int col) {
     double interval;
     long dir;
@@ -269,6 +278,9 @@ static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool 
             c = PanelMonster_custom(c, row, col);
         }break;
         
+        case MT_SparkBall: {
+            c = SparkBall_custom(c, row, col, kmirror);
+        }break;
     }
     return c;
 }

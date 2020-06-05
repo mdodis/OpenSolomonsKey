@@ -407,6 +407,26 @@ inline internal Sprite make_dragon_fire(fvec2 position) {
     return result;
 }
 
+inline internal Sprite make_spark_ball(fvec2 position) {
+    Sprite res = {
+        .tilemap = &GET_CHAR_TILEMAP(SparkBall),
+        .size = {55,55},
+        .position = position,
+        .collision_box = {8,8,40,40},
+        .mirror = {false, false},
+        .animation_set = GET_CHAR_ANIMSET(SparkBall),
+        .entity = {
+            ET_Enemy,
+            {0,0}
+        }
+    };
+    
+    res.entity.params[0].as_etype = MT_SparkBall;
+    return res;
+}
+
+
+
 internal void draw(Sprite const * sprite) {
     
     if (!sprite->tilemap) {

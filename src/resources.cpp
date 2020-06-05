@@ -27,6 +27,7 @@ DEF_TILEMAP(TM_ghost           ,"res/ghost_all.png"                       ,2    
 DEF_TILEMAP(TM_panelmonster    ,"res/panel_monster_all.png"               ,3    ,5  )\
 DEF_TILEMAP(TM_wyvern          ,"res/wyvern_all.png"                      ,2    ,3  )\
 DEF_TILEMAP(TM_dragon          ,"res/dragon_all.png"                      ,4    ,5  )\
+DEF_TILEMAP(TM_spark_ball      ,"res/spark_ball_all.png"                  ,1    ,8  )\
 DEF_TILEMAP(TM_effects         ,"res/effects.png"                         ,5    ,4  )\
 DEF_TILEMAP(font               ,"res/font.png"                            ,6    ,16 )\
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
@@ -139,6 +140,9 @@ DEF_ANIM(Dragon,                FireWait,0.34f,    {0,1}, 3,      false)   \
 )                                                                 \
 DEF_CHARACTER(DragonFire,            TM_dragon,         1,                      \
 DEF_ANIM(DragonFire,            Default, 0.2f,     {0,2}, 4,      true )   \
+)                                                                 \
+DEF_CHARACTER(SparkBall,             TM_spark_ball,     1,                      \
+DEF_ANIM(SparkBall,             Default, 0.2f,     {0,0}, 8,      true )   \
 )                                                                 \
 DEF_CHARACTER(DFireball,             TM_dana_fire,       3,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \

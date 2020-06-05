@@ -357,6 +357,12 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
         }break;
         
+        case MT_SparkBall: {
+            sprite_to_make = make_spark_ball(pos);
+            
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+        }break;
+        
         default:{
             assert(0);
         }break;
@@ -448,7 +454,7 @@ global UpdateEntityFunc *enemy_update_table[] = {
     Wyvern_update,
     PanelMonster_update,
     0,
-    0,
+    SparkBall_update,
     BlueFlame_update,
     0,
     0,

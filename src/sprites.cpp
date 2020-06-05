@@ -1284,3 +1284,273 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
 UPDATE_ENTITY_FUNC2(DragonFire_update, dfire) {
     
 }
+
+UPDATE_ENTITY_FUNC2(SparkBall_update, sball) {
+    
+    const double &speed = sball->entity.params[1].as_f64;
+    
+    ivec2 target_tile = map_position_to_tile_centered(sball->position);
+    AABox aabb = sball->get_transformed_AABox();
+    
+    sball->rotation = (int)sball->rotation % 360;
+    
+    fvec2 forward = direction_from_rotation(D2R * sball->rotation);
+    fvec2 back = direction_from_rotation(D2R * (sball->rotation + 180.f));
+    fvec2 right = direction_from_rotation(D2R * (sball->rotation + 90.f));
+    fvec2 left = direction_from_rotation(D2R * (sball->rotation - 90.f));
+    
+    ivec2 forward_tile = target_tile + ivec2{(int)forward.x, (int)forward.y};
+    ivec2 right_tile = target_tile + ivec2{(int)right.x, (int)right.y};
+    ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
+    
+    /*
+NOTE: when revisiting think about this:
+
+while (there is a wall in front of us)
+    -    turn left
+move forward
+if (there is no wall to our right)
+    -    turn right
+
+Wall follower algorithm
+
+And tile-wise there are two general situations:
+     1) The tile in front is blocking the way.
+2) The tile in front(target_tile) is empty.
+What is important in every one of these, is
+knowing which tile we're going to be "attached"
+to (side_tile).
+=======================HORIZONTAL=========================
+============ROT 0===========||==========ROT 180===========
+|            |    [XX]      ||            |      [XX]    |
+|   o>  (+90)|  o>[XX] (-90)||(-90)  <o   |(+90) [XX]<o  |
+|[XX] | [XX] |[XX]          ||        [XX]|          [XX]|
+|[XX]   [XX] |[XX]          ||        [XX]|          [XX]|
+|------------|--------------||------------|--------------|
+|[XX]        |[XX]          ||        [XX]|          [XX]|
+|[XX]        |[XX]          ||        [XX]|          [XX]|
+|  o>   (-90)|  o>[XX] (+90)||(+90)   <o  |(-90) [XX]<o  |
+|            |    [XX]      ||            |      [XX]    |
+|            |              ||            |              |
+============================||============================
+
+========================VERTICAL==========================
+===========Rot 90===========||==========ROT 270===========
+|[XX]o  (+90)|[XX]o    (-90)||       (-90)|    [XX] (+90)|
+|[XX]|       |[XX]|         ||            |    [XX]      |
+|            |    [XX]      ||[XX]|       |[XX]|         |
+|            |    [XX]      ||[XX]o       |[XX]o         |
+|------------|--------------||------------|--------------|
+|o[XX]  (-90)|   o[XX] (+90)||       (+90)|[XX]     (-90)|
+||[XX]       |   |[XX]      ||            |[XX]          |
+|            |[XX]          |||[XX]       |   |[XX]      |
+|            |[XX]          ||o[XX]       |   o[XX]      |
+==========================================================
+
+ |> Get side_tile :: ST.
+ |> If on horizontal rotation:
+ |    > If ST is empty (case 2):
+ |        >             For 1st column          For 3rd column
+ |        > H = osk__min(ST.x* 64.f - aabb.min_x, aabb.max_x - (ST.x + 1) * 64.f)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? 90 : -90;
+ |    > If FW is NOT emprty (case 1):
+ |        >
+ |        > H = osk__min(FW.x * 64 - aabb.max_x, aabb.min_x - (FW.x + 1) * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? -90 : 90;
+ |        >
+ |> If on vertical rotation:
+ |    > If ST is empty
+ |        >                   For 1st column
+ |        > H = osk__min(ST.y * 64 - aabb.min_y, aabb.max_y - ST.y * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? 90 : -90;
+ |    > If FW is NOT empty:
+ |        >                   For 2nd column
+ |        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
+ |        > If H < proximity_thresh
+ |            > TURN side_tile == right_tile ? -90 : 90;
+ |        > TODO write this up or del you fucking idiot
+
+
+ At Any point there are two cases in which the tile should be attached:
+   | o>   It should be            o>   The same
+ |[XX]  attached to         [XX]
+ |[XX]  the side tile       [XX]
+
+So either the side_tile shouldn't be eEmptySpace ||
+side_tile should be eEmptySpace and side_tile + (tile_behind)
+should't be eEmptySpace
+
+    */
+    const float proximity_thresh = 5.f;
+    const float tile_attach_thresh = 66.f;
+    ivec2 side_tile = ivec2{-1, -1};
+    fvec2 aabb_center = fvec2{(aabb.min_x + aabb.max_x) / 2.f,(aabb.min_y + aabb.max_y) / 2.f};
+    fvec2 right_tile_center = fvec2{right_tile.x * 64.f + 32.f, right_tile.y * 64.f + 32.f};
+    fvec2 left_tile_center = fvec2{left_tile.x * 64.f + 32.f, left_tile.y * 64.f + 32.f};
+    fvec2 side_vector = fvec2{-1,-1};
+    
+    if (distance(right_tile_center, aabb_center) < tile_attach_thresh) {
+        side_vector = right;
+        side_tile = right_tile;
+        
+        bool should_attach = scene_get_tile(side_tile) != ET_EmptySpace ||
+            (scene_get_tile(side_tile) == ET_EmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != ET_EmptySpace);
+        
+        if (!should_attach) side_tile = ivec2{-1,-1};
+    }
+    if (distance(left_tile_center, aabb_center) < tile_attach_thresh &&
+        (distance(left_tile_center, aabb_center) < distance(right_tile_center, aabb_center) ||
+         side_tile.x == -1) ) {
+        side_vector = left;
+        side_tile = left_tile;
+        
+        
+        bool should_attach = scene_get_tile(side_tile) != ET_EmptySpace ||
+            (scene_get_tile(side_tile) == ET_EmptySpace &&
+             scene_get_tile(get_tile_behind(side_tile, forward))  != ET_EmptySpace);
+        
+        if (!should_attach) side_tile = ivec2{-1,-1};
+    }
+    
+    draw_num(side_tile.x, 5, 0); draw_num(side_tile.y, 5, 20);
+    
+    if (side_tile.x != -1) {
+        
+        if (sball->rotation == 0.f || sball->rotation == 180) {
+            
+            if (scene_get_tile(side_tile) == ET_EmptySpace) { // columns 1 & 3
+                
+                float col1 = sball->rotation == 000.f
+                    ? (side_tile.x * 64.f - aabb.min_x)
+                    : FLT_MAX;
+                float col3 = sball->rotation == 180.f
+                    ? (aabb.max_x - (side_tile.x + 1) * 64.f)
+                    : FLT_MAX;
+                float comp = osk__min(col1, col3, FLT_MAX);
+                
+                assert(comp >= 0 );
+                
+                if (comp <= proximity_thresh) {
+                    sball->rotation += side_tile == right_tile ? 90.f : -90.f;
+                    goto END_ROT;
+                    
+                }
+            }
+            if (scene_get_tile(forward_tile) != ET_EmptySpace) { // columns 2 & 4
+                
+                float col2 = sball->rotation == 000.f
+                    ? forward_tile.x * 64.f - aabb.max_x
+                    : FLT_MAX;
+                
+                float col4 = sball->rotation == 180.f
+                    ? aabb.min_x - (forward_tile.x + 1) * 64.f
+                    : FLT_MAX;
+                
+                //printf("2 is %f 4 is %f\n", col2, col4);
+                
+                // NOTE(mdodis): when the fireball is spawned right next
+                // to a tile it could attach, it's basically already inside the
+                // tile, so special to case to make it behave
+                if (col2 < 0.f) {
+                    if (fabs(col2) < 15.f) {
+                        col2 = -col2 -10.f;
+                    }
+                }
+                
+                float comp = osk__min(col2, col4, FLT_MAX);
+                assert(comp >= 0 );
+                
+                if (comp <= proximity_thresh) {
+                    sball->rotation += side_tile == right_tile ? -90.f : 90.f;
+                    //printf("DO\n");
+                    goto END_ROT;
+                }
+            }
+            
+        } else {
+            
+            if (scene_get_tile(side_tile) == ET_EmptySpace) { // columns 1 & 3
+                float col1 = sball->rotation == 90.f
+                    ? (side_tile.y + 0) * 64.f - aabb.min_y
+                    : FLT_MAX;
+                float col3 = sball->rotation == 270.f
+                    ? (aabb.max_y - (side_tile.y + 1) * 64.f)
+                    : FLT_MAX;
+                
+                float comp = osk__min(col1, col3, FLT_MAX);
+                assert(comp >= 0 );
+                
+                if (comp <= proximity_thresh){
+                    
+                    sball->rotation += side_tile == right_tile ? 90.f : -90.f;
+                    goto END_ROT;
+                }
+            }
+            if (scene_get_tile(forward_tile) != ET_EmptySpace) { // columns 2 & 4
+                
+                float col2 = sball->rotation == 90.f
+                    ? (forward_tile.y * 64.f - aabb.max_y)
+                    : FLT_MAX;
+                float col4 = sball->rotation == 270.f
+                    ? (aabb.min_y - (forward_tile.y + 1) * 64.f)
+                    : FLT_MAX;
+                
+                float comp = osk__min(col2, col4, FLT_MAX);
+                assert(comp >= 0 );
+                
+                if (comp <= proximity_thresh){
+                    sball->rotation += side_tile == right_tile ? -90.f : 90.f;
+                    goto END_ROT;
+                }
+            }
+            
+        }
+    } else {
+        
+        // if we haven't attached to a nearby (side) tile.
+        // Check the forward tile and react accordingly
+        if (scene_get_tile(forward_tile) != ET_EmptySpace){
+            
+            if (sball->rotation == 180.f) {
+                if ((aabb.min_x - (forward_tile.x + 1) * 64.f) < proximity_thresh){
+                    sball->rotation += 90.f;
+                    goto END_ROT;
+                }
+            }
+            
+            if (sball->rotation == 90.f) {
+                if (forward_tile.y * 64.f - aabb.max_y < proximity_thresh) {
+                    sball->rotation -= 90.f;
+                    goto END_ROT;
+                }
+            }
+            
+            if (sball->rotation == 270.f) {
+                if (aabb.min_y - (forward_tile.y + 1) * 64.f < proximity_thresh) {
+                    sball->rotation += 90.f;
+                    goto END_ROT;
+                }
+            }
+            
+            if (sball->rotation == 0.f) {
+                if ((forward_tile.x) * 64.f - aabb.max_x < proximity_thresh) {
+                    sball->rotation += 90.f;
+                    goto END_ROT;
+                }
+            }
+            
+        }
+        
+    }
+    
+    END_ROT:
+    sball->rotation = deg_0_360(sball->rotation);
+    
+    float output_rotation = sball->rotation;
+    sball->position += direction_from_rotation(D2R * (output_rotation)) * float(speed) * dt;
+    
+}

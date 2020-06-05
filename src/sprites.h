@@ -158,6 +158,7 @@ UPDATE_ENTITY_FUNC(Wyvern_update);
 UPDATE_ENTITY_FUNC(Fairie_update);
 UPDATE_ENTITY_FUNC(Dragon_update);
 UPDATE_ENTITY_FUNC(DragonFire_update);
+UPDATE_ENTITY_FUNC(SparkBall_update);
 
 internal void BlueFlame_cast(Sprite* flame);
 internal void player_pickup(Sprite *player, Sprite *pickup);
