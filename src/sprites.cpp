@@ -710,13 +710,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
         ivec2 dir_tile_under = dir_tile + ivec2{0, 1};
         
 #ifndef NDEBUG
-        gl_slow_tilemap_draw(
-                             &GET_TILEMAP_TEXTURE(TM_essentials),
-                             {dir_tile_under.x * 64.f, dir_tile_under.y * 64.f},
-                             {64, 64},
-                             0,1 * 5 + 1,
-                             false, false,
-                             NRGBA{1.f, 0.f, 0.f, 1.f});
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {dir_tile_under.x * 64.f,dir_tile_under.y * 64.f}, {64, 64}, 0,1 * 5 + 1, false, false, NRGBA{1.f, 0.f, 0.f, 1.f});
 #endif
         if (scene_get_tile(dir_tile_under) == ET_EmptySpace && scene_get_tile(dir_tile) == ET_EmptySpace && goblin_tile.y != 11) {
             SET_ANIMATION(goblin, Goblin, Wait);
@@ -1218,7 +1212,7 @@ UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
 }
 
 UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
-    const double &speed = dragon->entity.params[1].as_f64;
+    double speed = dragon->entity.params[1].as_f64;
     const float turn_offset = dragon->direction() * 36;
     // TODO(mdodis): Movement like goblins 
     static u64 current_fire_id = 1;
@@ -1246,6 +1240,7 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
                 
                 if ((abs(diff) <= 1) && (sgn(diff) == i32(dragon->direction()))) {
                     SET_ANIMATION(dragon, Dragon, FireWait);
+                    return;
                 }
             }
         }
