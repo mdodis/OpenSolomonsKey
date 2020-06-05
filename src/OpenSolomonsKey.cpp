@@ -161,10 +161,20 @@ cb_resize() {
 }
 
 internal void draw_ribbon(float dt) {
-    const int num_ribbons = 3;
+    const int num_ribbons = 6;
+    const int num_fireballs = 4;
     int i;
-    fvec2 ribbon_start_pos = fvec2{64 * 9 + 46, 64 * 12};
+    NRGBA color;
+    static float t = 0.f;
+    t += dt * 4;
     
+    color.r = (sinf(t) + 2.f) * 0.5f;
+    color.g = (sinf(t) + 2.f) * 0.5f;
+    color.b = (cosf(t) + 2.f) * 0.5f;
+    color.a = 1.f;
+    
+    fvec2 ribbon_start_pos = fvec2{64 * 9 + 46, 64 * 12};
+    fvec2 ribbon_fire_start_pos = fvec2{64 * 10 + 4, 32 * 23 + 25};
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), {64 * 10, 64 * 12}, {64,64}, 0, 2);
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), ribbon_start_pos, {64,64}, 0, 1);
     
@@ -177,6 +187,12 @@ internal void draw_ribbon(float dt) {
     fvec2 pos = ribbon_start_pos - fvec2{float(i) * 46, 0};
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), pos, {64,64}, 0, 0);
     
+    for (i = 0; i < num_fireballs; i += 1){
+        fvec2 pos = ribbon_fire_start_pos - fvec2{46 * float(i), 0};
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon_fire), pos, {32,32}, 0, 4, false, false, color);
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon_fire), pos + fvec2{0,32}, {32,32}, 0, 5, false, false, color);
+        
+    }
     
     
 }

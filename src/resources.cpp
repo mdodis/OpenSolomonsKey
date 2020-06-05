@@ -33,6 +33,7 @@ DEF_TILEMAP(font               ,"res/font.png"                            ,6    
 DEF_TILEMAP(misc               ,"res/misc.png"                            ,4    ,4  )\
 DEF_TILEMAP(TM_pickups         ,"res/pickups.png"                         ,5    ,7  )\
 DEF_TILEMAP(TM_ribbon          ,"res/ribbons.png"                         ,1    ,3  )\
+DEF_TILEMAP(TM_ribbon_fire     ,"res/ribbons_fire.png"                    ,1    ,6  )\
 
 struct RESTilemap {
     const char* const name;
