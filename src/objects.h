@@ -260,6 +260,10 @@ inline internal Sprite make_key(fvec2 position) {
     
 }
 
+internal void set_pickup_collision_box(Sprite *pickup) {
+    pickup->collision_box = AABox{10,0,54,64};
+}
+
 inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
     Sprite res = {
         
@@ -273,10 +277,11 @@ inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
         .animation_set = 0,
         .entity = {
             ET_Pickup,
-            {type, 0}
+            {type, 0, 0, 0, 0}
         }
     };
     
+    set_pickup_collision_box(&res);
     res.entity.params[2].as_u64 = id;
     
     return res;

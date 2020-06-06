@@ -87,7 +87,6 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
         }
     }
     
-    
     if (!collided_on_bottom && this->velocity.y != 0)
         this->is_on_air = true;
     
@@ -115,6 +114,26 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
 effect = make_effect((pos), GET_CHAR_ANIM_HANDLE(Effect, type)); \
 scene_sprite_add(&effect); \
 }while(0)
+
+
+enum MonsterDeathReason {
+    MDR_BlockBreak,
+    MDR_Fireball
+};
+
+internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
+    
+    if (monster->entity.params[0].as_etype == MT_Goblin) {
+        Sprite pickup = make_pickup(monster->position, PT_Bag500);
+        pickup.entity.params[3].as_i64 = 1;
+        scene_sprite_add(&pickup);
+        
+        if (reason == MDR_Fireball) {
+            monster->mark_for_removal = true;
+        }
+    }
+}
+
 
 internal void Player_cast(Sprite* player, float dt) {
     // Get the upper left tile based on the center of the player sprite
@@ -465,7 +484,8 @@ should't be eEmptySpace
         if (is_killable_enemy(&spr)) {
             if (intersect(&dfire_box, &enemy_box)) {
                 // TODO(mdodis): kill enemy function
-                spr.mark_for_removal = true;
+                monster_die(&spr, MDR_Fireball);
+                //spr.mark_for_removal = true;
                 dfire->mark_for_removal = true;
             }
         }
@@ -663,6 +683,8 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     }
 }
 
+
+
 UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     /*
     NOTE: Sprite::mirror is a bool, and sprites by default look to the left,
@@ -792,6 +814,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
     if (goblin->is_on_air && !is_dying) {
+        monster_die(goblin, MDR_BlockBreak);
         SET_ANIMATION(goblin, Goblin, Fall);
     } else if (is_dying) {
         if (goblin->position.y > (12 * 64)) {

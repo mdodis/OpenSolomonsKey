@@ -492,6 +492,11 @@ UPDATE_ENTITY_FUNC(Effect_update) {
     }
 }
 
+UPDATE_ENTITY_FUNC(Pickup_update) {
+    if (spref->entity.params[3].as_i64 == 1)
+        spref->move_and_collide(dt, 600, 450, 0, 0, false);
+}
+
 global UpdateEntityFunc *entity_update_table[] = {
     0,
     0,
@@ -502,7 +507,7 @@ global UpdateEntityFunc *entity_update_table[] = {
     Enemy_update,
     0,
     0,
-    0,
+    Pickup_update,
     Fairie_update,
     Effect_update,
     DFireball_update
@@ -518,7 +523,10 @@ UPDATE_ENTITY_FUNC(Entity_update) {
 internal void scene_update(InputState* istate, float dt) {
     
     for (int i = 0; i < g_scene.loaded_map.pickups.size(); ++i) {
-        draw_pickup(&g_scene.loaded_map.pickups[i]);
+        Sprite *pickup = &g_scene.loaded_map.pickups[i];
+        draw_pickup(pickup);
+        
+        Entity_update(pickup, istate, dt);
     }
     scene_draw_tilemap();
     
