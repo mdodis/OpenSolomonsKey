@@ -158,6 +158,7 @@ internal void Player_cast(Sprite* player, float dt) {
     if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
     
     SET_ANIMATION(player, Dana, Cast);
+    audio_play_sound(GET_SOUND(SND_boueip));
     if (!enemy_on_tile) {
         EntityType type = (EntityType)scene_get_tile(target_tile);
         bool should_spawn_flash_effect = true;
@@ -688,8 +689,8 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
                 SET_ANIMATION(player,Dana, JumpTurn);
             } else {
                 SET_ANIMATION(player, Dana, Run);
-                player->mirror.x = player->velocity.x > 0;
             }
+            player->mirror.x = player->velocity.x > 0;
         }
         else if (is_crouching) SET_ANIMATION(player, Dana, Crouch);
         else                   SET_ANIMATION(player, Dana, Idle);

@@ -149,8 +149,8 @@ global struct
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
-    //float volume = 0.5f;
-    float volume = 0.0f;
+    float volume = 0.3f;
+    //float volume = 0.0f;
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};
 } g_audio;

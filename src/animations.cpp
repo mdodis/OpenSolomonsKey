@@ -175,6 +175,7 @@ internal void play_win_animation() {
     win_animation_state = 0;
     assert(g_scene.current_state == SS_PLAYING);
     g_scene.current_state = SS_WIN;
+    audio_remove(SoundType::Music);
 }
 
 internal void scene_win_animation(float dt) {
