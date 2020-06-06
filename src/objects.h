@@ -192,6 +192,9 @@ inline internal Sprite make_dfireball(fvec2 position) {
         }
     };
     
+    res.entity.params[0].as_f64 = 2.0;
+    res.entity.params[1].as_f64 = 0.0;
+    
     SET_ANIMATION(&res, DFireball, Middle);
     return res;
 }

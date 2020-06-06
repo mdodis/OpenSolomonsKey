@@ -18,7 +18,7 @@ tilemaps.
 DEF_TILEMAP(TM_logo            ,"res/logo3.png"                           ,1    ,1  )\
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(TM_dana            ,"res/dana_all.png"                        ,5    ,6  )\
-DEF_TILEMAP(TM_dana_fire       ,"res/dana_fireball.png"                   ,3    ,1  )\
+DEF_TILEMAP(TM_dana_fire       ,"res/dana_fireball.png"                   ,4    ,1  )\
 DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
 DEF_TILEMAP(TM_demonhead       ,"res/demon_head.png"                      ,2    ,8  )\
 DEF_TILEMAP(TM_goblin          ,"res/goblin_all.png"                      ,4    ,7  )\
@@ -148,11 +148,12 @@ DEF_ANIM(DragonFire,            Default, 0.2f,     {0,2}, 4,      true )   \
 DEF_CHARACTER(SparkBall,             TM_spark_ball,     1,                      \
 DEF_ANIM(SparkBall,             Default, 0.2f,     {0,0}, 8,      true )   \
 )                                                                 \
-DEF_CHARACTER(DFireball,             TM_dana_fire,       3,                     \
+DEF_CHARACTER(DFireball,             TM_dana_fire,       4,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(DFireball,             Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,             Middle,  .1f,      {0,1}, 1,      true )   \
 DEF_ANIM(DFireball,             Up,      .1f,      {0,2}, 1,      true )   \
+DEF_ANIM(DFireball,             Decay,   .1f,      {0,3}, 1,      true )   \
 )                                                                 \
 DEF_CHARACTER(Effect,                TM_effects,        6,                      \
 DEF_ANIM(Effect,                Smoke,   .1f,      {0,0}, 4,      false)   \

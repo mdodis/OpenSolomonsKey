@@ -210,6 +210,19 @@ internal void Player_cast(Sprite* player, float dt) {
 
 
 UPDATE_ENTITY_FUNC2(DFireball_update, dfire) {
+    
+    const double &time = dfire->entity.params[0].as_f64;
+    double &timer = dfire->entity.params[1].as_f64;
+    
+    timer += dt;
+    if (timer >= (time - 0.1)) {
+        SET_ANIMATION(dfire, DFireball, Decay);
+    }
+    
+    if (timer >= time) {
+        dfire->mark_for_removal = true;
+    }
+    
     ivec2 target_tile = map_position_to_tile_centered(dfire->position);
     AABox aabb = dfire->get_transformed_AABox();
     
