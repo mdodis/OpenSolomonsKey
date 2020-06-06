@@ -90,14 +90,15 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                              \
 /*            Name,        Tilemap,  Animation Count */                         \
-DEF_CHARACTER(Dana,                  TM_dana,            6,                     \
+DEF_CHARACTER(Dana,                  TM_dana,            7,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(Dana,                  Run ,    .1f,      {0,1}, 5,      true )   \
 DEF_ANIM(Dana,                  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(Dana,                  Crouch,  .05f,     {0,3}, 1,      true )   \
 DEF_ANIM(Dana,                  Die,     .1f,      {0,4}, 4,      false)   \
-DEF_ANIM(Dana,                  JumpWait,.15f,     {1,4}, 1,      false)   \
+DEF_ANIM(Dana,                  JumpWait,.1f,      {1,4}, 1,      false)   \
+DEF_ANIM(Dana,                  JumpTurn,.1f,      {5,1}, 1,      true )   \
 )                                                                 \
 DEF_CHARACTER(Goblin,                TM_goblin,          5,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
@@ -153,10 +154,11 @@ DEF_ANIM(DFireball,             Down,    .1f,      {0,0}, 1,      true )   \
 DEF_ANIM(DFireball,             Middle,  .1f,      {0,1}, 1,      true )   \
 DEF_ANIM(DFireball,             Up,      .1f,      {0,2}, 1,      true )   \
 )                                                                 \
-DEF_CHARACTER(Effect,                TM_effects,        5,                      \
+DEF_CHARACTER(Effect,                TM_effects,        6,                      \
 DEF_ANIM(Effect,                Smoke,   .1f,      {0,0}, 4,      false)   \
 DEF_ANIM(Effect,                Star,    .1f,      {0,1}, 3,      true )   \
 DEF_ANIM(Effect,                Flash,   .1f,      {0,2}, 2,      false)   \
+DEF_ANIM(Effect,                FlashBlk,.1f,      {0,2}, 2,      false)   \
 DEF_ANIM(Effect,                Flash2,  .1f,      {0,3}, 3,      false)   \
 DEF_ANIM(Effect,                Hit,     .1f,      {0,4}, 4,      false)   \
 )                                                                 \

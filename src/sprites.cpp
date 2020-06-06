@@ -145,7 +145,7 @@ internal void Player_cast(Sprite* player, float dt) {
         bool put_frail_block;
         
         if (is_frail_block(type)) {
-            scene_set_tile(target_tile, ET_EmptySpace);
+            //scene_set_tile(target_tile, ET_EmptySpace);
             put_frail_block = false;
         } else if (type == ET_EmptySpace) {
             
@@ -156,7 +156,7 @@ internal void Player_cast(Sprite* player, float dt) {
                 should_spawn_flash_effect = false;
             } else {
                 put_frail_block = true;
-                scene_set_tile(target_tile, ET_BlockFrail);
+                //scene_set_tile(target_tile, ET_BlockFrail);
             }
         }
         
@@ -173,7 +173,9 @@ internal void Player_cast(Sprite* player, float dt) {
         }
         
         if (should_spawn_flash_effect) {
-            Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, Flash));
+            Sprite flash = make_effect(tile_to_position(target_tile), GET_CHAR_ANIM_HANDLE(Effect, FlashBlk));
+            flash.entity.params[0].as_i64 = target_tile.x;
+            flash.entity.params[1].as_i64 = target_tile.y;
             scene_sprite_add(&flash);
         }
     } else {
@@ -649,8 +651,12 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
         
         if (iabs(player->velocity.x) > 0)
         {
-            SET_ANIMATION(player, Dana, Run);
-            player->mirror.x = player->velocity.x > 0;
+            if (player->is_on_air) {
+                SET_ANIMATION(player,Dana, JumpTurn);
+            } else {
+                SET_ANIMATION(player, Dana, Run);
+                player->mirror.x = player->velocity.x > 0;
+            }
         }
         else if (is_crouching) SET_ANIMATION(player, Dana, Crouch);
         else                   SET_ANIMATION(player, Dana, Idle);

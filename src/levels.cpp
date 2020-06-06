@@ -477,6 +477,18 @@ UPDATE_ENTITY_FUNC(Enemy_update) {
 UPDATE_ENTITY_FUNC(Effect_update) {
     if (!spref->animation_playing) {
         spref->mark_for_removal = true;
+        
+        if (spref->current_animation == GET_CHAR_ANIMENUM(Effect, FlashBlk)) {
+            ivec2 target_tile;
+            target_tile.x = spref->entity.params[0].as_i64;
+            target_tile.y = spref->entity.params[1].as_i64;
+            EntityType type = scene_get_tile(target_tile);
+            if (is_frail_block(type)) {
+                scene_set_tile(target_tile, ET_EmptySpace);
+            } else {
+                scene_set_tile(target_tile, ET_BlockFrail);
+            }
+        }
     }
 }
 
