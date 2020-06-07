@@ -363,6 +363,13 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
             sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
         }break;
         
+        case MT_Gargoyle: {
+            sprite_to_make = make_gargoyle(pos);
+            long dir = *(long*)param2;
+            if (dir == 1) sprite_to_make.mirror.x = false;
+            sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+        }break;
+        
         default:{
             assert(0);
         }break;
@@ -446,7 +453,7 @@ global UpdateEntityFunc *enemy_update_table[] = {
     0,
     DemonHead_update,
     Dragon_update,
-    0,
+    Gargoyle_update,
     Ghost_update,
     Goblin_update,
     0,

@@ -186,6 +186,15 @@ static char *SparkBall_custom(char *c, int row, int col, bool kmirror) {
     return c;
 }
 
+static char *Gargoyle_custom(char *c, int row, int col, bool kmirror) {
+    double speed;
+    long dir;
+    c = parse_custom_double(&speed, c, 100.f);
+    c = parse_custom_long(&dir, c, 0);
+    add_tilemap_enemy(MT_Gargoyle, row, col, (void*)&speed, (void*)&dir, kmirror);
+    return c;
+}
+
 static char *PanelMonster_custom(char *c, int row, int col) {
     double interval;
     long dir;
@@ -280,6 +289,10 @@ static char *parse_enemy_custom(char *c, EnemyType type, int row, int col, bool 
         
         case MT_SparkBall: {
             c = SparkBall_custom(c, row, col, kmirror);
+        }break;
+        
+        case MT_Gargoyle: {
+            c = Gargoyle_custom(c, row, col, kmirror);
         }break;
     }
     return c;

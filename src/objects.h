@@ -285,8 +285,12 @@ inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
     };
     
     set_pickup_collision_box(&res);
+    /*
+param 2 is the pickup's id, to be able to enable/disable it if it's hidden
+param 3 controls whether or not the pickup can move (gravity)
+*/
     res.entity.params[2].as_u64 = id;
-    
+    res.entity.params[3].as_i64 = 0;
     return res;
 }
 
@@ -433,7 +437,23 @@ inline internal Sprite make_spark_ball(fvec2 position) {
     return res;
 }
 
-
+inline internal Sprite make_gargoyle(fvec2 position) {
+    Sprite res = {
+        .tilemap = &GET_CHAR_TILEMAP(Gargoyle),
+        .size = {64,64},
+        .position = position,
+        .collision_box = {8,8,40,40},
+        .mirror = {false, false},
+        .animation_set = GET_CHAR_ANIMSET(Gargoyle),
+        .entity = {
+            ET_Enemy,
+            {0,0}
+        }
+    };
+    
+    res.entity.params[0].as_etype = MT_Gargoyle;
+    return res;
+}
 
 internal void draw(Sprite const * sprite) {
     

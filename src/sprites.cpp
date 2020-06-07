@@ -121,17 +121,38 @@ enum MonsterDeathReason {
     MDR_Fireball
 };
 
+/* Generally die by fireball */
 internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
     
-    if (monster->entity.params[0].as_etype == MT_Goblin) {
-        Sprite pickup = make_pickup(monster->position, PT_Bag500);
-        pickup.entity.params[3].as_i64 = 1;
-        scene_sprite_add(&pickup);
+    switch (monster->entity.params[0].as_etype) {
+        case MT_Goblin: {
+            Sprite pickup = make_pickup(monster->position, PT_Bag500);
+            pickup.entity.params[3].as_i64 = 1;
+            scene_sprite_add(&pickup);
+            
+            if (reason == MDR_Fireball) {
+                monster->mark_for_removal = true;
+            }
+        }break;
         
-        if (reason == MDR_Fireball) {
+        case MT_Dragon: {
+            Sprite pickup = make_pickup(monster->position, PT_Bag200);
+            pickup.entity.params[3].as_i64 = 1;
+            scene_sprite_add(&pickup);
+            
+            if (reason == MDR_Fireball) {
+                monster->mark_for_removal = true;
+            }
+        }break;
+        
+        case MT_Wyvern: {
+            Sprite pickup = make_pickup(monster->position, PT_Bag1000);
+            pickup.entity.params[3].as_i64 = 1;
+            scene_sprite_add(&pickup);
             monster->mark_for_removal = true;
-        }
+        }break;
     }
+    
 }
 
 
@@ -1639,4 +1660,7 @@ should't be eEmptySpace
     float output_rotation = sball->rotation;
     sball->position += direction_from_rotation(D2R * (output_rotation)) * float(speed) * dt;
     
+}
+
+UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
 }

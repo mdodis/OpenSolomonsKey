@@ -167,18 +167,18 @@ internal void draw_ribbon(float dt) {
     color.b = (cosf(t) + 2.f) * 0.5f;
     color.a = 1.f;
     
-    fvec2 ribbon_start_pos = fvec2{64 * 9 + 46, 64 * 12};
+    fvec2 ribbon_start_pos = fvec2{64 * 9 + 47, 64 * 12};
     fvec2 ribbon_fire_start_pos = fvec2{64 * 10 + 4, 32 * 23 + 25};
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), {64 * 10, 64 * 12}, {64,64}, 0, 2);
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), ribbon_start_pos, {64,64}, 0, 1);
     
     for (i = 0; i < num_ribbons; i += 1) {
         // actual ribbon slot width is 46x46
-        fvec2 pos = ribbon_start_pos - fvec2{float(i) * 46, 0};
+        fvec2 pos = ribbon_start_pos - fvec2{float(i) * 45, 0};
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), pos, {64,64}, 0, 1);
     }
     
-    fvec2 pos = ribbon_start_pos - fvec2{float(i) * 46, 0};
+    fvec2 pos = ribbon_start_pos - fvec2{float(i) * 45, 0};
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_ribbon), pos, {64,64}, 0, 0);
     
     for (i = 0; i < num_fireballs; i += 1){
