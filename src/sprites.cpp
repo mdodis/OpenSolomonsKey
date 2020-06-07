@@ -178,6 +178,8 @@ internal void Player_cast(Sprite* player, float dt) {
                 put_frail_block = true;
                 //scene_set_tile(target_tile, ET_BlockFrail);
             }
+        } else {
+            should_spawn_flash_effect = false;
         }
         
         u64 pref_id = g_scene.loaded_map.hidden_pickups[target_tile.x][target_tile.y];
@@ -829,6 +831,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     
     if (goblin->is_on_air && !is_dying) {
         monster_die(goblin, MDR_BlockBreak);
+        goblin->enabled = false;
         SET_ANIMATION(goblin, Goblin, Fall);
     } else if (is_dying) {
         if (goblin->position.y > (12 * 64)) {

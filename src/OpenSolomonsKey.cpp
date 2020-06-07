@@ -25,7 +25,6 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include <glm/gtc/type_ptr.hpp>
 #include "osk_math.h"
 #include "gl_funcs.h"
-internal void gl_load_background_texture(long bgn);
 #include "gl_graphics.h"
 #include "gl_graphics.cpp"
 #include "resources.cpp"

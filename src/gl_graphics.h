@@ -75,6 +75,7 @@ void main()
     
 )EOS";
 
+internal void gl_load_background_texture(long bgn);
 
 global u32 g_quad_vao;
 global GLShader g_shd_2d;
