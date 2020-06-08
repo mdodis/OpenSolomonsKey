@@ -442,7 +442,7 @@ inline internal Sprite make_gargoyle(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(Gargoyle),
         .size = {64,64},
         .position = position,
-        .collision_box = {8,8,40,40},
+        .collision_box = {8,0,40,64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Gargoyle),
         .entity = {
@@ -451,6 +451,7 @@ inline internal Sprite make_gargoyle(fvec2 position) {
         }
     };
     
+    res.current_animation = GET_CHAR_ANIMENUM(Gargoyle, Walk);
     res.entity.params[0].as_etype = MT_Gargoyle;
     return res;
 }

@@ -171,9 +171,27 @@ internal Sprite *find_first_sprite_on_tile(EntityType type, ivec2 tile) {
     return 0;
 }
 
+static inline bool is_empty_space(ivec2 pos) {
+    EntityType type = scene_get_tile(pos);
+    return (type == ET_Door || type == ET_EmptySpace);
+}
 
 inline internal bool is_frail_block(EntityType type) {
     return (type == ET_BlockFrail || type == ET_BlockFrailHalf);
+}
+
+inline internal bool is_block(EntityType type) {
+    return (type == ET_BlockFrail || type == ET_BlockFrailHalf || type == ET_BlockSolid);
+}
+
+inline internal bool is_frail_block(ivec2 pos) {
+    EntityType type = scene_get_tile(pos);
+    return (type == ET_BlockFrail || type == ET_BlockFrailHalf);
+}
+
+inline internal bool is_block(ivec2 pos) {
+    EntityType type = scene_get_tile(pos);
+    return (type == ET_BlockFrail || type == ET_BlockFrailHalf || type == ET_BlockSolid);
 }
 
 inline internal bool is_out_of_bounds(fvec2 p) {

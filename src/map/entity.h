@@ -25,9 +25,7 @@ static inline bool is_valid_tilemap_object(EntityType type) {
 }
 
 static inline bool tile_is_empty(EntityType type) {
-    if (type == ET_Door || type == ET_EmptySpace) return true;
-    
-    return false;
+    return (type == ET_Door || type == ET_EmptySpace);
 }
 
 enum PickupType {

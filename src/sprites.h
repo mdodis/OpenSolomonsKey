@@ -8,7 +8,7 @@ struct Sprite {
     fvec2 position = {0,0};
     float rotation = 0.f;
     AABox collision_box = {0,0,64,64};
-    ivec2 mirror = {false, false};
+    ivec2 mirror = {0, 0};
     fvec2 velocity = {0,0};
     b32 enabled = true;
     b32 is_on_air = false;

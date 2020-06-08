@@ -1663,4 +1663,36 @@ should't be eEmptySpace
 }
 
 UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
+    const double &speed = gargoyle->entity.params[1].as_f64;
+    const i32 block_stop_offset = 32;
+    ivec2 gargoyle_tile = map_position_to_tile_centered(gargoyle->position);
+    
+    float move_amount = speed;
+    
+    if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Wait)) {
+        
+        if (gargoyle->animation_playing) {
+            move_amount = 0;
+        } else {
+            SET_ANIMATION(gargoyle, Gargoyle, Walk);
+            gargoyle->mirror.x = !gargoyle->mirror.x;
+        }
+    }
+    
+    ivec2 front_tile = map_position_to_tile_centered(gargoyle->position + fvec2{gargoyle->direction() * block_stop_offset, 0});
+    if (gargoyle->position.x < 0 && gargoyle->mirror.x == false) {
+        front_tile.x = -1;
+    }
+    ivec2 tile_under = front_tile + ivec2{0, 1};
+#ifndef NDEBUG
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {front_tile.x * 64.f,front_tile.y * 64.f}, {64, 64}, 0,1 * 5 + 1, false, false, NRGBA{1.f, 0.f, 0.f, 1.f});
+#endif
+    
+    if (is_block(front_tile) || (is_empty_space(front_tile) && is_empty_space(tile_under))) {
+        SET_ANIMATION(gargoyle, Gargoyle, Wait);
+        move_amount = 0;
+        gargoyle->velocity.x = 0;
+    }
+    
+    gargoyle->move_and_collide(dt, 900, 450, 0, move_amount * gargoyle->direction());
 }
