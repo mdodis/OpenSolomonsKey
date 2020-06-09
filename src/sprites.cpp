@@ -385,8 +385,6 @@ should't be eEmptySpace
         if (!should_attach) side_tile = ivec2{-1,-1};
     }
     
-    draw_num(side_tile.x, 5, 0); draw_num(side_tile.y, 5, 20);
-    
     if (side_tile.x != -1) {
         
         if (dfire->rotation == 0.f || dfire->rotation == 180) {
@@ -985,8 +983,6 @@ UPDATE_ENTITY_FUNC2(Fairie_update, fairie) {
         dir = normalize(dir - fairie->position);
     }
     
-    draw_num(state, 5);
-    
     fairie->position.x += (100.f * dt * dir.x);
     fairie->position.y += (100.f * dt * dir.y);
     
@@ -1552,7 +1548,6 @@ should't be eEmptySpace
         if (!should_attach) side_tile = ivec2{-1,-1};
     }
     
-    draw_num(side_tile.x, 5, 0); draw_num(side_tile.y, 5, 20);
     
     if (side_tile.x != -1) {
         

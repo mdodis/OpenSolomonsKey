@@ -639,7 +639,6 @@ internal void scene_update(InputState* istate, float dt) {
 #endif
         draw(&l[i]);
     }
-    draw_num_long(g_scene.loaded_map.sprites.size(), 4);
     if (!g_scene.paused_for_key_animation) {
         g_scene.player_time -= dt;
         

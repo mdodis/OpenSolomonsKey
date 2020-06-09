@@ -225,8 +225,10 @@ internal void draw_ui(float dt) {
     
     draw_score(dt);
     
+#ifndef NDEBUG
     draw_text("MS per frame", 0);
     draw_num(dt * 1000.f, 1);
+#endif
 }
 
 void scene_menu(float dt);

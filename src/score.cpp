@@ -19,7 +19,7 @@ internal void draw_score(float dt) {
             1
         };
         
-        draw_num(g_scene.last_score_num, 1, 5 , false, 32, true, tint);
+        //draw_num(g_scene.last_score_num, 1, 5 , false, 32, true, tint);
         g_scene.last_score_timer += dt;
     }
     
