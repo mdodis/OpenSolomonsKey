@@ -73,8 +73,19 @@ internal u32 gl_load_rgba_texture(u8* data, i32 width, i32 height) {
 
 internal void
 gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex) {
+    
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        error("AA err %x\n",err);
+        //exit(0);
+    }
     glBindTexture(GL_TEXTURE_2D, tex);
     
+    err = glGetError();
+    if (err != GL_NO_ERROR) {
+        error("BB err %x\n",err);
+        //exit(0);
+    }
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -82,11 +93,6 @@ gl_update_rgba_texture(u8* data, i32 width, i32 height, GLuint tex) {
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        error("err %x\n",err);
-        exit(0);
-    }
     //assert(err == GL_NO_ERROR);
     
 }
@@ -185,8 +191,11 @@ internal void gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 _pos, fvec2
 }
 
 internal void gl_background_draw() {
+    
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_background_texture_id);
+    
+    glUseProgram(g_shd_bg.id);
     
     glm::mat4 model(1.f);
     glm::vec2 size = glm::vec2(960, 768);
@@ -195,13 +204,19 @@ internal void gl_background_draw() {
     model = glm::translate(model, glm::vec3(32.f, 64.f, 0.f));
     model = glm::scale(model, glm::vec3(size, 1.0f));
     
-    glUseProgram(g_shd_bg.id);
-    //GLuint layer_loc = glGetUniformLocation(g_shd_bg.id, "sampler");
-    //glUniform1i(layer_loc, 0);
+    GLuint layer_loc = glGetUniformLocation(g_shd_bg.id, "sampler");
+    glUniform1i(layer_loc, 0);
     
-    GLuint loc = glGetUniformLocation(g_shd_2d.id, "model");
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        error("BB err %x\n",err);
+        exit(0);
+    }
+    
+    GLuint loc = glGetUniformLocation(g_shd_bg.id, "model");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
-    loc = glGetUniformLocation(g_shd_2d.id, "projection");
+    
+    loc = glGetUniformLocation(g_shd_bg.id, "projection");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(g_projection));
     
     glDrawArrays(GL_TRIANGLES, 0, 6);
