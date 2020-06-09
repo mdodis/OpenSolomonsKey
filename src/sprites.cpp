@@ -151,6 +151,18 @@ internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
             scene_sprite_add(&pickup);
             monster->mark_for_removal = true;
         }break;
+        
+        case MT_Gargoyle: {
+            Sprite pickup = make_pickup(monster->position, PT_Bag10000);
+            pickup.entity.params[3].as_i64 = 1;
+            scene_sprite_add(&pickup);
+            
+            SET_ANIMATION(monster, Gargoyle, Fall);
+            monster->enabled = false;
+            if (reason == MDR_Fireball) {
+                monster->mark_for_removal = true;
+            }
+        }break;
     }
     
 }
@@ -1687,14 +1699,16 @@ UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
     gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {front_tile.x * 64.f,front_tile.y * 64.f}, {64, 64}, 0,1 * 5 + 1, false, false, NRGBA{1.f, 0.f, 0.f, 1.f});
 #endif
     
-    if (is_block(front_tile) || (is_empty_space(front_tile) && is_empty_space(tile_under))) {
+    if ((is_block(front_tile) || (is_empty_space(front_tile) && is_empty_space(tile_under))) &&
+        gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Walk)) {
         SET_ANIMATION(gargoyle, Gargoyle, Wait);
         move_amount = 0;
         gargoyle->velocity.x = 0;
     }
     
+    bool sees_player = false;
     // Fire when player is +-1 on y tile axis
-    if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Walk)) {
+    {
         const Sprite *const player = find_first_sprite(ET_Player);
         assert(player);
         
@@ -1702,9 +1716,13 @@ UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
         if (abs(gargoyle_tile.y - ptile.y) <= 1) {
             i32 tdiff = sgn(gargoyle_tile.x - ptile.x);
             if (tdiff == -gargoyle->direction()) {
-                SET_ANIMATION(gargoyle, Gargoyle, FireWait);
-                fire_timer = 0.0;
-                move_amount = 0;
+                sees_player = true;
+                
+                if (gargoyle->current_animation != GET_CHAR_ANIMENUM(Gargoyle, FireWait)) {
+                    SET_ANIMATION(gargoyle, Gargoyle, FireWait);
+                    fire_timer = 0.0;
+                    move_amount = 0;
+                }
             }
         }
     } 
@@ -1713,14 +1731,31 @@ UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
         move_amount = 0.0;
         fire_timer += dt;
         if (fire_timer >= fire_delay) {
+            SET_ANIMATION(gargoyle, Gargoyle, Fire);
             Sprite *pflame;
             Sprite flame = make_panel_monster_flame(gargoyle->position);
             flame.rotation = gargoyle->mirror.x ? 0.f : 180.f;
             // TODO(miked): correct handling of time
             pflame = scene_sprite_add(&flame);
+        }
+    } else if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Fire)) {
+        move_amount = 0.0;
+        if (!gargoyle->animation_playing) {
+            
             SET_ANIMATION(gargoyle, Gargoyle, Walk);
         }
+    } 
+    
+    if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Fall)) {
+        gargoyle->position.y += 600 * dt;
+        if (gargoyle->position.y > 12 * 64 || !gargoyle->animation_playing) {
+            gargoyle->mark_for_removal = true;
+        }
+    } else {
+        gargoyle->move_and_collide(dt, 900, 450, 0, move_amount * gargoyle->direction());
     }
     
-    gargoyle->move_and_collide(dt, 900, 450, 0, move_amount * gargoyle->direction());
+    if (gargoyle->is_on_air && gargoyle->enabled) {
+        monster_die(gargoyle, MDR_BlockBreak);
+    }
 }
