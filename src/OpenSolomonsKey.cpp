@@ -155,8 +155,8 @@ cb_resize() {
 }
 
 internal void draw_ribbon(float dt) {
-    const int num_ribbons = 6;
-    const int num_fireballs = 4;
+    const int num_ribbons = g_scene.player_num_slots;
+    const int num_fireballs = g_scene.player_num_fireballs;
     int i;
     NRGBA color;
     static float t = 0.f;

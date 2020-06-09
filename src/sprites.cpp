@@ -64,7 +64,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                 // Bouncing
                 if (this->velocity.y < 0 &&
                     this->is_on_air &&
-                    this_trans.min_x < collision.max_x &&
+                    //this_trans.min_x < collision.max_x &&
                     diff.x >= 0) {
                     
                     this->velocity.y = -this->velocity.y * 0.737;
@@ -72,11 +72,10 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                     
                     // it has to be mostly above the this, in order to avoid
                     // destroying blocks diagonally
-                    if ( i != 1 || j != 0 || !damage_tiles) continue;
+                    if ( i != 1  || !damage_tiles) continue;
                     
                     ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
                     if (is_frail_block(scene_get_tile(current_tile))) {
-                        
                         scene_hit_frail_block(current_tile);
                     }
                     
@@ -690,11 +689,12 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     // Fireball Casting
     if (GET_KEYPRESS(fireball) && player->current_animation != GET_CHAR_ANIMENUM(Dana, Cast)) {
         
-        Sprite f = make_dfireball(player->position + fvec2{16, 10});
-        
-        f.rotation = player->mirror.x ? 0.f  : 180.f;
-        Sprite *p = scene_sprite_add(&f);
-        
+        if (g_scene.player_num_fireballs > 0) {
+            Sprite f = make_dfireball(player->position + fvec2{16, 10});
+            f.rotation = player->mirror.x ? 0.f  : 180.f;
+            Sprite *p = scene_sprite_add(&f);
+            g_scene.player_num_fireballs--;
+        }
     }
     
     if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Cast)) {
@@ -958,6 +958,17 @@ UPDATE_ENTITY_FUNC2(Fairie_update, fairie) {
     Sprite *player = find_first_sprite(ET_Player);
     if (!player) return;
     
+    {
+        AABox pbox = player->get_transformed_AABox();
+        AABox fbox = fairie->get_transformed_AABox();
+        
+        if (intersect(&pbox, &fbox)) {
+            fairie->entity.params[1].as_u64 = 0;
+            player_pickup(player, fairie);
+        }
+    }
+    
+    
     fvec2 f_to_player = normalize(player->position - fairie->position);
     fvec2 dir = {0,0};
     
@@ -1020,13 +1031,22 @@ UPDATE_ENTITY_FUNC2(Fairie_update, fairie) {
     }
 }
 
-internal void do_pickup_effect(Sprite *player, Sprite *pickup) {
+internal bool do_pickup_effect(Sprite *player, Sprite *pickup) {
     PickupType type = (PickupType)pickup->entity.params[0].as_u64;
     
-    if (type == PT_Bell) {
-        Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
-        scene_sprite_add(&fairie);
+    switch (type) {
+        case PT_Bell: {
+            Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+            scene_sprite_add(&fairie);
+            return true;
+        }break;
+        
+        case PT_PotionFire: {
+            return player_add_fireball();
+        }break;
     }
+    
+    return true;
 }
 
 internal void player_pickup(Sprite *player, Sprite *pickup) {
@@ -1418,7 +1438,7 @@ UPDATE_ENTITY_FUNC2(SparkBall_update, sball) {
     ivec2 forward_tile = target_tile + ivec2{(int)forward.x, (int)forward.y};
     ivec2 right_tile = target_tile + ivec2{(int)right.x, (int)right.y};
     ivec2 left_tile = target_tile + ivec2{(int)left.x, (int)left.y};
-    
+    // TODO(miked): generalize this behavior in a function? It's pointless to have duplicate code for the exact same behavior
     /*
 NOTE: when revisiting think about this:
 

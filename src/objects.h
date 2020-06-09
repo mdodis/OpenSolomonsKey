@@ -60,6 +60,10 @@ global struct {
     
     float player_time = 80.f;
     int player_lives = 3;
+    
+    int player_num_fireballs = 0;
+    int player_num_slots = 3;
+    
     bool time_is_low_enough = false;
     i32 current_level_counter = -1;
     bool player_is_dead = false;
@@ -141,6 +145,16 @@ inline internal Sprite make_wyvern(fvec2 position) {
     
     res.entity.params[0].as_etype = MT_Wyvern;
     return res;
+}
+
+
+internal bool player_add_fireball() {
+    if (g_scene.player_num_fireballs + 1 <= g_scene.player_num_slots) {
+        g_scene.player_num_fireballs++;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 inline internal Sprite make_player(fvec2 position) {
