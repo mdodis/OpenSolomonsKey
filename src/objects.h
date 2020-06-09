@@ -450,9 +450,16 @@ inline internal Sprite make_gargoyle(fvec2 position) {
             {0,0}
         }
     };
-    
+    /*
+1: speed
+2: fire time
+3: fire timer
+*/
     res.current_animation = GET_CHAR_ANIMENUM(Gargoyle, Walk);
     res.entity.params[0].as_etype = MT_Gargoyle;
+    res.entity.params[1].as_f64 = 80.f;
+    res.entity.params[2].as_f64 = 2.f;
+    res.entity.params[3].as_f64 = 0.f;
     return res;
 }
 

@@ -1661,6 +1661,8 @@ should't be eEmptySpace
 
 UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
     const double &speed = gargoyle->entity.params[1].as_f64;
+    const double &fire_delay = gargoyle->entity.params[2].as_f64;
+    double &fire_timer = gargoyle->entity.params[3].as_f64;
     const i32 block_stop_offset = 32;
     ivec2 gargoyle_tile = map_position_to_tile_centered(gargoyle->position);
     
@@ -1689,6 +1691,35 @@ UPDATE_ENTITY_FUNC2(Gargoyle_update, gargoyle) {
         SET_ANIMATION(gargoyle, Gargoyle, Wait);
         move_amount = 0;
         gargoyle->velocity.x = 0;
+    }
+    
+    // Fire when player is +-1 on y tile axis
+    if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, Walk)) {
+        const Sprite *const player = find_first_sprite(ET_Player);
+        assert(player);
+        
+        ivec2 ptile = map_position_to_tile_centered(player->position);
+        if (abs(gargoyle_tile.y - ptile.y) <= 1) {
+            i32 tdiff = sgn(gargoyle_tile.x - ptile.x);
+            if (tdiff == -gargoyle->direction()) {
+                SET_ANIMATION(gargoyle, Gargoyle, FireWait);
+                fire_timer = 0.0;
+                move_amount = 0;
+            }
+        }
+    } 
+    
+    if (gargoyle->current_animation == GET_CHAR_ANIMENUM(Gargoyle, FireWait)) {
+        move_amount = 0.0;
+        fire_timer += dt;
+        if (fire_timer >= fire_delay) {
+            Sprite *pflame;
+            Sprite flame = make_panel_monster_flame(gargoyle->position);
+            flame.rotation = gargoyle->mirror.x ? 0.f : 180.f;
+            // TODO(miked): correct handling of time
+            pflame = scene_sprite_add(&flame);
+            SET_ANIMATION(gargoyle, Gargoyle, Walk);
+        }
     }
     
     gargoyle->move_and_collide(dt, 900, 450, 0, move_amount * gargoyle->direction());
