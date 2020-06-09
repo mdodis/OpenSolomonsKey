@@ -432,7 +432,6 @@ struct mat4 {
     };
 };
 
-
 NRGBA rand_nrgb() {
     NRGBA result = {
         (float)rand() / (float)RAND_MAX,

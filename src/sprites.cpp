@@ -556,8 +556,7 @@ internal void player_enemy_test(Sprite *player) {
     for (int i = 0; i < g_scene.loaded_map.sprites.size(); i += 1) {
         Sprite *spr = &g_scene.loaded_map.sprites[i];
         
-        if (spr->entity.type == ET_Enemy && spr->enabled) {
-            
+        if (spr->entity.type == ET_Enemy && spr->enabled && get_enemy_type(spr) != MT_KMirror) {
             // TODO(mdodis): maybe check just the ones close to us tile-wise?
             AABox ebox = spr->get_transformed_AABox();
             AABox pbox = player->get_transformed_AABox();
@@ -566,7 +565,6 @@ internal void player_enemy_test(Sprite *player) {
                 player_die(player);
                 break;
             }
-            
         } else {
             continue;
         }
@@ -1393,7 +1391,6 @@ UPDATE_ENTITY_FUNC2(DragonFire_update, dfire) {
 }
 
 UPDATE_ENTITY_FUNC2(SparkBall_update, sball) {
-    
     const double &speed = sball->entity.params[1].as_f64;
     
     ivec2 target_tile = map_position_to_tile_centered(sball->position);

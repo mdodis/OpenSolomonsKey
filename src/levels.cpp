@@ -194,6 +194,25 @@ inline internal bool is_block(ivec2 pos) {
     return (type == ET_BlockFrail || type == ET_BlockFrailHalf || type == ET_BlockSolid);
 }
 
+internal void snap_towards_tile(Sprite *spr, ivec2 towards) {
+    ivec2 tile = map_position_to_tile_centered(spr->position) + towards;
+    fvec2 move = {0.f, 0.f};
+    AABox tbox = get_tile_box(tile);
+    AABox cbox = spr->get_transformed_AABox();
+    
+    if (towards.y > 0) {
+        move.y = tbox.min_y - cbox.max_y;
+    } else if (towards.y < 0) {
+        move.y = tbox.max_y - cbox.min_y;
+    } else if (towards.x > 0) {
+        move.x = tbox.min_x - cbox.max_x;
+    } else if (towards.x < 0) {
+        move.x = tbox.max_x - cbox.min_x;
+    }
+    
+    spr->position += move;
+}
+
 inline internal bool is_out_of_bounds(fvec2 p) {
     return (p.x > 960 || p.x < -64) || (p.y > 768 || p.y < -64);
 }
@@ -378,7 +397,16 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
         case MT_SparkBall: {
             sprite_to_make = make_spark_ball(pos);
             
+            long *dir = (long*)param2;
             sprite_to_make.entity.params[1].as_f64 = *(double*)param1;
+            ivec2 towards;
+            
+            if (*dir == 0) towards = {+1, 0};
+            if (*dir == 1) towards = {-1, 0};
+            if (*dir == 2) towards = {0, +1};
+            if (*dir == 3) towards = {0, -1};
+            
+            snap_towards_tile(&sprite_to_make, towards);
         }break;
         
         case MT_Gargoyle: {
