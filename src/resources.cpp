@@ -158,7 +158,7 @@ DEF_ANIM(DFireball,             Decay,   .1f,      {0,3}, 1,      true )   \
 )                                                                 \
 DEF_CHARACTER(Gargoyle,              TM_gargoyle,       3,                      \
 DEF_ANIM(Gargoyle,              Walk,    .1f,      {0,2}, 6,      true )   \
-DEF_ANIM(Gargoyle,              Wait,    .2f,      {1,1}, 1,      false)   \
+DEF_ANIM(Gargoyle,              Wait,    1.f,      {1,1}, 1,      false)   \
 DEF_ANIM(Gargoyle,              FireWait,.1f,      {0,1}, 2,      true )   \
 )                                                                 \
 DEF_CHARACTER(Effect,                TM_effects,        6,                      \
