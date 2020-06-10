@@ -294,7 +294,7 @@ internal RESSound Wave_load_from_file(const char* file);
 
 #define ALL_SOUNDS \
 DEF_SOUND(SND_background, "res/audio/bgm1.wav" ) \
-DEF_SOUND(SND_jump,       "res/audio/bloop.wav") \
+DEF_SOUND(SND_jump,       "res/audio/splat.wav") \
 DEF_SOUND(SND_show_key,   "res/audio/key_appear.wav") \
 DEF_SOUND(SND_show_player,"res/audio/player_appear.wav") \
 DEF_SOUND(SND_hurry,      "res/audio/hurry.wav") \
@@ -303,6 +303,7 @@ DEF_SOUND(SND_boueip,     "res/audio/boueip.wav") \
 DEF_SOUND(SND_get_key,    "res/audio/get_key.wav") \
 DEF_SOUND(SND_win,        "res/audio/win.wav") \
 DEF_SOUND(SND_rest_bonus, "res/audio/rest_bonus.wav") \
+DEF_SOUND(SND_item0,      "res/audio/item0.wav") \
 
 #define DEF_SOUND(name, path) name,
 enum E_ALL_SOUNDS {

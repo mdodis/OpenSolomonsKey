@@ -136,6 +136,7 @@ enum SoundType
 struct Sound
 {
     u64 counter = 0;
+    float volume = 1.f;
     u64 max_counter = ~(0u);
     b32 looping = false;
     b32 playing = true;

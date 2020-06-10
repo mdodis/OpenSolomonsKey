@@ -552,6 +552,7 @@ internal void player_die(Sprite *player) {
     u64 &is_dead = player->entity.params[1].as_u64;
     if (!is_dead) {
         is_dead = true;
+        // TODO(miked): reset scene and play animation
         SET_ANIMATION(player, Dana, Die);
     }
 }
@@ -1048,7 +1049,7 @@ internal bool do_pickup_effect(Sprite *player, Sprite *pickup) {
 internal void player_pickup(Sprite *player, Sprite *pickup) {
     
     if (pickup->entity.params[1].as_u64 == 0) {
-        
+        audio_play_sound(GET_SOUND(SND_item0));
         pickup->mark_for_removal = true;
         PickupType type = (PickupType)pickup->entity.params[0].as_u64;
         long score_to_add = get_pickup_worth(type);

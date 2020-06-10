@@ -117,11 +117,12 @@ internal RESSound Wave_load_from_file(const char* file) {
     return result;
 }
 
-internal void audio_play_sound(const RESSound* resound, b32 looping = false, SoundType sound_type = SoundEffect, bool play = true) {
+internal void audio_play_sound(const RESSound* resound, b32 looping = false, SoundType sound_type = SoundEffect, bool play = true, float vol = 1.f) {
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
     Sound new_sound = {
+        .volume = vol,
         .max_counter = resound->num_samples,
         .looping = looping,
         .playing = play,
@@ -293,8 +294,8 @@ internal void audio_update(const InputState* const istate, u64 samples_to_write)
             i32 sample16[AUDIO_CHANNELS] = {0, 0};
             
             i16* data = (i16*)current_sound->resource->data;
-            sample16[0] = data[new_sound_counter++];
-            sample16[1] = data[new_sound_counter++];
+            sample16[0] = i32(data[new_sound_counter++] * current_sound->volume);
+            sample16[1] = i32(data[new_sound_counter++] * current_sound->volume);
             
             if ((current_sample[0] + sample16[0]) > SHRT_MAX || (current_sample[0] + sample16[0]) < SHRT_MIN || (current_sample[1] + sample16[1]) > SHRT_MAX || (current_sample[1] + sample16[1]) < SHRT_MIN ) {
                 continue;
