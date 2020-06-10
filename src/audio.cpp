@@ -274,9 +274,9 @@ internal void audio_update(const InputState* const istate, u64 samples_to_write)
             if (!(current_sound->resource)) {
                 fprintf(stderr, "no sound resource; idx %d sz %d\n",
                         current_sound_idx, g_audio.all_sounds_size);
-                puts("exiting...");
-                fflush(stdout);
-                exit(-1);
+                //puts("exiting...");
+                //fflush(stdout);
+                //exit(-1);
                 continue;
                 
             }
@@ -284,7 +284,6 @@ internal void audio_update(const InputState* const istate, u64 samples_to_write)
             u64 new_sound_counter = current_sound->counter;
             if (current_sound->counter >= current_sound->max_counter / 2)
                 continue;
-            
             
             i32 current_sample[AUDIO_CHANNELS] = {
                 (i32)sample[0],

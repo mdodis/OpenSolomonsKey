@@ -177,13 +177,15 @@ internal void scene_key_animation(float dt) {
 
 global float win_animation_timer = 0.f;
 global int   win_animation_state = 0;
-
+global long  win_player_time = 0;
 internal void play_win_animation() {
     win_animation_timer = 0.f;
     win_animation_state = 0;
     assert(g_scene.current_state == SS_PLAYING);
     g_scene.current_state = SS_WIN;
     audio_remove(SoundType::Music);
+    win_player_time = long(g_scene.player_time * 100);
+    audio_play_sound(GET_SOUND(SND_win), false, SoundType::Music);
 }
 
 internal void finish_win_animation() {
@@ -193,7 +195,7 @@ internal void finish_win_animation() {
 internal void scene_win_animation(float dt) {
     const int STATE_ENTER = 0;
     const int STATE_STAR_RING = 1;
-    const float dur = 2.f;
+    const int STATE_SHOW_SCORE = 2;
     static Sprite ring_static;
     Sprite *ring = &ring_static;
     
@@ -207,9 +209,13 @@ internal void scene_win_animation(float dt) {
         }break;
         
         case STATE_STAR_RING: {
+            const float dur = 1.5f;
             win_animation_timer += dt;
             if (win_animation_timer > dur) {
-                finish_win_animation();
+                win_animation_timer = 0.f;
+                win_animation_state = STATE_SHOW_SCORE;
+                audio_remove(SoundType::Music);
+                audio_play_sound(GET_SOUND(SND_rest_bonus));
             }
             
             float t = win_animation_timer/dur;
@@ -229,8 +235,19 @@ internal void scene_win_animation(float dt) {
                 
                 draw(&tmp);
             }
+        }break;
+        
+        case STATE_SHOW_SCORE: {
+            const float dur = 2.5f;
+            win_animation_timer += dt;
             
+            if (win_animation_timer >= dur) {
+                finish_win_animation();
+            }
             
+            draw_text("% Your Rest Bonus %", 7, 3, false, 40.f);
+            draw_num_long(win_player_time, 9, 9, false, 40.f, false, NRGBA{1.f,0.5f,1.f,1.f});
+            draw_text("PTS", 15, 23, false, 24.f, NRGBA{0.8f, 1.f, 1.f, 1.f});
         }break;
     }
 }
