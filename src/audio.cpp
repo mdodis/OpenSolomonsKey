@@ -159,6 +159,15 @@ internal void audio_stop(SoundType type) {
     }
 }
 
+internal void audio_resume(SoundType type) {
+    for (i32 i = 0; i < g_audio.all_sounds_size; ++i) {
+        Sound* sound_ref = g_audio.all_sounds + i;
+        if (sound_ref->type == type) {
+            sound_ref->playing = true;
+        }
+    }
+}
+
 internal void audio_start(SoundType type) {
     for (i32 i = 0; i < g_audio.all_sounds_size; ++i) {
         Sound* sound_ref = g_audio.all_sounds + i;
@@ -195,6 +204,21 @@ internal void audio_remove(SoundType type) {
             
         }
     }
+}
+
+internal void audio_remove_all() {
+    audio_remove(SoundType::SoundEffect);
+    audio_remove(SoundType::Music);
+}
+
+internal void audio_stop_all() {
+    audio_stop(SoundType::SoundEffect);
+    audio_stop(SoundType::Music);
+}
+
+internal void audio_resume_all() {
+    audio_resume(SoundType::SoundEffect);
+    audio_resume(SoundType::Music);
 }
 
 internal void audio_update_all_sounds() {

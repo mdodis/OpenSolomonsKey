@@ -109,6 +109,15 @@ internal void play_key_get_animation() {
     key_anim_state = 0;
     key_anim_time = 0.f;
     g_scene.paused_for_key_animation = true;
+    audio_stop(SoundType::Music);
+    
+    audio_play_sound(GET_SOUND(SND_get_key));
+}
+
+internal void finish_key_get_animation() {
+    key_anim_state = 0;
+    g_scene.paused_for_key_animation = false;
+    audio_resume(SoundType::Music);
 }
 
 // rotate the key at first
@@ -136,7 +145,7 @@ internal void scene_key_animation(float dt) {
             if (finished) {
                 key_anim_state = STAR_DOOR;
                 key->mark_for_removal = true;
-                
+                audio_play_sound(GET_SOUND(SND_show_key));
                 // initialize next state
                 effect = make_effect(key->position, GET_CHAR_ANIM_HANDLE(Effect, Smoke));
                 star = make_starring(key->position);
@@ -148,8 +157,7 @@ internal void scene_key_animation(float dt) {
             fail_unless(door, "where is the door???");
             
             if (finished) {
-                key_anim_state = KEYROT;
-                g_scene.paused_for_key_animation = false;
+                finish_key_get_animation();
                 
                 SET_ANIMATION(door, Door, Open);
             }
@@ -178,6 +186,10 @@ internal void play_win_animation() {
     audio_remove(SoundType::Music);
 }
 
+internal void finish_win_animation() {
+    load_next_map();
+}
+
 internal void scene_win_animation(float dt) {
     const int STATE_ENTER = 0;
     const int STATE_STAR_RING = 1;
@@ -197,7 +209,7 @@ internal void scene_win_animation(float dt) {
         case STATE_STAR_RING: {
             win_animation_timer += dt;
             if (win_animation_timer > dur) {
-                load_next_map();
+                finish_win_animation();
             }
             
             float t = win_animation_timer/dur;

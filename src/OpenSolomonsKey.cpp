@@ -235,6 +235,7 @@ void scene_menu(float dt);
 
 void cb_render(InputState istate, u64 audio_sample_count, float dt) {
     
+    
     if (g_scene.current_state == SS_MENU) {
         scene_menu(dt);
     } else {

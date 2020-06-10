@@ -152,8 +152,8 @@ global struct
 #ifdef NDEBUG
     float volume = 0.5f;
 #else
-    //float volume = 0.3f;
-    float volume = 0.0f;
+    float volume = 0.3f;
+    //float volume = 0.0f;
 #endif
     
     u8 buffer[AUDIO_BUFFER_SIZE] = {};

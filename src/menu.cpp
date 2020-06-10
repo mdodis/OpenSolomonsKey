@@ -42,7 +42,12 @@ void scene_menu(float dt) {
         
         if (GET_KEYPRESS(space_pressed)) {
             if (current_menu_item == MENU_START) {
-                load_next_map();
+                if (g_scene.playing) {
+                    g_scene.current_state = SS_PLAYING;
+                    audio_resume_all();
+                } else {
+                    load_next_map();
+                }
             } else if (current_menu_item == MENU_SELECT) {
                 current_menu_state = MENU_SELECT;
             } else if (current_menu_item == MENU_QUIT) {
@@ -66,7 +71,11 @@ void scene_menu(float dt) {
         
         gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_demonhead), fvec2{100.f * 2, 100.f * current_menu_item + 128.f * 3}, fvec2{64.f,64.f}, 0.f, 0);
         
-        draw_text("Start",8,7,true, 50.f, current_menu_item == MENU_START ? sel_color:norm);
+        if (g_scene.playing) {
+            draw_text("Continue",8,7,true, 50.f, current_menu_item == MENU_START ? sel_color:norm);
+        } else {
+            draw_text("Start",8,7,true, 50.f, current_menu_item == MENU_START ? sel_color:norm);
+        }
         draw_text("Select",10,7,true, 50.f, current_menu_item == MENU_SELECT ? sel_color:norm);
         draw_text("Quit",12,7,true, 50.f, current_menu_item == MENU_QUIT ? sel_color:norm);
         

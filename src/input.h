@@ -22,6 +22,7 @@ KEYPRESS(cast          , XK_Control_L   , VK_CONTROL  ) \
 KEYPRESS(sound_down    , XK_9           , '9'         ) \
 KEYPRESS(sound_up      , XK_0           , '0'         ) \
 KEYPRESS(go_fullscreen , XK_F11         , VK_F11      ) \
+KEYPRESS(go_menu       , XK_Escape      , VK_ESCAPE   ) \
 
 
 #define KEYDOWN(key, ...) b32 key = false;

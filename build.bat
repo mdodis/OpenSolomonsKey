@@ -12,10 +12,8 @@ set release=-O2 -MT -DNDEBUG
 set code=%cd%\src
 set link_opts=opengl32.lib User32.lib Gdi32.lib Winmm.lib Advapi32.lib -SUBSYSTEM:WINDOWS
 
-
 pushd build
 del build.ctime 2> NUL
-
 
 ctime -begin build.ctime
 REM Debug

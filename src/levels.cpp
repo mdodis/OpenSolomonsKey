@@ -472,7 +472,7 @@ internal void load_map(Map *m, const char *path) {
 internal void load_next_map() {
     g_scene.current_level_counter++;
     clear_map(&smap);
-    
+    audio_remove_all();
     static char buf[256];
     sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
     
@@ -647,6 +647,14 @@ internal void scene_update(InputState* istate, float dt) {
             audio_play_sound(GET_SOUND(SND_hurry), false, SoundType::Music);
             g_scene.time_is_low_enough = true;
             
+        }
+    }
+    
+    if (!g_scene.paused_for_key_animation) {
+        
+        if (GET_KEYPRESS(go_menu)) {
+            audio_stop_all();
+            g_scene.current_state = SS_MENU;
         }
     }
 }

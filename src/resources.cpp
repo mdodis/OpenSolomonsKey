@@ -300,6 +300,7 @@ DEF_SOUND(SND_show_player,"res/audio/player_appear.wav") \
 DEF_SOUND(SND_hurry,      "res/audio/hurry.wav") \
 DEF_SOUND(SND_splat,      "res/audio/splat.wav") \
 DEF_SOUND(SND_boueip,     "res/audio/boueip.wav") \
+DEF_SOUND(SND_get_key,    "res/audio/get_key.wav") \
 
 #define DEF_SOUND(name, path) name,
 enum E_ALL_SOUNDS {
