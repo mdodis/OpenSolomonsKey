@@ -17,10 +17,10 @@ del build.ctime 2> NUL
 
 ctime -begin build.ctime
 REM Debug
-cl %opts% %debug%   -I%incl% -I..\ %code%\win32_OpenSolomonsKey.cpp -Fesolomons_key /link   %link_opts%
+rem cl %opts% %debug%   -I%incl% -I..\ %code%\win32_OpenSolomonsKey.cpp -Fesolomons_key /link   %link_opts%
 
 REM Release
-REM cl %opts% %release% -I%incl% -I..\ %code%\win32_OpenSolomonsKey.cpp -Fesolomons_key /link  %link_opts%
+cl %opts% %release% -I%incl% -I..\ %code%\win32_OpenSolomonsKey.cpp -Fesolomons_key /link  %link_opts%
 
 ctime -end build.ctime
 
