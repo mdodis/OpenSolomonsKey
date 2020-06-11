@@ -64,7 +64,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                 // Bouncing
                 if (this->velocity.y < 0 &&
                     this->is_on_air &&
-                    //this_trans.min_x < collision.max_x &&
+                    this_trans.min_x < collision.max_x &&
                     diff.x >= 0) {
                     
                     this->velocity.y = -this->velocity.y * 0.737;
@@ -72,7 +72,7 @@ void Sprite::move_and_collide(float dt, const float GRAVITY, const float MAX_YSP
                     
                     // it has to be mostly above the this, in order to avoid
                     // destroying blocks diagonally
-                    if ( i != 1  || !damage_tiles) continue;
+                    if (!damage_tiles) continue;
                     
                     ivec2 current_tile = {start_tile.x + i,start_tile.y + j};
                     if (is_frail_block(scene_get_tile(current_tile))) {
@@ -852,14 +852,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
         
     }
     
-    if (!is_dying) {
-        goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
-    } else {
-        goblin->velocity.y += 900 * dt;
-        goblin->velocity.y = clamp(-450.f, 450.f, goblin->velocity.y);
-        
-        goblin->position.y += goblin->velocity.y * dt;
-    }
+    goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
     
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
@@ -868,7 +861,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
         //goblin->enabled = false;
         SET_ANIMATION(goblin, Goblin, Fall);
     } else if (is_dying) {
-        if (goblin->position.y > (12 * 64)) {
+        if (!goblin->is_on_air) {
             goblin->mark_for_removal = true;
             inform("You killed a Goblin, ouchie!");
         }
@@ -945,6 +938,8 @@ UPDATE_ENTITY_FUNC2(BlueFlame_update, flame) {
             SET_ANIMATION(flame, BlueFlame, Normal);
         }
     }
+    
+    flame->move_and_collide(dt, 600, 450, 0, 0, false);
 }
 
 UPDATE_ENTITY_FUNC2(Fairie_update, fairie) {
