@@ -126,9 +126,6 @@ struct Sprite {
         {
             this->velocity.y = -strength;
             this->is_on_air = true;
-            // TODO(mdodis): return if we jumped
-            //audio_play_sound(&this_jump_sound);
-            
             return true;
         }
         return false;

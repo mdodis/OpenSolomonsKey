@@ -97,7 +97,7 @@ DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(Dana,                  Run ,    .1f,      {0,1}, 5,      true )   \
 DEF_ANIM(Dana,                  Cast,    .05f,     {0,2}, 3,      false)   \
 DEF_ANIM(Dana,                  Crouch,  .05f,     {0,3}, 1,      true )   \
-DEF_ANIM(Dana,                  Die,     .1f,      {0,4}, 4,      false)   \
+DEF_ANIM(Dana,                  Die,     .1f,      {2,4}, 2,      true )   \
 DEF_ANIM(Dana,                  JumpWait,.1f,      {1,4}, 1,      false)   \
 DEF_ANIM(Dana,                  JumpTurn,.1f,      {5,1}, 1,      true )   \
 )                                                                 \
@@ -163,13 +163,14 @@ DEF_ANIM(Gargoyle,              FireWait,.1f,      {0,1}, 2,      true )   \
 DEF_ANIM(Gargoyle,              Fire,    1.f,      {2,1}, 1,      false)   \
 DEF_ANIM(Gargoyle,              Fall,    .1f,      {0,0}, 6,      false)   \
 )                                                                 \
-DEF_CHARACTER(Effect,                TM_effects,        6,                      \
+DEF_CHARACTER(Effect,                TM_effects,        7,                      \
 DEF_ANIM(Effect,                Smoke,   .1f,      {0,0}, 4,      false)   \
 DEF_ANIM(Effect,                Star,    .1f,      {0,1}, 3,      true )   \
 DEF_ANIM(Effect,                Flash,   .1f,      {0,2}, 2,      false)   \
 DEF_ANIM(Effect,                FlashBlk,.1f,      {0,2}, 2,      false)   \
 DEF_ANIM(Effect,                Flash2,  .1f,      {0,3}, 3,      false)   \
 DEF_ANIM(Effect,                Hit,     .1f,      {0,4}, 4,      false)   \
+DEF_ANIM(Effect,                DanaDie, .5f,      {2,2}, 1,      false)   \
 )                                                                 \
 DEF_CHARACTER(Door,                  TM_essentials,     2,                      \
 DEF_ANIM(Door,                  Close,   .1f,      {0,2}, 5,      false)   \

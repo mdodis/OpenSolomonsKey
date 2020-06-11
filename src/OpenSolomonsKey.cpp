@@ -216,11 +216,6 @@ internal void draw_ui(float dt) {
     
     draw_ribbon(dt);
     
-#if 0    
-    // TODO(mdodis): draw the actual ui thingy
-    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_dana_fire), {64 * (6) + 34 * 7,64 * 12.1 + 16}, {34,34}, 0.f, 0, false, false, NRGBA{1,1,1,1}, true);
-#endif
-    
     draw_text("ROUND..", 27, 24, false, 32.f);
     
     draw_score(dt);

@@ -340,8 +340,6 @@ to (side_tile).
  |        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
  |        > If H < proximity_thresh
  |            > TURN side_tile == right_tile ? -90 : 90;
- |        > TODO write this up or del you fucking idiot
-
 
  At Any point there are two cases in which the tile should be attached:
    | o>   It should be            o>   The same
@@ -433,7 +431,6 @@ should't be eEmptySpace
                 
                 if (comp <= proximity_thresh) {
                     dfire->rotation += side_tile == right_tile ? -90.f : 90.f;
-                    //printf("DO\n");
                     goto END_ROT;
                 }
             }
@@ -559,6 +556,7 @@ internal void player_die(Sprite *player) {
 
 internal void player_dead(Sprite *player) {
     player->mark_for_removal = true;
+    SPAWN_EFFECT(player->position, DanaDie);
     scene_lose();
 }
 
@@ -590,6 +588,8 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     const float XSPEED = 150;
     u64 &has_key = player->entity.params[0].as_u64;
     u64 &is_dead = player->entity.params[1].as_u64;
+    double &die_timer = player->entity.params[2].as_f64;
+    const double die_time = 1.0;
     
     float xmove_amount = 0;
     b32 is_crouching = false;
@@ -597,8 +597,12 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     
     // Die functionality
     {
-        if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Die) && !player->animation_playing) {
-            player_dead(player);
+        if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Die)) {
+            die_timer += dt;
+            if (die_timer >= die_time) {
+                player_dead(player);
+                die_timer = 0.f;
+            }
         }
     }
     
@@ -861,7 +865,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     
     if (goblin->is_on_air && !is_dying) {
         monster_die(goblin, MDR_BlockBreak);
-        goblin->enabled = false;
+        //goblin->enabled = false;
         SET_ANIMATION(goblin, Goblin, Fall);
     } else if (is_dying) {
         if (goblin->position.y > (12 * 64)) {
@@ -1504,7 +1508,6 @@ to (side_tile).
  |        > H = osk__min(FW.y * 64 - aabb.max_y, aabb.min_y - (FW.y + 1) * 64)
  |        > If H < proximity_thresh
  |            > TURN side_tile == right_tile ? -90 : 90;
- |        > TODO write this up or del you fucking idiot
 
 
  At Any point there are two cases in which the tile should be attached:

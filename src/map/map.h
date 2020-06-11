@@ -178,7 +178,6 @@ static char *Dragon_custom(char *c, int row, int col, bool kmirror) {
 }
 
 static char *SparkBall_custom(char *c, int row, int col, bool kmirror) {
-    // TODO(miked): add way to snap it towards a direction
     double speed;
     long dir;
     c = parse_custom_double(&speed, c, 100.f);

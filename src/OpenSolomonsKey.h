@@ -14,13 +14,22 @@ OSK_EXCLUDE_MSG_EXPR
 */
 //#define OSK_ROUND_TO_POW_2
 //#define OSK_EXCLUDE_MSG_EXPR
-//#define OSK_WIN32_CONSOLE
+#define OSK_WIN32_CONSOLE
 
 inline void _exit_with_message(char* message) {
     puts(message);
     fflush(stdout); // Will now print everything in the stdout buffer
     exit(-1);
 }
+
+void _tmp_exit_thingy(int num, int l, const char *f) {
+    fprintf(stdout, "Exit called with code %d %s, %d\n", num, f, l);
+    fflush(stdout);
+    system("pause");
+    exit(num);
+}
+
+#define exit(num) _tmp_exit_thingy(num, __LINE__, __FILE__)
 
 #ifdef OSK_EXCLUDE_MSG_EXPR
 #define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg)

@@ -111,14 +111,14 @@ win32_init_gl_extensions() {
         inform("Failed to register dummy OpenGL window.");
     
     HWND dummy_window = CreateWindowExA(
-        0,
-        window_class.lpszClassName,
-        "Dummy OpenGL Window",
-        0,
-        CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
-        0,0,
-        window_class.hInstance,
-        0);
+                                        0,
+                                        window_class.lpszClassName,
+                                        "Dummy OpenGL Window",
+                                        0,
+                                        CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
+                                        0,0,
+                                        window_class.hInstance,
+                                        0);
     
     if (!dummy_window)
         inform("Failed to create dummy OpenGL window.");
@@ -535,14 +535,14 @@ b32 win32_get_key_state(i32 key) {return GetAsyncKeyState(key);}
 internal void win32_update_all_keys() {
 #define KEYDOWN(name, _X, keysym) g_input_state.name = win32_get_key_state(keysym);
 #define KEYPRESS(name, _X, keysym) { \
-        b32 now = win32_get_key_state(keysym); \
-        g_input_state.name[1] = (now && !g_input_state.name[0]); \
-        g_input_state.name[0] = g_input_state.name[1] || now; \
-        \
-    } \
+b32 now = win32_get_key_state(keysym); \
+g_input_state.name[1] = (now && !g_input_state.name[0]); \
+g_input_state.name[0] = g_input_state.name[1] || now; \
+    \
+} \
     
     KEYMAP
-    
+        
 #undef KEYDOWN
 #undef KEYPRESS
 }

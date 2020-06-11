@@ -313,7 +313,7 @@ inline internal Sprite make_blueflame(fvec2 position) {
         .tilemap = &GET_CHAR_TILEMAP(BlueFlame),
         .size = {64,64},
         .position = position,
-        .collision_box = {16, 0, 32, 64},
+        .collision_box = {16, 16, 32, 48},
         .animation_playing = true,
         .current_animation = GET_CHAR_ANIMENUM(BlueFlame, Normal),
         .animation_set = GET_CHAR_ANIMSET(BlueFlame),
