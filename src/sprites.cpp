@@ -550,13 +550,13 @@ internal void player_die(Sprite *player) {
     if (!is_dead) {
         is_dead = true;
         // TODO(miked): reset scene and play animation
-        SET_ANIMATION(player, Dana, Die);
+        play_lose_animation();
     }
 }
 
 internal void player_dead(Sprite *player) {
     player->mark_for_removal = true;
-    SPAWN_EFFECT(player->position, DanaDie);
+    //SPAWN_EFFECT(player->position, DanaDie);
     scene_lose();
 }
 
@@ -719,8 +719,7 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     
     if (player->current_animation != GET_CHAR_ANIMENUM(Dana, JumpWait)) {
         
-        if (iabs(player->velocity.x) > 0)
-        {
+        if (iabs(player->velocity.x) > 0) {
             if (player->is_on_air) {
                 SET_ANIMATION(player,Dana, JumpTurn);
             } else {

@@ -254,9 +254,10 @@ void cb_render(InputState istate, u64 audio_sample_count, float dt) {
                 scene_win_animation(dt);
             }break;
             case SS_LOSE: {
-                g_scene.current_state = SS_PLAYING;
-                reload_map();
-                g_scene.player_is_dead = false;
+                //g_scene.current_state = SS_PLAYING;
+                //reload_map();
+                //g_scene.player_is_dead = false;
+                scene_lose_animation(dt);
             }break;
             
             default: {

@@ -1,3 +1,4 @@
+internal void scene_update(InputState* istate, float dt);
 
 global float startup_anim_time = 0.f;
 internal void startup_animation_reset() {
@@ -250,4 +251,65 @@ internal void scene_win_animation(float dt) {
             draw_text("PTS", 15, 23, false, 24.f, NRGBA{0.8f, 1.f, 1.f, 1.f});
         }break;
     }
+}
+
+float lose_animation_timer = 0.f;
+int lose_animation_state = 0;
+internal void play_lose_animation() {
+    lose_animation_state = 0;
+    lose_animation_timer = 0.f;
+    g_scene.current_state = SS_LOSE;
+    g_scene.paused_for_key_animation = true;
+}
+
+internal void finish_lose_animation(Sprite *player) {
+    reload_map();
+    g_scene.current_state = SS_STARTUP;
+    g_scene.paused_for_key_animation = false;
+}
+
+internal void scene_lose_animation(float dt) {
+    Sprite *player = find_first_sprite(ET_Player);
+    
+    const int STATE_ENTRY = 0;
+    const int STATE_PLAYER_DIE = 1;
+    const int STATE_SPARKLES = 2;
+    
+    static Sprite sparkles =make_effect(player->position, GET_CHAR_ANIM_HANDLE(Effect, DanaDie));
+    
+    switch (lose_animation_state) {
+        
+        case STATE_ENTRY: {
+            SET_ANIMATION(player, Dana, Die);
+            lose_animation_state = STATE_PLAYER_DIE;
+        }break;
+        
+        case STATE_PLAYER_DIE: {
+            const float dur = 1.f;
+            lose_animation_timer += dt;
+            if (lose_animation_timer >= dur) {
+                player->mark_for_removal = true;
+                lose_animation_state = STATE_SPARKLES;
+                lose_animation_timer = 0.f;
+            }
+            
+            player->update_animation(dt);
+            scene_update(0, 0.f);
+        }break;
+        
+        case STATE_SPARKLES: {
+            const float dur = 1.f;
+            lose_animation_timer += dt;
+            
+            if (lose_animation_timer >= dur) {
+                finish_lose_animation(player);
+            }
+            
+            sparkles.update_animation(dt);
+            scene_update(0, 0.f);
+        }break;
+        
+        default: assert(false);
+    }
+    
 }

@@ -442,7 +442,6 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
 }
 
 internal void scene_lose() {
-    g_scene.player_is_dead = true;
     g_scene.current_state = SS_LOSE;
 }
 

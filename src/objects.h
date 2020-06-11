@@ -66,7 +66,6 @@ global struct {
     
     bool time_is_low_enough = false;
     i32 current_level_counter = -1;
-    bool player_is_dead = false;
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
