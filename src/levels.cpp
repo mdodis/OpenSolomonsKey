@@ -488,6 +488,7 @@ internal void reload_map() {
     sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
     
     load_map(&g_scene.loaded_map, buf);
+    audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
 }
 
 #include "animations.cpp"

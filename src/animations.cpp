@@ -260,6 +260,7 @@ internal void play_lose_animation() {
     lose_animation_timer = 0.f;
     g_scene.current_state = SS_LOSE;
     g_scene.paused_for_key_animation = true;
+    audio_remove_all();
 }
 
 internal void finish_lose_animation(Sprite *player) {

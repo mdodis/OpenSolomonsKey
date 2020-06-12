@@ -241,7 +241,8 @@ internal void audio_update_all_sounds() {
                 i32 previous = i;
                 for (i32 j = i + 1; j < cached_size; j++) {
                     if (!will_loop_inside) {
-                        draw_text("will_loop_inside", 3);
+                        // Many thanks to @mrmixer: https://handmade.network/forums/wip/t/7365-%5Bopen_solomons_key%5D_announcement___first_build
+                        // draw_text("will_loop_inside", 3);
                         will_loop_inside = true;
                     }
                     
