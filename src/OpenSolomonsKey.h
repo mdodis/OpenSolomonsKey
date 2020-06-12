@@ -25,7 +25,6 @@ inline void _exit_with_message(char* message) {
 void _tmp_exit_thingy(int num, int l, const char *f) {
     fprintf(stdout, "Exit called with code %d %s, %d\n", num, f, l);
     fflush(stdout);
-    system("pause");
     exit(num);
 }
 

@@ -1,7 +1,8 @@
 sh build_clean.sh
 mkdir -p dist
 cp build/solomons_key dist/
+cp build/solomons_key.exe dist/
 cp *.osk dist/
 cp -r res dist/res
-tar -czvf osk-$(date +%Y-%m-%d).tar.gz dist
+zip -r osk-$(date +%Y-%m-%d).zip dist
 rm -rf dist

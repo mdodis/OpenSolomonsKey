@@ -258,6 +258,7 @@ internal void scene_reset() {
     g_scene.last_score_timer = 0.f;
     g_scene.last_score_num = 0;
     g_scene.player_time = 80.f;
+    g_scene.player_num_fireballs = 0;
 }
 
 
@@ -441,10 +442,6 @@ bool add_tilemap_enemy(EnemyType type, int row, int col, void *param1, void *par
     return true;
 }
 
-internal void scene_lose() {
-    g_scene.current_state = SS_LOSE;
-}
-
 bool add_tilemap_background(long num) {
     gl_load_background_texture(num);
     return true;
@@ -463,10 +460,13 @@ internal void clear_map(Map *map) {
 }
 
 internal void load_map(Map *m, const char *path) {
+    scene_reset();
     hidden_pickup_count = 1;
     load_map_from_file(path, 0);
     *m = smap;
 }
+
+#include "animations.cpp"
 
 internal void load_next_map() {
     g_scene.current_level_counter++;
@@ -475,8 +475,6 @@ internal void load_next_map() {
     static char buf[256];
     sprintf(buf, "level_%u.osk", g_scene.current_level_counter);
     
-    
-    scene_reset();
     load_map(&g_scene.loaded_map, buf);
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
 }
@@ -491,7 +489,9 @@ internal void reload_map() {
     audio_play_sound(GET_SOUND(SND_background), true, SoundType::Music, false);
 }
 
-#include "animations.cpp"
+internal void dim_map() {
+    gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_dana), fvec2{0,0}, fvec2{15*64,12*64}, 0.f, 1, false, false, NRGBA{0,0,0,0.5});
+}
 
 typedef UPDATE_ENTITY_FUNC(UpdateEntityFunc);
 
@@ -611,7 +611,8 @@ internal void scene_update(InputState* istate, float dt) {
         }
     }
     
-    if (g_scene.paused_for_key_animation)
+    // we use paused_for_key_animation for the lose animation, and without the extra check, we can't assume that the key exists in the scene
+    if (g_scene.paused_for_key_animation && g_scene.current_state == SS_PLAYING)
         scene_key_animation(dt);
     
     

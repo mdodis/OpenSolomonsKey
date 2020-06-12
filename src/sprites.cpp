@@ -550,14 +550,14 @@ internal void player_die(Sprite *player) {
     if (!is_dead) {
         is_dead = true;
         // TODO(miked): reset scene and play animation
-        play_lose_animation();
+        play_lose_animation(player);
     }
 }
 
 internal void player_dead(Sprite *player) {
-    player->mark_for_removal = true;
+    //player->mark_for_removal = true;
     //SPAWN_EFFECT(player->position, DanaDie);
-    scene_lose();
+    //scene_lose();
 }
 
 internal void player_enemy_test(Sprite *player) {
@@ -615,9 +615,6 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     
     if      (GET_KEYDOWN(move_right)) xmove_amount = XSPEED;
     else if (GET_KEYDOWN(move_left )) xmove_amount = -XSPEED;
-    
-    
-    
     
     if (GET_KEYDOWN(move_down) && !player->is_on_air)
         is_crouching = true;

@@ -423,7 +423,7 @@ void toggle_fullscreen(Display* dpy, Window win) {
     xev.xclient.window = win;
     xev.xclient.message_type = wm_state;
     xev.xclient.format = 32;
-    xev.xclient.data.l[0] = is_fullscreen;
+    xev.xclient.data.l[0] = !is_fullscreen;
     xev.xclient.data.l[1] = fullscreen_state;
     xev.xclient.data.l[2] = 0;
     

@@ -1,9 +1,14 @@
 internal void scene_update(InputState* istate, float dt);
+internal void reload_map();
+internal void load_next_map();
+internal void dim_map();
 
 global float startup_anim_time = 0.f;
+global bool startup_anim_include_key = 0;
 internal void startup_animation_reset() {
     g_scene.startup_state = 0;
     startup_anim_time = 0.f;
+    startup_anim_include_key = false;
 }
 
 // One star from door to key
@@ -15,7 +20,8 @@ internal void scene_startup_animation(float dt) {
     const int STATE_SHOW_KEY = 1;
     const int STATE_SHOW_PLAYER = 2;
     const int STATE_DONE = 3;
-    
+    const int STATE_HAD_KEY = 4;
+    const int STATE_HAD_KEY_SHOW_DOOR = 5;
     const float anim_dur = 1.5f;
     
     static Sprite ring_static;
@@ -23,7 +29,7 @@ internal void scene_startup_animation(float dt) {
     
     ring = &ring_static;
     
-    const Sprite *const player = find_first_sprite(ET_Player);
+    Sprite *const player = find_first_sprite(ET_Player);
     Sprite *door = find_first_sprite(ET_Door);
     assert(door);
     // placeholder
@@ -33,13 +39,17 @@ internal void scene_startup_animation(float dt) {
     if (GET_KEYPRESS(space_pressed)) {
         goto STARTUP_ANIMATION_FINISH;
     }
+    static Sprite key = make_key(player->position);
     
+    dim_map();
     switch (g_scene.startup_state) {
         
         case STATE_START: {
             ring_static = make_starring(DOOR);
             g_scene.startup_state = STATE_SHOW_KEY;
             audio_play_sound(GET_SOUND(SND_show_key));
+            
+            if (startup_anim_include_key) g_scene.startup_state = STATE_SHOW_PLAYER;
         } break;
         
         case STATE_SHOW_KEY: {
@@ -66,7 +76,12 @@ internal void scene_startup_animation(float dt) {
                 ring->position = lerp2(KEY, player->position, (startup_anim_time/anim_dur));
                 startup_anim_time = clamp(0.f, anim_dur, startup_anim_time + dt);
             } else {
-                goto STARTUP_ANIMATION_FINISH;
+                if (startup_anim_include_key) {
+                    startup_anim_time = 0.f;
+                    g_scene.startup_state = STATE_HAD_KEY;
+                } else {
+                    goto STARTUP_ANIMATION_FINISH;
+                }
             }
             
             if (startup_anim_time < anim_dur) {
@@ -91,6 +106,47 @@ internal void scene_startup_animation(float dt) {
             }
             
         } break;
+        
+        case STATE_HAD_KEY: {
+            const float dur = 1.f;
+            startup_anim_time += dt;
+            if (startup_anim_time >= dur) {
+                startup_anim_time = 0.f;
+                ring->position = player->position;
+                
+                g_scene.startup_state = STATE_HAD_KEY_SHOW_DOOR;
+            }
+            
+            const float t = startup_anim_time / dur;
+            key.rotation = lerp(0.f, 360.f, t);
+            
+            draw(player);
+            draw(&key);
+        }break;
+        
+        case STATE_HAD_KEY_SHOW_DOOR: {
+            Sprite *door = find_first_sprite(ET_Door);
+            assert(door);
+            const float dur = 1.f;
+            startup_anim_time += dt;
+            if (startup_anim_time >= dur) {
+                Sprite *key = find_first_sprite(ET_Key);
+                Sprite *door = find_first_sprite(ET_Door);
+                key->mark_for_removal = true;
+                player->entity.params[0].as_u64 = 1;
+                SET_ANIMATION(door, Door, Open);
+                goto STARTUP_ANIMATION_FINISH;
+            }
+            ring->update_animation(dt);
+            const float t = startup_anim_time / dur;
+            
+            ring->position = lerp2(player->position, door->position, t);
+            
+            draw(player);
+            draw(ring);
+            
+        }break;
+        
     }
     return;
     
@@ -141,8 +197,8 @@ internal void scene_key_animation(float dt) {
     
     switch(key_anim_state) {
         case KEYROT: {
+            //fail_unless(key, "da key");
             key->rotation = lerp(0.f, 360.f, t);
-            fail_unless(key, "da key");
             if (finished) {
                 key_anim_state = STAR_DOOR;
                 key->mark_for_removal = true;
@@ -255,7 +311,8 @@ internal void scene_win_animation(float dt) {
 
 float lose_animation_timer = 0.f;
 int lose_animation_state = 0;
-internal void play_lose_animation() {
+internal void play_lose_animation(Sprite *player) {
+    startup_anim_include_key = player->entity.params[0].as_u64 == 1;
     lose_animation_state = 0;
     lose_animation_timer = 0.f;
     g_scene.current_state = SS_LOSE;
@@ -276,7 +333,7 @@ internal void scene_lose_animation(float dt) {
     const int STATE_PLAYER_DIE = 1;
     const int STATE_SPARKLES = 2;
     
-    static Sprite sparkles =make_effect(player->position, GET_CHAR_ANIM_HANDLE(Effect, DanaDie));
+    static Sprite sparkles = make_effect(player->position, GET_CHAR_ANIM_HANDLE(Effect, DanaDie));
     
     switch (lose_animation_state) {
         

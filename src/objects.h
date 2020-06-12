@@ -65,7 +65,11 @@ global struct {
     int player_num_slots = 3;
     
     bool time_is_low_enough = false;
+#ifndef NDEBUG
     i32 current_level_counter = -1;
+#else
+    i32 current_level_counter = 0;
+#endif
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
