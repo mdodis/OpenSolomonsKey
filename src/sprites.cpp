@@ -162,6 +162,12 @@ internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
                 monster->mark_for_removal = true;
             }
         }break;
+        
+        case MT_Ghost: {
+            monster->mark_for_removal = true;
+        }break;
+        
+        default: assert(false);
     }
     
 }
@@ -581,7 +587,7 @@ internal void player_enemy_test(Sprite *player) {
 }
 
 UPDATE_ENTITY_FUNC2(Player_update, player) {
-    const float GRAVITY = 950;
+    float GRAVITY = 950;
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
     const float RUNNING_JUMP_STRENGTH = 350;
@@ -677,7 +683,7 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     }
     
     // Casting
-    if (GET_KEYPRESS(cast) && player->current_animation != GET_CHAR_ANIMENUM(Dana, Cast)) {
+    if (GET_KEYPRESS(cast)) {
         // save yspeed
         player_last_yspeed = player->velocity.y;
         // cast!
@@ -699,10 +705,11 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     
     if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Cast)) {
         
-        if (player->animation_playing)
+        if (player->animation_playing) {
             return;
-        else
+        } else {
             player->velocity.y = player_last_yspeed;
+        }
     }
     
     if (is_crouching) xmove_amount = 0;

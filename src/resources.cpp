@@ -95,7 +95,7 @@ DEF_CHARACTER(Dana,                  TM_dana,            7,                     
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
 DEF_ANIM(Dana,                  Run ,    .1f,      {0,1}, 5,      true )   \
-DEF_ANIM(Dana,                  Cast,    .05f,     {0,2}, 3,      false)   \
+DEF_ANIM(Dana,                  Cast,    .08f,     {0,2}, 3,      false)   \
 DEF_ANIM(Dana,                  Crouch,  .05f,     {0,3}, 1,      true )   \
 DEF_ANIM(Dana,                  Die,     .1f,      {2,4}, 2,      true )   \
 DEF_ANIM(Dana,                  JumpWait,.1f,      {1,4}, 1,      false)   \
