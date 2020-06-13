@@ -33,9 +33,9 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include "map/map.h"
 #include "pickups.h"
 #include "objects.h"
+#include "score.cpp"
 #include "audio.cpp"
 #include "levels.cpp"
-#include "score.cpp"
 #include "sprites.cpp"
 
 /* Calculate aspect ratio from current window dimensions.

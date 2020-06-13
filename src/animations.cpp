@@ -157,6 +157,9 @@ internal void scene_startup_animation(float dt) {
     g_scene.playing = true;
     audio_start(SoundType::Music);
     
+    g_scene.player_lives -= 1;
+    assert(g_scene.player_lives >= 0);
+    
     return;
 }
 
@@ -241,11 +244,13 @@ internal void play_win_animation() {
     assert(g_scene.current_state == SS_PLAYING);
     g_scene.current_state = SS_WIN;
     audio_remove(SoundType::Music);
-    win_player_time = long(g_scene.player_time * 100);
+    win_player_time = long(g_scene.player_time * 100.f);
+    
     audio_play_sound(GET_SOUND(SND_win), false, SoundType::Music);
 }
 
 internal void finish_win_animation() {
+    g_scene.player_lives += 1;
     load_next_map();
 }
 
@@ -273,6 +278,7 @@ internal void scene_win_animation(float dt) {
                 win_animation_state = STATE_SHOW_SCORE;
                 audio_remove(SoundType::Music);
                 audio_play_sound(GET_SOUND(SND_rest_bonus));
+                add_score(win_player_time);
             }
             
             float t = win_animation_timer/dur;
@@ -324,6 +330,12 @@ internal void finish_lose_animation(Sprite *player) {
     reload_map();
     g_scene.current_state = SS_STARTUP;
     g_scene.paused_for_key_animation = false;
+    
+    if (g_scene.player_lives == 0) {
+        // TODO(miked): actually implement game over screen
+        puts("GAME OVER");
+        exit(0);
+    }
 }
 
 internal void scene_lose_animation(float dt) {

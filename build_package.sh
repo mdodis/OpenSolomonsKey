@@ -1,3 +1,4 @@
+#!/bin/bash
 sh build_clean.sh
 mkdir -p dist
 cp build/solomons_key dist/

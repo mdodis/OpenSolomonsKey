@@ -615,7 +615,6 @@ internal void scene_update(InputState* istate, float dt) {
     if (g_scene.paused_for_key_animation && g_scene.current_state == SS_PLAYING)
         scene_key_animation(dt);
     
-    
     while(g_scene.sprite_buffer.size() != 0) {
         g_scene.loaded_map.sprites.push_back(g_scene.sprite_buffer.back());
         g_scene.sprite_buffer.pop_back();
@@ -647,7 +646,10 @@ internal void scene_update(InputState* istate, float dt) {
             audio_remove(SoundType::Music);
             audio_play_sound(GET_SOUND(SND_hurry), false, SoundType::Music);
             g_scene.time_is_low_enough = true;
-            
+        } else if (g_scene.player_time <= 0.f) {
+            Sprite *player = find_first_sprite(ET_Player);
+            assert(player);
+            player_die(player);
         }
     }
     
@@ -658,5 +660,6 @@ internal void scene_update(InputState* istate, float dt) {
             g_scene.current_state = SS_MENU;
         }
     }
+    
 }
 
