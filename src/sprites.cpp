@@ -190,14 +190,17 @@ internal void Player_cast(Sprite* player, float dt) {
     if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Crouch)) {
         target_tile.y = clamp(0, 14,target_tile.y + 1);
     }
+    
+    // can't cast a tile while its occupied by an enemy
     Sprite *enemy_on_tile = find_first_sprite_on_tile(ET_Enemy, target_tile);
     if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(ET_Door, target_tile);
-    
     if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
+    
+    Sprite *key_on_tile = find_first_sprite_on_tile(ET_Key, target_tile);
     
     SET_ANIMATION(player, Dana, Cast);
     audio_play_sound(GET_SOUND(SND_boueip));
-    if (!enemy_on_tile) {
+    if (!enemy_on_tile && !key_on_tile) {
         EntityType type = (EntityType)scene_get_tile(target_tile);
         bool should_spawn_flash_effect = true;
         bool put_frail_block;
@@ -238,7 +241,7 @@ internal void Player_cast(Sprite* player, float dt) {
             flash.entity.params[1].as_i64 = target_tile.y;
             scene_sprite_add(&flash);
         }
-    } else {
+    } else if (enemy_on_tile) {
         Sprite hit = make_effect(enemy_on_tile->position, GET_CHAR_ANIM_HANDLE(Effect, Hit));
         
         if (player->position.x < enemy_on_tile->position.x) {
@@ -247,6 +250,7 @@ internal void Player_cast(Sprite* player, float dt) {
         
         scene_sprite_add(&hit);
     }
+    // TODO(miked): change key/pikcup if cast
 }
 
 
@@ -704,7 +708,6 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     }
     
     if (player->current_animation == GET_CHAR_ANIMENUM(Dana, Cast)) {
-        
         if (player->animation_playing) {
             return;
         } else {
