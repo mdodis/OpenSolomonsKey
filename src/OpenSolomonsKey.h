@@ -55,7 +55,7 @@ void exit_error(const char *fmt, ...) {
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", __VA_ARGS__)
 #define error(fmt, ...) printf("[ERROR] " fmt "\n", __VA_ARGS__)
 
-#elif defined(OSK_PLATFORM_X11)
+#elif defined(OSK_PLATFORM_X11) || defined(OSK_PLATFORM_SDL)
 
 #define inform(fmt, ...) printf("[INFO] " fmt "\n", ##__VA_ARGS__)
 #define warn(fmt, ...) printf("[WARNING] " fmt "\n", ##__VA_ARGS__)

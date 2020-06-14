@@ -9,7 +9,6 @@
 #include <windows.h>
 #include <GL/GL.h>
 
-#define OSK_PLATFORM_WIN32
 #include "OpenSolomonsKey.h"
 #define OSK_CLASS_NAME "OSK Class"
 

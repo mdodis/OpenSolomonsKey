@@ -125,7 +125,7 @@ internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
     
     switch (monster->entity.params[0].as_etype) {
         case MT_Goblin: {
-            Sprite pickup = make_pickup(monster->position, PT_Bag500);
+            Sprite pickup = make_pickup(monster->position, PT_JewelChange);
             pickup.entity.params[3].as_i64 = 1;
             scene_sprite_add(&pickup);
             
@@ -250,6 +250,8 @@ internal void Player_cast(Sprite* player, float dt) {
         
         scene_sprite_add(&hit);
     } else if (other_on_tile->entity.type == ET_Pickup) {
+        // TODO(miked): check out if this breaks the game for items that aren't tile aligned
+        
         switch(other_on_tile->entity.params[0].as_u64) {
             case PT_JewelChange: {
                 pickup_change_to(other_on_tile, PT_PotionFire);
@@ -270,7 +272,6 @@ internal void Player_cast(Sprite* player, float dt) {
         }
     }
 }
-
 
 UPDATE_ENTITY_FUNC2(DFireball_update, dfire) {
     
