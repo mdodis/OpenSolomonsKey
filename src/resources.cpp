@@ -19,7 +19,7 @@ DEF_TILEMAP(TM_logo            ,"res/logo3.png"                           ,1    
 DEF_TILEMAP(TM_essentials      ,"res/essentials.png"                      ,5    ,5  )\
 DEF_TILEMAP(TM_dana            ,"res/dana_all.png"                        ,5    ,6  )\
 DEF_TILEMAP(TM_dana_fire       ,"res/dana_fireball.png"                   ,4    ,1  )\
-DEF_TILEMAP(TM_fairies         ,"res/fairies.png"                         ,1    ,2  )\
+DEF_TILEMAP(TM_fairies         ,"res/fairies_all.png"                     ,2    ,2  )\
 DEF_TILEMAP(TM_demonhead       ,"res/demon_head.png"                      ,2    ,8  )\
 DEF_TILEMAP(TM_goblin          ,"res/goblin_all.png"                      ,4    ,7  )\
 DEF_TILEMAP(TM_blueflame       ,"res/blue_flame.png"                      ,2    ,7  )\
@@ -187,8 +187,9 @@ DEF_ANIM(Door,                  Open,    .1f,      {0,3}, 5,      false)   \
 DEF_CHARACTER(Key,                   TM_essentials,     1,                      \
 DEF_ANIM(Key,                   Default, .1f,      {0,4}, 1,      false)   \
 )                                                                 \
-DEF_CHARACTER(Fairie,                TM_fairies,        1,                      \
+DEF_CHARACTER(Fairie,                TM_fairies,        2,                      \
 DEF_ANIM(Fairie,                Default, .1f,      {0,0}, 2,      true )   \
+DEF_ANIM(Fairie,                Boye,    .1f,      {0,1}, 2,      true )   \
 )                                                                 \
 DEF_CHARACTER(KMirror,               TM_essentials,     1,                      \
 DEF_ANIM(KMirror,               Default, .1f,      {3,1}, 1,      false)   \

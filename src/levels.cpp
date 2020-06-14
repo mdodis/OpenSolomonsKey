@@ -259,6 +259,7 @@ internal void scene_reset() {
     g_scene.last_score_num = 0;
     g_scene.player_time = 80.f;
     g_scene.player_num_fireballs = 0;
+    g_scene.player_will_get_double_rest_bonus = false;
 }
 
 
@@ -286,6 +287,10 @@ bool add_tilemap_entity(EntityType type, int row, int col, void *custom1) {
             case ET_PlayerSpawnPoint: {
                 sprite_to_make = make_player(pos);
                 sprite_to_make.mirror.x = (*((long*)custom1)) == 1;
+            }break;
+            
+            case ET_Fairie: {
+                sprite_to_make = make_fairie(pos, *(long*)custom1);
             }break;
             
             default: {

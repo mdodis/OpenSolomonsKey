@@ -111,6 +111,13 @@ static char *Dana_custom(char *c, int row, int col) {
     return c;
 }
 
+static char *Fairie_custom(char *c, int row, int col) {
+    long type;
+    c = parse_custom_long(&type, c, 0);
+    add_tilemap_entity(ET_Fairie, row, col, (void*)&type);
+    return c;
+}
+
 static char *Key_custom(char *c, int row, int col) {
     long type;
     c = parse_custom_long(&type, c, 0);
@@ -385,6 +392,10 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                                 add_tilemap_pickup(PT_SolomonsKey, counter_y, counter_x);
                             }
                             
+                        }break;
+                        
+                        case ET_Fairie: {
+                            c = Fairie_custom(c, counter_y, counter_x);
                         }break;
                         
                         default:{

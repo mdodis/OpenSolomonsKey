@@ -1038,13 +1038,17 @@ internal bool do_pickup_effect(Sprite *player, Sprite *pickup) {
     
     switch (type) {
         case PT_Bell: {
-            Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 0);
+            Sprite fairie = make_fairie(tile_to_position(g_scene.loaded_map.exit_location), 1);
             scene_sprite_add(&fairie);
             return true;
         }break;
         
         case PT_PotionFire: {
             return player_add_fireball();
+        }break;
+        
+        case PT_Hourglass: {
+            g_scene.player_time = 40.f;
         }break;
     }
     

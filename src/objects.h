@@ -63,7 +63,7 @@ global struct {
     
     int player_num_fireballs = 0;
     int player_num_slots = 3;
-    
+    bool player_will_get_double_rest_bonus = false;
     bool time_is_low_enough = false;
 #ifndef NDEBUG
     i32 current_level_counter = -1;
@@ -236,7 +236,7 @@ inline internal Sprite make_starring(fvec2 position) {
     
 }
 
-inline internal Sprite make_fairie(fvec2 position, u64 type) {
+inline internal Sprite make_fairie(fvec2 position, long type) {
     Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Fairie),
         .size = {64,64},
@@ -245,7 +245,7 @@ inline internal Sprite make_fairie(fvec2 position, u64 type) {
         .mirror = {false, false},
         
         // type will go here!!!! and not in custom params
-        .current_animation = GET_CHAR_ANIMENUM(Fairie, Default),
+        .current_animation = u32(type),
         .animation_set = GET_CHAR_ANIMSET(Fairie),
         .entity = {
             ET_Fairie,
