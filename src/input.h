@@ -5,24 +5,20 @@ Implementation is left up to the corresponding platform, and
 as always configuration is done at compile time.*/
 #define KEYMAP \
 /*       NAME        X11 key   Win32 key    */\
-KEYDOWN (move_right    , XK_Right       , VK_RIGHT    ) \
-KEYDOWN (move_left     , XK_Left        , VK_LEFT     ) \
-KEYDOWN (move_down     , XK_Down        , VK_DOWN     ) \
-KEYPRESS(move_up       , XK_Up          , VK_UP       ) \
-KEYPRESS(move_up_menu  , XK_Up          , VK_UP       ) \
-KEYPRESS(move_down_menu, XK_Down        , VK_DOWN     ) \
-KEYDOWN (fmove_right   , XK_D           , VK_RIGHT    ) \
-KEYDOWN (fmove_left    , XK_A           , VK_LEFT     ) \
-KEYDOWN (fmove_down    , XK_S           , VK_DOWN     ) \
-KEYDOWN (fmove_up      , XK_W           , VK_UP       ) \
-KEYPRESS(space_pressed , XK_space       , VK_SPACE    ) \
-KEYPRESS(restart       , XK_R           , 'R'         ) \
-KEYPRESS(fireball      , XK_X           , 'X'         ) \
-KEYPRESS(cast          , XK_Control_L   , VK_CONTROL  ) \
-KEYPRESS(sound_down    , XK_9           , '9'         ) \
-KEYPRESS(sound_up      , XK_0           , '0'         ) \
-KEYPRESS(go_fullscreen , XK_F11         , VK_F11      ) \
-KEYPRESS(go_menu       , XK_Escape      , VK_ESCAPE   ) \
+KEYDOWN (move_right    , XK_Right       , VK_RIGHT    ,SDL_SCANCODE_RIGHT) \
+KEYDOWN (move_left     , XK_Left        , VK_LEFT     ,SDL_SCANCODE_LEFT) \
+KEYDOWN (move_down     , XK_Down        , VK_DOWN     ,SDL_SCANCODE_DOWN) \
+KEYPRESS(move_up       , XK_Up          , VK_UP       ,SDL_SCANCODE_UP) \
+KEYPRESS(move_up_menu  , XK_Up          , VK_UP       ,SDL_SCANCODE_UP) \
+KEYPRESS(move_down_menu, XK_Down        , VK_DOWN     ,SDL_SCANCODE_DOWN) \
+KEYPRESS(space_pressed , XK_space       , VK_SPACE    ,SDL_SCANCODE_SPACE) \
+KEYPRESS(restart       , XK_R           , 'R'         ,SDL_SCANCODE_R) \
+KEYPRESS(fireball      , XK_X           , 'X'         ,SDL_SCANCODE_X) \
+KEYPRESS(cast          , XK_Control_L   , VK_CONTROL  ,SDL_SCANCODE_LCTRL) \
+KEYPRESS(sound_down    , XK_9           , '9'         ,SDL_SCANCODE_9) \
+KEYPRESS(sound_up      , XK_0           , '0'         ,SDL_SCANCODE_0) \
+KEYPRESS(go_fullscreen , XK_F11         , VK_F11      ,SDL_SCANCODE_F11) \
+KEYPRESS(go_menu       , XK_Escape      , VK_ESCAPE   ,SDL_SCANCODE_ESCAPE) \
 
 
 #define KEYDOWN(key, ...) b32 key = false;

@@ -169,11 +169,9 @@ static bool x11_extension_supported(const char *extList, const char *extension)
 Oh dear god...
 */
 internal void
-x11_init()
-{
+x11_init() {
     
-    GLint                   att[] =
-    {
+    GLint                   att[] = {
         GLX_X_RENDERABLE    , True,
         GLX_DRAWABLE_TYPE   , GLX_WINDOW_BIT,
         GLX_RENDER_TYPE     , GLX_RGBA_BIT,
@@ -197,11 +195,7 @@ x11_init()
     int screen = DefaultScreen(dpy);
     root = DefaultRootWindow(dpy);
     
-    fail_unless(
-                glXQueryVersion(dpy, &glx_major, &glx_minor) && 
-                (glx_major != 1  || glx_minor >= 3) &&
-                (glx_major >= 1),
-                "Invalid GLX version");
+    fail_unless(glXQueryVersion(dpy, &glx_major, &glx_minor) &&  (glx_major != 1  || glx_minor >= 3) && (glx_major >= 1), "Invalid GLX version");
     
     int elemc;
     GLXFBConfig *fbcfg = glXChooseFBConfig(dpy, screen, att, &elemc);
@@ -213,25 +207,21 @@ x11_init()
     
     int best_fbc = -1, worst_fbc = -1, best_num_samp = -1, worst_num_samp = 999;
     
-    for (int i=0; i<elemc; ++i)
-    {
+    for (int i=0; i<elemc; ++i) {
         XVisualInfo *t_vi = glXGetVisualFromFBConfig( dpy, fbcfg[i] );
-        if ( t_vi )
-        {
+        if ( t_vi ) {
             int samp_buf, samples;
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLE_BUFFERS, &samp_buf );
             glXGetFBConfigAttrib( dpy, fbcfg[i], GLX_SAMPLES       , &samples  );
             
-            inform("Matching fbconfig %2d, visual ID 0x%03lx: SAMPLE_BUFFERS = %d,"
-                   " samples = %d",
-                   i, t_vi->visualid, samp_buf, samples );
+            inform("Matching fbconfig %2d, visual ID 0x%03lx: SAMPLE_BUFFERS = %d," " samples = %d", i, t_vi->visualid, samp_buf, samples );
             
             if ( best_fbc < 0 || samp_buf && samples > best_num_samp )
                 best_fbc = i, best_num_samp = samples;
             if ( worst_fbc < 0 || !samp_buf || samples < worst_num_samp )
                 worst_fbc = i, worst_num_samp = samples;
         }
-        XFree( t_vi );
+        XFree(t_vi);
     }
     
     GLXFBConfig bestFbc = fbcfg[ best_fbc ];
@@ -267,17 +257,12 @@ x11_init()
     
     // Check for the GLX_ARB_create_context extension string and the function.
     // If either is not present, use GLX 1.3 context creation method.
-    if ( !x11_extension_supported( glxExts, "GLX_ARB_create_context" ) ||
-        !glXCreateContextAttribsARB )
-    {
+    if ( !x11_extension_supported( glxExts, "GLX_ARB_create_context" ) || !glXCreateContextAttribsARB ) {
         warn("%s", "glXCreateContextAttribsARB() not found"
              " ... using old-style GLX context" );
         glc = glXCreateNewContext( dpy, bestFbc, GLX_RGBA_TYPE, 0, True );
-    }
-    else
-    {
-        int context_attribs[] =
-        {
+    } else {
+        int context_attribs[] = {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
             GLX_CONTEXT_MINOR_VERSION_ARB, 0,
             GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
@@ -291,8 +276,7 @@ x11_init()
         
         if ( !g_ctx_error && glc )
             inform("%s", "Created GL 3.0 context");
-        else
-        {
+        else {
             // Couldn't create GL 3.0 context.  Fall back to old-style 2.x context.
             // When a context version below 3.0 is requested, implementations will
             // return the newest context version compatible with OpenGL versions less
@@ -320,12 +304,9 @@ x11_init()
     fail_unless(!g_ctx_error && glc, "Failed to create an OpenGL context");
     
     // Verifying that context is a direct context
-    if ( ! glXIsDirect ( dpy, glc ) )
-    {
+    if ( ! glXIsDirect ( dpy, glc ) ) {
         inform("%s", "Indirect GLX rendering context obtained");
-    }
-    else
-    {
+    } else {
         inform("%s", "Direct GLX rendering context obtained");
     }
     
@@ -336,19 +317,9 @@ x11_init()
     // I'm not doing this again
 }
 
-internal void
-x11_kill()
-{
-    glXMakeCurrent(dpy, None, NULL);
-    glXDestroyContext(dpy, glc);
-    XDestroyWindow(dpy, win);
-    XCloseDisplay(dpy);
-}
-
 internal char _x11_internal_keys[32];
 
-b32 x11_get_key_state(i32 key)
-{
+b32 x11_get_key_state(i32 key) {
     int keycode = XKeysymToKeycode(dpy, key);
     if (_x11_internal_keys[keycode / 8] & (0x1 << ( keycode % 8 )))
         return true;
@@ -357,8 +328,7 @@ b32 x11_get_key_state(i32 key)
 }
 
 internal void 
-x11_update_all_keys()
-{
+x11_update_all_keys() {
     XQueryKeymap(dpy, _x11_internal_keys);
     
 #define KEYDOWN(name, keysym, ...) g_input_state.name = x11_get_key_state(keysym);
@@ -376,8 +346,7 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 }
 
 internal void
-alsa_init()
-{
+alsa_init() {
     snd_pcm_open(&g_alsapcm, "default", SND_PCM_STREAM_PLAYBACK, 0);
     snd_pcm_set_params(g_alsapcm,
                        SND_PCM_FORMAT_S16_LE,
@@ -390,7 +359,6 @@ alsa_init()
     pthread_create(&g_audiothread, 0, alsa_cb_audio, 0);
     
 }
-
 
 #include <vector>
 #include <dirent.h>
@@ -437,9 +405,6 @@ void toggle_fullscreen(Display* dpy, Window win) {
 int main(int argc, char *argv[]) {
     x11_init();
     gl_load();
-    
-    b32 m_final = false;
-    b32 m_prev = false;
     
     alsa_init();
     
