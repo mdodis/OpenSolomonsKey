@@ -27,7 +27,8 @@ gl_slow_tilemap_draw(GLTilemapTexture const* tm, fvec2 pos, fvec2 size, float ro
 internal void gl_background_draw();
 const char* const g_2d_vs =
 R"EOS(
-#version 330
+#version 310 es
+precision mediump float;
 layout (location = 0) in vec4 vertex;
 
 out vec2 TexCoords;
@@ -44,25 +45,28 @@ void main()
 )EOS";
 const char* const g_2d_fs =
 R"EOS(
-#version 330
+#version 310 es
+precision mediump float;
+precision lowp sampler2DArray;
 in vec2 TexCoords;
 out vec4 color;
 
 uniform sampler2DArray sampler;
-uniform int layer = 0;
-uniform vec4 tint = vec4(1, 1, 1, 1);
+uniform int layer;
+uniform vec4 tint;
 
 void main()
 {
       color =  texture(sampler, vec3(TexCoords,layer)) * tint;
       //color = vec4(0.0, 1.0, 0.0, 1.0);
-    }
+}
     
 )EOS";
 
 const char* const g_bg_fs =
 R"EOS(
-#version 330
+#version 310 es
+precision mediump float;
 in vec2 TexCoords;
 out vec4 color;
 
@@ -71,7 +75,7 @@ uniform sampler2D sampler;
 void main()
 {
       color =  texture(sampler, TexCoords);
-    }
+}
     
 )EOS";
 
