@@ -73,7 +73,15 @@ B("res/bg/14.png")\
 B("res/bg/15.png")\
 B("res/bg/16.png")\
 B("res/bg/17.png")\
-B("res/bg/18.png")\
+B("res/bg/19.png")\
+B("res/bg/20.png")\
+B("res/bg/21.png")\
+B("res/bg/22.png")\
+B("res/bg/23.png")\
+B("res/bg/24.png")\
+B("res/bg/25.png")\
+B("res/bg/26.png")\
+B("res/bg/27.png")\
 
 struct RESBackground {
     const char *name;
