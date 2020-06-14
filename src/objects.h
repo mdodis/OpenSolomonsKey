@@ -63,6 +63,8 @@ global struct {
     
     int player_num_fireballs = 0;
     int player_num_slots = 3;
+    int player_fireball_range = 2; // number of blocks
+    
     bool player_will_get_double_rest_bonus = false;
     bool time_is_low_enough = false;
 #ifndef NDEBUG
@@ -209,7 +211,7 @@ inline internal Sprite make_dfireball(fvec2 position) {
         }
     };
     
-    res.entity.params[0].as_f64 = 2.0;
+    res.entity.params[0].as_f64 = 1.0;
     res.entity.params[1].as_f64 = 0.0;
     
     SET_ANIMATION(&res, DFireball, Middle);
@@ -281,7 +283,7 @@ inline internal Sprite make_key(fvec2 position) {
 }
 
 internal void set_pickup_collision_box(Sprite *pickup) {
-    pickup->collision_box = AABox{10,0,54,64};
+    pickup->collision_box = AABox{10,10,54,54};
 }
 
 inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
@@ -303,12 +305,28 @@ inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
     
     set_pickup_collision_box(&res);
     /*
+param 0 is te pickup's type
+param 1 controls whether the pickup is "enabled" or not TODO: move this to Sprite::enabled
 param 2 is the pickup's id, to be able to enable/disable it if it's hidden
 param 3 controls whether or not the pickup can move (gravity)
+param 4 states the pickup's original type (see Player_cast)
 */
     res.entity.params[2].as_u64 = id;
     res.entity.params[3].as_i64 = 0;
     return res;
+}
+
+internal void pickup_change_to(Sprite *pickup, PickupType to) {
+    PickupType &current_type = (PickupType&)pickup->entity.params[0].as_u64;
+    PickupType &original_type = (PickupType&)pickup->entity.params[4].as_u64;
+    
+    if (current_type == PT_JewelChange) {
+        original_type = PT_JewelChange;
+    }
+    
+    if (original_type == PT_JewelChange) {
+        current_type = to;
+    }
 }
 
 inline internal Sprite make_blueflame(fvec2 position) {

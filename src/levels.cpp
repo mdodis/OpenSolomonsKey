@@ -171,6 +171,17 @@ internal Sprite *find_first_sprite_on_tile(EntityType type, ivec2 tile) {
     return 0;
 }
 
+internal Sprite *find_first_pickup_on_tile(ivec2 tile) {
+    List_Sprite &pickups = g_scene.loaded_map.pickups;
+    for (Sprite &pickup : pickups) {
+        ivec2 pos = map_position_to_tile_centered(pickup.position);
+        
+        if (pos == tile) return &pickup;
+    }
+    
+    return 0;
+}
+
 static inline bool is_empty_space(ivec2 pos) {
     EntityType type = scene_get_tile(pos);
     return (type == ET_Door || type == ET_EmptySpace);
@@ -258,7 +269,7 @@ internal void scene_reset() {
     g_scene.last_score_timer = 0.f;
     g_scene.last_score_num = 0;
     g_scene.player_time = 80.f;
-    g_scene.player_num_fireballs = 0;
+    g_scene.player_num_fireballs = 2;
     g_scene.player_will_get_double_rest_bonus = false;
 }
 

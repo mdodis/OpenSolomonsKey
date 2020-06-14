@@ -51,6 +51,7 @@ enum PickupType {
     PT_Jewel200,
     PT_Jewel500 = 19,
     PT_JewelChange,
+    // TODO(miked): JewelChange2
     PT_JewelRange,
     PT_JewelRange2,
     PT_PotionFire = 23,

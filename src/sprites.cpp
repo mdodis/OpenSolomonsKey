@@ -193,14 +193,14 @@ internal void Player_cast(Sprite* player, float dt) {
     
     // can't cast a tile while its occupied by an enemy
     Sprite *enemy_on_tile = find_first_sprite_on_tile(ET_Enemy, target_tile);
+    Sprite *other_on_tile = find_first_sprite_on_tile(ET_Key, target_tile);
     if (!enemy_on_tile) enemy_on_tile = find_first_sprite_on_tile(ET_Door, target_tile);
     if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
-    
-    Sprite *key_on_tile = find_first_sprite_on_tile(ET_Key, target_tile);
+    if (!other_on_tile) other_on_tile = find_first_pickup_on_tile(target_tile);
     
     SET_ANIMATION(player, Dana, Cast);
     audio_play_sound(GET_SOUND(SND_boueip));
-    if (!enemy_on_tile && !key_on_tile) {
+    if (!enemy_on_tile && !other_on_tile) {
         EntityType type = (EntityType)scene_get_tile(target_tile);
         bool should_spawn_flash_effect = true;
         bool put_frail_block;
@@ -249,14 +249,32 @@ internal void Player_cast(Sprite* player, float dt) {
         }
         
         scene_sprite_add(&hit);
+    } else if (other_on_tile->entity.type == ET_Pickup) {
+        switch(other_on_tile->entity.params[0].as_u64) {
+            case PT_JewelChange: {
+                pickup_change_to(other_on_tile, PT_PotionFire);
+            }break;
+            
+            case PT_PotionFire: {
+                pickup_change_to(other_on_tile, PT_JewelRange2);
+            }break;
+            
+            case PT_JewelRange2: {
+                pickup_change_to(other_on_tile, PT_Jewel2000);
+            }break;
+            
+            case PT_Jewel2000: {
+                pickup_change_to(other_on_tile, PT_JewelChange);
+            }break;
+            
+        }
     }
-    // TODO(miked): change key/pikcup if cast
 }
 
 
 UPDATE_ENTITY_FUNC2(DFireball_update, dfire) {
     
-    const double &time = dfire->entity.params[0].as_f64;
+    const double time = dfire->entity.params[0].as_f64 * g_scene.player_fireball_range;
     double &timer = dfire->entity.params[1].as_f64;
     
     timer += dt;
@@ -1049,6 +1067,14 @@ internal bool do_pickup_effect(Sprite *player, Sprite *pickup) {
         
         case PT_Hourglass: {
             g_scene.player_time = 40.f;
+        }break;
+        
+        case PT_JewelRange: {
+            g_scene.player_fireball_range += 1;
+        }break;
+        
+        case PT_JewelRange2: {
+            g_scene.player_fireball_range += 2;
         }break;
     }
     
