@@ -1,4 +1,6 @@
 
+#include <iostream>
+#include <vector>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -129,9 +131,34 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 }
 
 int main(int argc, char **argv) {
+    SDL_Init( 0 );
+
+    std::cout << "Testing video drivers..." << '\n';
+    std::vector< bool > drivers( SDL_GetNumVideoDrivers() );
+    for( int i = 0; i < drivers.size(); ++i )
+    {
+        drivers[ i ] = ( 0 == SDL_VideoInit( SDL_GetVideoDriver( i ) ) );
+        SDL_VideoQuit();
+    }
+
+    std::cout << "SDL_VIDEODRIVER available:";
+    for( int i = 0; i < drivers.size(); ++i )
+    {
+        std::cout << " " << SDL_GetVideoDriver( i );
+    }
+    std::cout << '\n';
+
+    std::cout << "SDL_VIDEODRIVER usable   :";
+    for( int i = 0; i < drivers.size(); ++i )
+    {
+        if( !drivers[ i ] ) continue;
+        std::cout << " " << SDL_GetVideoDriver( i );
+    }
+    std::cout << '\n';
+
     assert(SDL_Init(SDL_INIT_VIDEO) == 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2); 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     //SDL_GL_SetSwapInterval(0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);

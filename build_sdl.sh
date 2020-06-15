@@ -3,7 +3,7 @@
 TIMEFORMAT=%R
 
 code="$PWD/src/"
-opts="-fPIE -pthread -Wno-write-strings -I$code/../"
+opts=" `pkg-config --cflags --libs sdl2 libudev` -fPIE -pthread -Wno-write-strings -I$code/../"
 libs="-lSDL2 -lGL -lGLU"
 opt_debug="-g -ggdb -O0"
 opt_release="-O3 -DNDEBUG"

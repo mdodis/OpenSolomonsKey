@@ -532,8 +532,8 @@ b32 win32_get_key_state(i32 key) {return GetAsyncKeyState(key);}
 
 // Auto-generate the list of keys to update
 internal void win32_update_all_keys() {
-#define KEYDOWN(name, _X, keysym) g_input_state.name = win32_get_key_state(keysym);
-#define KEYPRESS(name, _X, keysym) { \
+#define KEYDOWN(name, _X, keysym, ...) g_input_state.name = win32_get_key_state(keysym);
+#define KEYPRESS(name, _X, keysym, ...) { \
 b32 now = win32_get_key_state(keysym); \
 g_input_state.name[1] = (now && !g_input_state.name[0]); \
 g_input_state.name[0] = g_input_state.name[1] || now; \
