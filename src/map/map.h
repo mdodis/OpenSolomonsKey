@@ -133,8 +133,8 @@ static char *parse_kmirror_enemy(char *c, int index);
 static char *Goblin_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 80.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 80.f);
     add_tilemap_enemy(MT_Goblin, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -142,8 +142,8 @@ static char *Goblin_custom(char *c, int row, int col, bool kmirror) {
 static char *Ghost_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 200.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 200.f);
     add_tilemap_enemy(MT_Ghost, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -160,8 +160,8 @@ static char *BlueFlame_custom(char *c, int row, int col, bool kmirror) {
 static char *DemonHead_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 1.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 1.f);
     add_tilemap_enemy(MT_Demonhead, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -169,8 +169,8 @@ static char *DemonHead_custom(char *c, int row, int col, bool kmirror) {
 static char *Wyvern_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 200.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 200.f);
     add_tilemap_enemy(MT_Wyvern, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -178,8 +178,8 @@ static char *Wyvern_custom(char *c, int row, int col, bool kmirror) {
 static char *Dragon_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 100.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 100.f);
     add_tilemap_enemy(MT_Dragon, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -187,8 +187,8 @@ static char *Dragon_custom(char *c, int row, int col, bool kmirror) {
 static char *SparkBall_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 100.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 100.f);
     add_tilemap_enemy(MT_SparkBall, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -196,8 +196,8 @@ static char *SparkBall_custom(char *c, int row, int col, bool kmirror) {
 static char *Gargoyle_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
-    c = parse_custom_double(&speed, c, 100.f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&speed, c, 100.f);
     add_tilemap_enemy(MT_Gargoyle, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
@@ -205,8 +205,8 @@ static char *Gargoyle_custom(char *c, int row, int col, bool kmirror) {
 static char *PanelMonster_custom(char *c, int row, int col) {
     double interval;
     long dir;
-    c = parse_custom_double(&interval, c, 2.0f);
     c = parse_custom_long(&dir, c, 0);
+    c = parse_custom_double(&interval, c, 2.0f);
     add_tilemap_enemy(MT_PanelMonster, row, col, (void*)&interval, (void*)&dir, false);
     return c;
 }
@@ -378,6 +378,14 @@ internal bool load_map_from_file(const char *filename, int *errcode) {
                         
                         case ET_Enemy: {
                             c = parse_enemy(c, counter_y, counter_x);
+                            if (*c == '|') {
+                                c++;
+                                long type;
+                                c = parse_long(c, &type);
+                                if (pickup_type_is_valid((PickupType)type)) {
+                                    add_tilemap_pickup((PickupType) type, counter_y, counter_x);
+                                }
+                            }
                         }break;
                         
                         case ET_Pickup: {
