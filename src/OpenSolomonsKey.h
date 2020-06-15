@@ -22,14 +22,6 @@ inline void _exit_with_message(char* message) {
     exit(-1);
 }
 
-void _tmp_exit_thingy(int num, int l, const char *f) {
-    fprintf(stdout, "Exit called with code %d %s, %d\n", num, f, l);
-    fflush(stdout);
-    exit(num);
-}
-
-#define exit(num) _tmp_exit_thingy(num, __LINE__, __FILE__)
-
 #ifdef OSK_EXCLUDE_MSG_EXPR
 #define warn_unless(expr, msg) if (!(expr)) puts("[WARNING] " #msg)
 #define fail_unless(expr, msg) if (!(expr)) _exit_with_message("[ERROR] " #msg)

@@ -107,6 +107,13 @@ alsa_init() {
 }
 
 global bool g_running = true;
+void sdl_exit(int num) {
+    fprintf(stderr, "Exit called with %d\n", num);
+    g_running = false;
+}
+
+#define exit(num) sdl_exit(num)
+
 global const Uint8 *g_keyboard = 0;
 
 internal inline b32 sdl_get_key_state(i32 key) {
@@ -131,55 +138,47 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 }
 
 int main(int argc, char **argv) {
-    SDL_Init( 0 );
-
-    std::cout << "Testing video drivers..." << '\n';
-    std::vector< bool > drivers( SDL_GetNumVideoDrivers() );
-    for( int i = 0; i < drivers.size(); ++i )
-    {
-        drivers[ i ] = ( 0 == SDL_VideoInit( SDL_GetVideoDriver( i ) ) );
-        SDL_VideoQuit();
-    }
-
-    std::cout << "SDL_VIDEODRIVER available:";
-    for( int i = 0; i < drivers.size(); ++i )
-    {
-        std::cout << " " << SDL_GetVideoDriver( i );
-    }
-    std::cout << '\n';
-
-    std::cout << "SDL_VIDEODRIVER usable   :";
-    for( int i = 0; i < drivers.size(); ++i )
-    {
-        if( !drivers[ i ] ) continue;
-        std::cout << " " << SDL_GetVideoDriver( i );
-    }
-    std::cout << '\n';
-
+    
     assert(SDL_Init(SDL_INIT_VIDEO) == 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2); 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    //SDL_GL_SetSwapInterval(0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
+    //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    
     g_wind_width = 640u;
     g_wind_height = 480u;
     
-    SDL_Window *window = SDL_CreateWindow("Open Solomon's Key", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, g_wind_width, g_wind_height, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    SDL_Window *window;
+    
+    if ((argc > 1) && strcmp(argv[1], "-fullscreen") == 0) {
+        SDL_DisplayMode mode;
+        assert(SDL_GetDesktopDisplayMode(0, &mode) == 0);
+        
+        g_wind_width = mode.w;
+        g_wind_height = mode.h;
+        
+        window = SDL_CreateWindow("Open Solomon's Key", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, g_wind_width, g_wind_height, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN);
+    } else {
+        window = SDL_CreateWindow("Open Solomon's Key", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, g_wind_width, g_wind_height, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    }
+    
     fail_unless(window, "Could not create an SDL window");
     
     SDL_GLContext glcontext = SDL_GL_CreateContext(window);
+    // NOTE: using KMSDRM backend has really bad tearing without this,
+    // but the only machine I tested is an Ubuntu laptop so...
+    assert(SDL_GL_SetSwapInterval(1) == 0);
     fail_unless(glcontext != NULL, "Failed to create an gles context");
     
     g_keyboard = SDL_GetKeyboardState(0);
     cb_init();
     alsa_init();
+    cb_resize();
+    
     Timer timer;
     timer.reset();
     
-    cb_resize();
     while (g_running) {
         SDL_Event event;
         
@@ -215,7 +214,8 @@ int main(int argc, char **argv) {
         // TODO(miked): fullscreen toggle?
         
     }
-    
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
 
 
