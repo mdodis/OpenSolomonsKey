@@ -1362,9 +1362,10 @@ UPDATE_ENTITY_FUNC2(Dragon_update, dragon) {
     static u64 current_fire_id = 1;
     
     ivec2 ctile = map_position_to_tile_centered(dragon->position + fvec2{turn_offset, 0.f});
-    if (dragon->position.x < 0) {
+    if (dragon->position.x < 0 && dragon->direction() < 0.f) {
         ctile.x = -1;
     }
+    
     EntityType tile_front = (EntityType)scene_get_tile(ctile);
     
 #ifndef NDEBUG    

@@ -119,22 +119,19 @@ platform_load_entire_file(const char* path)
 //#define AUDIO_BUFFER_SIZE 1000
 #define AUDIO_MAX_SOUNDS 32
 
-struct RESSound
-{
+struct RESSound {
     u32 samplerate;
     u32 num_channels;
     u32 num_samples;
     void* data;
 };
 
-enum SoundType
-{
+enum SoundType {
     SoundEffect,
     Music,
 };
 
-struct Sound
-{
+struct Sound {
     u64 counter = 0;
     float volume = 1.f;
     u64 max_counter = ~(0u);
@@ -145,8 +142,7 @@ struct Sound
     SoundType type;
 };
 
-global struct
-{
+global struct {
     
     Sound all_sounds[AUDIO_MAX_SOUNDS];
     i32 all_sounds_size = 0;
