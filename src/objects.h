@@ -99,7 +99,13 @@ inline internal Sprite make_goblin(fvec2 position) {
         }
     };
     res.entity.params[0].as_etype = MT_Goblin;
-    
+    /*
+param 0 etype
+param 1 walk speed
+param 2 run speed
+param 3 spawn/fall state
+*/
+    res.entity.params[3].as_u64 = true;
     return res;
 }
 

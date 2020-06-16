@@ -128,7 +128,6 @@ internal void monster_die(Sprite *monster, MonsterDeathReason reason) {
             Sprite pickup = make_pickup(monster->position, PT_JewelChange);
             pickup.entity.params[3].as_i64 = 1;
             scene_sprite_add(&pickup);
-            
             if (reason == MDR_Fireball) {
                 monster->mark_for_removal = true;
             }
@@ -770,6 +769,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     const float goblin_run_speed = 120;
     b32 ignore_player = false;
     b32 is_dying = goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Fall);
+    u64 &ignore_air_death = goblin->entity.params[3].as_u64;
     
     ignore_player = is_dying;
     
@@ -879,9 +879,13 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     
     goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
     
+    if (goblin->velocity.y == 0 && !goblin->is_on_air) {
+        ignore_air_death = false;
+    }
+    
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
-    if (goblin->is_on_air && !is_dying) {
+    if (goblin->is_on_air && !is_dying && !ignore_air_death) {
         monster_die(goblin, MDR_BlockBreak);
         //goblin->enabled = false;
         SET_ANIMATION(goblin, Goblin, Fall);
@@ -891,7 +895,6 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
             inform("You killed a Goblin, ouchie!");
         }
     }
-    
 }
 
 // eGhost
