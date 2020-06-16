@@ -887,9 +887,9 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     
     if (goblin->is_on_air && !is_dying && !ignore_air_death) {
         monster_die(goblin, MDR_BlockBreak);
-        //goblin->enabled = false;
         SET_ANIMATION(goblin, Goblin, Fall);
-    } else if (is_dying) {
+        //goblin->enabled = false;
+    } else if (is_dying && !ignore_air_death) {
         if (!goblin->is_on_air) {
             goblin->mark_for_removal = true;
             inform("You killed a Goblin, ouchie!");
