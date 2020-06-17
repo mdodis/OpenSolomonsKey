@@ -41,8 +41,14 @@ b32 x11_get_key_state(i32 key);
 
 b32 win32_get_key_state(i32 key);
 
+#elif defined(OSK_PLATFORM_SDL)
+
+b32 sdl_get_key_state(i32 key);
+
 #else
-//#error "No get key state function for compatible platform"
+
+
+#error "No get key state function for compatible platform"
 #endif
 
 global InputState g_input_state;

@@ -1,4 +1,4 @@
-
+#include <SDL2/SDL.h>
 #include <iostream>
 #include <vector>
 #include <stdio.h>
@@ -8,7 +8,6 @@
 #include <time.h>
 #define OSK_PLATFORM_SDL
 #include "OpenSolomonsKey.h"
-#include <SDL2/SDL.h>
 #include <GLES3/gl3.h>
 
 #include <alsa/asoundlib.h>
@@ -116,7 +115,7 @@ void sdl_exit(int num) {
 
 global const Uint8 *g_keyboard = 0;
 
-internal inline b32 sdl_get_key_state(i32 key) {
+b32 sdl_get_key_state(i32 key) {
     return (g_keyboard[key]);
 }
 
@@ -139,9 +138,9 @@ g_input_state.name[0] = g_input_state.name[1] || now; \
 
 int main(int argc, char **argv) {
     
-    assert(SDL_Init(SDL_INIT_VIDEO) == 0);
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) return -1;
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2); 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -153,22 +152,30 @@ int main(int argc, char **argv) {
     
     if ((argc > 1) && strcmp(argv[1], "-fullscreen") == 0) {
         SDL_DisplayMode mode;
-        assert(SDL_GetDesktopDisplayMode(0, &mode) == 0);
+        assert(SDL_GetNumVideoDisplays() > 0);
+        int zero = SDL_GetDesktopDisplayMode(0, &mode);
+        assert(zero == 0);
         
         g_wind_width = mode.w;
         g_wind_height = mode.h;
-        
+        if (zero == 0)
+            SDL_Log("%d %d\n", mode.w, mode.h);
+        else {
+            SDL_Log("fuck %s", SDL_GetError());
+        }
         window = SDL_CreateWindow("Open Solomon's Key", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, g_wind_width, g_wind_height, SDL_WINDOW_OPENGL|SDL_WINDOW_FULLSCREEN);
     } else {
         window = SDL_CreateWindow("Open Solomon's Key", SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED, g_wind_width, g_wind_height, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
     }
     
-    fail_unless(window, "Could not create an SDL window");
+    if (!window) {
+        SDL_Log("%s", SDL_GetError());
+    }
     
     SDL_GLContext glcontext = SDL_GL_CreateContext(window);
     // NOTE: using KMSDRM backend has really bad tearing without this,
     // but the only machine I tested is an Ubuntu laptop so...
-    assert(SDL_GL_SetSwapInterval(1) == 0);
+    SDL_GL_SetSwapInterval(1);
     fail_unless(glcontext != NULL, "Failed to create an gles context");
     
     g_keyboard = SDL_GetKeyboardState(0);
