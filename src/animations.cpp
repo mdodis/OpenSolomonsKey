@@ -130,11 +130,6 @@ internal void scene_startup_animation(float dt) {
             const float dur = 1.f;
             startup_anim_time += dt;
             if (startup_anim_time >= dur) {
-                Sprite *key = find_first_sprite(ET_Key);
-                Sprite *door = find_first_sprite(ET_Door);
-                key->mark_for_removal = true;
-                player->entity.params[0].as_u64 = 1;
-                SET_ANIMATION(door, Door, Open);
                 goto STARTUP_ANIMATION_FINISH;
             }
             ring->update_animation(dt);
@@ -152,6 +147,14 @@ internal void scene_startup_animation(float dt) {
     
     
     STARTUP_ANIMATION_FINISH:
+    if (startup_anim_include_key) {
+        Sprite *pkey = find_first_sprite(ET_Key);
+        pkey->mark_for_removal = true;
+        Sprite *door = find_first_sprite(ET_Door);
+        player->entity.params[0].as_u64 = 1;
+        SET_ANIMATION(door, Door, Open);
+    }
+    
     startup_animation_reset();
     g_scene.current_state = SS_PLAYING;
     g_scene.playing = true;

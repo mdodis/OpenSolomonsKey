@@ -146,7 +146,7 @@ inline internal Sprite make_wyvern(fvec2 position) {
     Sprite res = {
         .tilemap = &GET_CHAR_TILEMAP(Wyvern),
         .position = position,
-        .collision_box = {0, 0, 64, 64},
+        .collision_box = {10, 0, 54, 64},
         .mirror = {false, false},
         .animation_set = GET_CHAR_ANIMSET(Wyvern),
         .entity = {

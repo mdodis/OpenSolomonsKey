@@ -613,7 +613,7 @@ UPDATE_ENTITY_FUNC2(Player_update, player) {
     const float MAX_YSPEED = 500;
     const float JUMP_STRENGTH = 375;
     const float RUNNING_JUMP_STRENGTH = 350;
-    const float XSPEED = 150;
+    const float XSPEED = 180;
     u64 &has_key = player->entity.params[0].as_u64;
     u64 &is_dead = player->entity.params[1].as_u64;
     double &die_timer = player->entity.params[2].as_f64;

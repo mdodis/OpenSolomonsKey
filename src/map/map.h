@@ -170,7 +170,7 @@ static char *Wyvern_custom(char *c, int row, int col, bool kmirror) {
     double speed;
     long dir;
     c = parse_custom_long(&dir, c, 0);
-    c = parse_custom_double(&speed, c, 200.f);
+    c = parse_custom_double(&speed, c, 160.f);
     add_tilemap_enemy(MT_Wyvern, row, col, (void*)&speed, (void*)&dir, kmirror);
     return c;
 }
