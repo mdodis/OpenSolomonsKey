@@ -770,14 +770,17 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     b32 ignore_player = false;
     b32 is_dying = goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Fall);
     u64 &ignore_air_death = goblin->entity.params[3].as_u64;
-    
+    u64 &tile_hit_was_frail = goblin->entity.params[4].as_u64;
     ignore_player = is_dying;
     
     if (goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) || goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Wait)) {
         // Switch direction and continue when either of these states ends
         if (!goblin->animation_playing) {
+            
+            if (!(goblin->current_animation == GET_CHAR_ANIMENUM(Goblin, Punch) && tile_hit_was_frail)) {
+                goblin->mirror.x = !goblin->mirror.x;
+            }
             SET_ANIMATION(goblin, Goblin, Walk);
-            goblin->mirror.x = !goblin->mirror.x;
         } else {
             ignore_player = true;
         }
@@ -847,15 +850,19 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
         
         ivec2 tile_index = map_position_to_tile_centered(goblin->position + fvec2{punch_offset, 0 });
 #ifndef NDEBUG
-        gl_slow_tilemap_draw(
-                             &GET_TILEMAP_TEXTURE(TM_essentials),
-                             {tile_index.x * 64.f, tile_index.y * 64.f},
+        gl_slow_tilemap_draw(&GET_TILEMAP_TEXTURE(TM_essentials), {tile_index.x * 64.f,tile_index.y * 64.f},
                              {64, 64},
                              0,1 * 5 + 1,
                              false, false,
                              NRGBA{0.f, 1.f, 0.f, 1.f});
 #endif
         if ((scene_get_tile(tile_index) != ET_EmptySpace || is_at_edge_of_map) && !(goblin->is_on_air)) {
+            tile_hit_was_frail = is_frail_block(tile_index);
+            
+            if (tile_hit_was_frail) {
+                scene_hit_frail_block(tile_index);
+            }
+            
             SET_ANIMATION(goblin, Goblin, Punch);
         }
     }
