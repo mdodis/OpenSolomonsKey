@@ -197,6 +197,11 @@ internal void Player_cast(Sprite* player, float dt) {
     if (enemy_on_tile && get_enemy_type(enemy_on_tile) == MT_BlueFlame) enemy_on_tile = 0;
     if (!other_on_tile) other_on_tile = find_first_pickup_on_tile(target_tile);
     
+    if (other_on_tile) {
+        // check if pickup is hidden
+        if (other_on_tile->entity.params[1].as_u64) other_on_tile = 0;
+    }
+    
     SET_ANIMATION(player, Dana, Cast);
     audio_play_sound(GET_SOUND(SND_boueip));
     if (!enemy_on_tile && !other_on_tile) {
@@ -884,7 +889,10 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
         
     }
     
-    goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
+    // goblin can't fall while punching a wall
+    if (goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch)) {
+        goblin->move_and_collide(dt, 900, 450, 450, move_amount * goblin->direction());
+    }
     
     if (goblin->velocity.y == 0 && !goblin->is_on_air) {
         ignore_air_death = false;
@@ -892,7 +900,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
     
     if (iabs(goblin->velocity.x) > 0) goblin->mirror.x = goblin->velocity.x > 0;
     
-    if (goblin->is_on_air && !is_dying && !ignore_air_death) {
+    if (goblin->is_on_air && !is_dying && !ignore_air_death && goblin->current_animation != GET_CHAR_ANIMENUM(Goblin, Punch)) {
         monster_die(goblin, MDR_BlockBreak);
         SET_ANIMATION(goblin, Goblin, Fall);
         //goblin->enabled = false;
@@ -906,7 +914,7 @@ UPDATE_ENTITY_FUNC2(Goblin_update, goblin) {
 
 // eGhost
 UPDATE_ENTITY_FUNC2(Ghost_update, ghost) {
-    const float ghost_turn_offset_amount = 64;
+    const float ghost_turn_offset_amount = 68;
     double &ghost_speed = ghost->entity.params[1].as_f64;
     
     float ghost_turn_offset =ghost->direction()*ghost_turn_offset_amount - ghost->direction()*(ghost_turn_offset_amount/2);

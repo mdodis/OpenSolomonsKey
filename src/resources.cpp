@@ -112,7 +112,7 @@ DEF_ANIM(Dana,                  JumpTurn,.1f,      {5,1}, 1,      true )   \
 DEF_CHARACTER(Goblin,                TM_goblin,          5,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Goblin,                Walk,    .2f,      {0,0}, 6,      true )   \
-DEF_ANIM(Goblin,                Punch,   .18f,     {0,1}, 4,      false)   \
+DEF_ANIM(Goblin,                Punch,   .2f ,     {0,1}, 4,      false)   \
 DEF_ANIM(Goblin,                Chase,   .15f,     {0,2}, 7,      true )   \
 DEF_ANIM(Goblin,                Wait,    1.f,      {5,0}, 1,      false)   \
 DEF_ANIM(Goblin,                Fall,    .1f,      {0,3}, 2,      true )   \
