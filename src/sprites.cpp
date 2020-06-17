@@ -1344,7 +1344,7 @@ UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
     const float turn_offset = wy->direction() * 32;
     
     ivec2 ctile = map_position_to_tile_centered(wy->position + fvec2{turn_offset, 0.f});
-    if (wy->position.x < 0) {
+    if (wy->position.x < 0 && wy->direction() < 0) {
         ctile.x = -1;
     }
     
@@ -1355,18 +1355,19 @@ UPDATE_ENTITY_FUNC2(Wyvern_update, wy) {
     EntityType tile_front = (EntityType)scene_get_tile(ctile);
     
     if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Default)) {
-        if (tile_front == ET_BlockFrail) {
-            SET_ANIMATION(wy, Ghost, Punch);
-        } else if (tile_front == ET_BlockSolid) {
-            wy->mirror.x = !wy->mirror.x;
+        if (is_block(tile_front)) {
+            SET_ANIMATION(wy, Wyvern, Hit);
+        } else {
+            wy->position.x += wy->direction() * speed * dt;
         }
         
-        wy->position.x += wy->direction() * speed * dt;
     } else if (wy->current_animation == GET_CHAR_ANIMENUM(Wyvern, Hit)){
         // destroy block if finished
         if (!wy->animation_playing) {
-            SPAWN_EFFECT(tile_to_position(ctile), Flash);
-            scene_set_tile(ctile, ET_EmptySpace);
+            if (is_frail_block(tile_front)) {
+                SPAWN_EFFECT(tile_to_position(ctile), Flash);
+                scene_set_tile(ctile, ET_EmptySpace);
+            }
             wy->mirror.x = !wy->mirror.x;
             SET_ANIMATION(wy, Wyvern, Default);
         }

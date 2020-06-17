@@ -141,7 +141,7 @@ DEF_ANIM(PanelMonsterFlame,     Hit,     0.2f,     {3,1}, 2,      false)   \
 )                                                                 \
 DEF_CHARACTER(Wyvern,                TM_wyvern,         2,                      \
 DEF_ANIM(Wyvern,                Default, 0.1f,     {0,0}, 3,      true )   \
-DEF_ANIM(Wyvern,                Hit,     0.1f,     {0,0}, 3,      false)   \
+DEF_ANIM(Wyvern,                Hit,     0.1f,     {0,1}, 2,      false)   \
 )                                                                 \
 DEF_CHARACTER(Dragon,                TM_dragon,         6,                      \
 DEF_ANIM(Dragon,                Walk,    0.2f,     {0,0}, 5,      true )   \

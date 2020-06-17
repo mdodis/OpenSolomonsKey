@@ -478,7 +478,10 @@ internal void clear_map(Map *map) {
 internal void load_map(Map *m, const char *path) {
     scene_reset();
     hidden_pickup_count = 1;
-    load_map_from_file(path, 0);
+    if (!load_map_from_file(path, 0)) {
+        fprintf(stdout, "No more levels, exiting...");
+        exit(0);
+    }
     *m = smap;
 }
 
