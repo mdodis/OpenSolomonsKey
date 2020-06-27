@@ -7,7 +7,7 @@ void LoadTextures()
 	// Blocks
     for (int i = 0; i < NUM_BLOCKS; ++i)
 	{
-	    t.loadFromFile("res/blocks.png", sf::IntRect(x_offset, 0, 64, 64));
+	    t.loadFromFile("res\\blocks.png", sf::IntRect(x_offset, 0, 64, 64));
 	    tex_blocks[i] = t;
 	    x_offset += 64;
 	}

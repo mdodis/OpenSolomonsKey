@@ -14,6 +14,7 @@ blacklist_patterns = {
 };
 load_paths_base = {
  { "./src", .relative = true, .recursive = true, },
+ { "./editor", .relative = true, .recursive = false, },
 };
 load_paths = {
  { load_paths_base, .os = "win", },
@@ -37,6 +38,13 @@ command_list = {
    .cmd = { { "vblank_mode=0 __GL_SYNC_TO_VBLANK=0 ./build/solomons_key" , .os = "linux" },
              }, },
 
+ { 	
+   .name = "build editor",
+   .out = "*compilation*", .footer_panel=true, .save_dirty_files=true, .cursor_at_end=false,
+   .cmd = {
+       {"build_editor.bat", .os = "win"},
+   }
+ },
 
 };
 fkey_command[1] = "build";

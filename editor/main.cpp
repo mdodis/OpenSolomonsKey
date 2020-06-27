@@ -16,7 +16,7 @@
 
 int main()
 {
-	sf::RenderWindow window(sf::VideoMode(1250, 800), "Open Solomon's Key Editor", sf::Style::Close);
+	sf::RenderWindow window(sf::VideoMode(1250, 800), "Open Solomon's Key Editor", sf::Style::Close|sf::Style::Resize);
 	
 	window.setPosition(ImVec2(0,0));
 	window.setFramerateLimit(60);
@@ -175,6 +175,7 @@ int main()
 		
 		ImGui::Spacing();
 		
+#if 0
 		
 		// Unique elements
 		ImGui::Text("Unique elements");
@@ -339,14 +340,16 @@ int main()
 		
 		// Properties popup
 		OpenPropertiesWindow();
-		
+#endif 
 		window.clear();
-		
+        
+#if 0		
 		background_sprite.setTexture(tex_backgrounds[background_index]);
 		background_sprite.setPosition(UI.GRID_START_X, UI.GRID_START_Y);
 		window.draw(background_sprite);
 		DrawLevel(window);
-		
+#endif
+        
 		ImGui::End();
 		ImGui::SFML::Render(window);
 		window.display();
