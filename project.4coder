@@ -46,6 +46,15 @@ command_list = {
    }
  },
 
+ { 	
+   .name = "run editor",
+   .out = "*run*", .footer_panel=false, .save_dirty_files=false, .cursor_at_end=true,
+   .cmd = {
+       {"build\osked", .os = "win"},
+   }
+ },
 };
 fkey_command[1] = "build";
 fkey_command[2] = "run";
+fkey_command[3] = "build editor";
+fkey_command[4] = "run editor";
