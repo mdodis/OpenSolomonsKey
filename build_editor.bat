@@ -15,7 +15,7 @@ pushd build
 del build-editor.ctime 2> NUL
 ctime -begin build-editor.ctime
 
-set SOURCES=%code%/imgui/imgui.cpp %code%/imgui/imgui_draw.cpp %code%/imgui/imgui_widgets.cpp %code%/imgui/imgui-SFML.cpp %code%/imgui/imgui_demo.cpp %code%/main.cpp
+set SOURCES=%code%/imgui/imgui.cpp %code%/imgui/imgui_draw.cpp %code%/imgui/imgui_widgets.cpp %code%/imgui/imgui-SFML.cpp %code%/imgui/imgui_demo.cpp %code%/editor.cpp
 set link_opts=%libs%\sfml-system.lib %libs%\sfml-graphics.lib %libs%\sfml-main.lib %libs%\sfml-window.lib %libs%\freetype.lib Comdlg32.lib OLE32.lib shell32.lib
 
 REM Debug

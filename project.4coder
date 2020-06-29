@@ -43,6 +43,7 @@ command_list = {
    .out = "*compilation*", .footer_panel=true, .save_dirty_files=true, .cursor_at_end=false,
    .cmd = {
        {"build_editor.bat", .os = "win"},
+       {"sh build_editor.sh", .os = "linux"},
    }
  },
 
@@ -51,6 +52,7 @@ command_list = {
    .out = "*run*", .footer_panel=false, .save_dirty_files=false, .cursor_at_end=true,
    .cmd = {
        {"build\osked", .os = "win"},
+       {"build/osked", .os = "linux"},
    }
  },
 };
