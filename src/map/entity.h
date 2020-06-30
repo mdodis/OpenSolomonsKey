@@ -101,4 +101,26 @@ enum EnemyType {
     MT_Count
 };
 
+#define MAX_ENTITY_PARAMS (3 + 4)
+// Custom Parameters
+// eEmptySpace :: hidden item
+// eBlockFrail :: health, hidden item
+
+/* NOTE: eEffect - scene_update _automatically_ marks
+ * any eEffect entity for removal once it's animation is finished
+*/
+
+union CustomParameter {
+    u64    as_u64;
+    double as_f64;
+    i64    as_i64;
+    EnemyType as_etype;
+    void *as_ptr;
+};
+
+struct Entity {
+    EntityType type;
+    CustomParameter params[MAX_ENTITY_PARAMS];
+};
+
 #endif //ENTITY_H

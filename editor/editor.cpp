@@ -11,8 +11,19 @@
 #include "imgui/imgui-SFML.h"
 #include "portable-file-dialogs.h"
 
-static unsigned g_width = 640;
-static unsigned g_height = 480;
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+typedef int32_t   b32;
+#include "map/entity.h"
+
+static unsigned g_width = 700;
+static unsigned g_height = 500;
 static int g_mouse_x = -1;
 static int g_mouse_y = -1;
 
@@ -63,7 +74,6 @@ int main() {
                         mouse_delta.y = dy;
                         
                         if (!io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                            //view.move();
                             sf::Vector2f pos = level_texture_sprite.getPosition();
                             pos += sf::Vector2f(mouse_delta.x, mouse_delta.y);
                             level_texture_sprite.setPosition(pos);
@@ -76,8 +86,10 @@ int main() {
                 case sf::Event::MouseButtonPressed: {
                     sf::Vector2f pos(event.mouseButton.x, event.mouseButton.y);
                     
-                    pos -= level_texture_sprite.getPosition();
-                    rrect.setPosition(pos);
+                    if (!io.WantCaptureMouse) {
+                        pos -= level_texture_sprite.getPosition();
+                        rrect.setPosition(pos);
+                    }
                 }break;
             }
             
