@@ -11,6 +11,10 @@
 #include "imgui/imgui-SFML.h"
 #include "portable-file-dialogs.h"
 
+
+#define internal static
+#define global   static
+#define persist  static
 typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -20,7 +24,9 @@ typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
 typedef int32_t   b32;
+#include "osk_math.h"
 #include "map/entity.h"
+#include "resources.h"
 
 static unsigned g_width = 700;
 static unsigned g_height = 500;

@@ -324,23 +324,23 @@ aabb_minkowski(const AABox* const a,
         float min = FLT_MAX;
         /*NOTE(mdodis): prefer Y axis over X on collision*/
         
-        if (glm::abs(result.min_x) < min) {
-            min = glm::abs(result.min_x);
+        if (abs(result.min_x) < min) {
+            min = abs(result.min_x);
             penetration = {result.min_x, 0};
         }
         
-        if (glm::abs(result.max_x) < min) {
-            min = glm::abs(result.max_x);
+        if (abs(result.max_x) < min) {
+            min = abs(result.max_x);
             penetration = {result.max_x, 0};
         }
         
-        if (glm::abs(result.min_y) < min) {
-            min = glm::abs(result.min_y);
+        if (abs(result.min_y) < min) {
+            min = abs(result.min_y);
             penetration = {0, result.min_y};
         }
         
-        if (glm::abs(result.max_y) < min) {
-            min = glm::abs(result.max_y);
+        if (abs(result.max_y) < min) {
+            min = abs(result.max_y);
             penetration = {0, result.max_y};
         }
         
