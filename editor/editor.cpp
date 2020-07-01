@@ -11,7 +11,6 @@
 #include "imgui/imgui-SFML.h"
 #include "portable-file-dialogs.h"
 
-
 #define internal static
 #define global   static
 #define persist  static
@@ -33,6 +32,57 @@ static unsigned g_height = 500;
 static int g_mouse_x = -1;
 static int g_mouse_y = -1;
 
+sf::Sprite rrect;
+
+inline fvec2 sv2(const sf::Vector2f& v) {
+    return fvec2{v.x, v.y};
+}
+
+inline sf::Vector2f sv2(const fvec2 &v) {
+    return sf::Vector2f(v.x, v.y);
+}
+
+#define TILEMAP_ROWS (12)
+#define TILEMAP_COLS (15)
+global EntityType tilemap[TILEMAP_COLS][TILEMAP_ROWS];
+
+internal void click_tile(fvec2 pixel_pos) {
+    ivec2 tile_pos = map_position_to_tile(pixel_pos);
+    fvec2 tile_pixel_pos = tile_to_position(tile_pos);
+    
+    if (tile_pos.x >= 0 && tile_pos.x < TILEMAP_COLS &&
+        tile_pos.y >= 0 && tile_pos.y < TILEMAP_ROWS) {
+        
+        if (tilemap[tile_pos.x][tile_pos.y] == ET_EmptySpace) {
+            tilemap[tile_pos.x][tile_pos.y] = ET_BlockFrail;
+        } else {
+            tilemap[tile_pos.x][tile_pos.y] = ET_EmptySpace;
+        }
+    }
+}
+
+
+sf::Texture entities[ET_Count];
+
+internal void draw_tilemap(sf::RenderTexture &drw) {
+    sf::Sprite bob;
+    for (int c = 0; c < TILEMAP_COLS; c += 1) {
+        for (int r = 0; r < TILEMAP_ROWS; r += 1) {
+            
+            switch (tilemap[c][r]) {
+                case ET_EmptySpace: break;
+                
+                case ET_BlockFrail: {
+                    bob.setTexture(entities[ET_BlockFrail]);
+                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                    drw.draw(bob);
+                }break;
+            }
+        }
+    }
+    
+}
+
 int main() {
 	sf::RenderWindow window(sf::VideoMode(g_width, g_height), "Open Solomon's Key Editor");
     
@@ -42,14 +92,14 @@ int main() {
 	sf::Clock deltaClock;
     
     sf::RectangleShape rect(sf::Vector2f(64.f,64.f));
-    sf::RectangleShape rrect(sf::Vector2f(64.f,64.f));
-    rrect.setFillColor(sf::Color::Red);
     
     sf::RenderTexture level_texture;
     sf::Sprite level_texture_sprite;
     level_texture.create(15 * 64, 12 * 64);
     level_texture_sprite.setTexture(level_texture.getTexture());
     
+    assert(entities[ET_BlockFrail].loadFromFile("res/essentials.png", sf::IntRect(0, 0, 64, 64)));
+    rrect.setTexture(entities[ET_BlockFrail]);
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
 		sf::Event event;
@@ -79,7 +129,9 @@ int main() {
                         mouse_delta.x = dx;
                         mouse_delta.y = dy;
                         
-                        if (!io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                        if (!io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) &&
+                            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+                            
                             sf::Vector2f pos = level_texture_sprite.getPosition();
                             pos += sf::Vector2f(mouse_delta.x, mouse_delta.y);
                             level_texture_sprite.setPosition(pos);
@@ -92,9 +144,9 @@ int main() {
                 case sf::Event::MouseButtonPressed: {
                     sf::Vector2f pos(event.mouseButton.x, event.mouseButton.y);
                     
-                    if (!io.WantCaptureMouse) {
+                    if (!io.WantCaptureMouse && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
                         pos -= level_texture_sprite.getPosition();
-                        rrect.setPosition(pos);
+                        click_tile(sv2(pos));
                     }
                 }break;
             }
@@ -114,7 +166,7 @@ int main() {
                 level_texture.draw(rect);
             }
         }
-        level_texture.draw(rrect);
+        draw_tilemap(level_texture);
         level_texture.display();
         
         window.draw(level_texture_sprite);

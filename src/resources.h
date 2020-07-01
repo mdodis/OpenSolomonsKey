@@ -70,6 +70,15 @@ should prevent name collisions, if you input different character names.
 */
 #define ALL_CHARACTERS                                                              \
 /*            Name,        Tilemap,  Animation Count */                         \
+DEF_CHARACTER(BlockFrail,            TM_essentials,      1,                     \
+DEF_ANIM(BlockFrail,            Default, .1f,      {0,0}, 1,      true )   \
+)                                                                 \
+DEF_CHARACTER(BlockFrailHalf,        TM_essentials,      1,                     \
+DEF_ANIM(BlockFrailHalf,        Default, .1f,      {4,0}, 1,      true )   \
+)                                                                 \
+DEF_CHARACTER(BlockSolid,            TM_essentials,      1,                     \
+DEF_ANIM(BlockSolid,            Default, .1f,      {0,1}, 1,      true )   \
+)                                                                 \
 DEF_CHARACTER(Dana,                  TM_dana,            7,                     \
 /*       Character,             Name     Duration, Start, Frames, Loop*/   \
 DEF_ANIM(Dana,                  Idle,    .1f,      {0,0}, 1,      false)   \
