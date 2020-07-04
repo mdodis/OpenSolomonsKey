@@ -27,12 +27,30 @@ typedef int32_t   b32;
 #include "map/entity.h"
 #include "resources.h"
 
-static unsigned g_width = 700;
-static unsigned g_height = 500;
-static int g_mouse_x = -1;
-static int g_mouse_y = -1;
+global unsigned g_width = 700;
+global unsigned g_height = 500;
+global int g_mouse_x = -1;
+global int g_mouse_y = -1;
 
-sf::Sprite rrect;
+enum Mode {
+    Block,
+    Player,
+    Enemy,
+    Door,
+    Key,
+    Pickup
+};
+
+global int g_mode = Mode::Block;
+
+global struct {
+    
+    struct {
+        int to_place = ET_BlockFrail;
+    } block;
+    
+    Entity sel = {ET_BlockFrail, {0}};
+} tool;
 
 inline fvec2 sv2(const sf::Vector2f& v) {
     return fvec2{v.x, v.y};
@@ -46,23 +64,41 @@ inline sf::Vector2f sv2(const fvec2 &v) {
 #define TILEMAP_COLS (15)
 global EntityType tilemap[TILEMAP_COLS][TILEMAP_ROWS];
 
-internal void click_tile(fvec2 pixel_pos) {
+internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
     ivec2 tile_pos = map_position_to_tile(pixel_pos);
     fvec2 tile_pixel_pos = tile_to_position(tile_pos);
     
     if (tile_pos.x >= 0 && tile_pos.x < TILEMAP_COLS &&
         tile_pos.y >= 0 && tile_pos.y < TILEMAP_ROWS) {
         
-        if (tilemap[tile_pos.x][tile_pos.y] == ET_EmptySpace) {
-            tilemap[tile_pos.x][tile_pos.y] = ET_BlockFrail;
-        } else {
-            tilemap[tile_pos.x][tile_pos.y] = ET_EmptySpace;
+        switch (g_mode) {
+            
+            case Mode::Block: {
+                if (leftmb)
+                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
+                else 
+                    tilemap[tile_pos.x][tile_pos.y] = ET_EmptySpace;
+                
+            }break;
+            
+            default: break;
         }
     }
 }
 
 
 sf::Texture entities[ET_Count];
+
+internal sf::Texture *get_entity_texture(Entity *e) {
+    switch (e->type) {
+        
+        case ET_BlockSolid:
+        case ET_BlockFrail: {
+            return &entities[e->type];
+        }break;
+    }
+    return 0;
+}
 
 internal void draw_tilemap(sf::RenderTexture &drw) {
     sf::Sprite bob;
@@ -77,10 +113,20 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                     bob.setPosition(sf::Vector2f(c * 64, r * 64));
                     drw.draw(bob);
                 }break;
+                
+                case ET_BlockSolid: {
+                    bob.setTexture(entities[ET_BlockSolid]);
+                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                    drw.draw(bob);
+                }break;
             }
         }
     }
     
+}
+
+internal inline sf::IntRect tile_offset(int r, int c) {
+    return sf::IntRect(r * 64, c * 64, 64, 64);
 }
 
 int main() {
@@ -98,8 +144,10 @@ int main() {
     level_texture.create(15 * 64, 12 * 64);
     level_texture_sprite.setTexture(level_texture.getTexture());
     
-    assert(entities[ET_BlockFrail].loadFromFile("res/essentials.png", sf::IntRect(0, 0, 64, 64)));
-    rrect.setTexture(entities[ET_BlockFrail]);
+    entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
+    entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
+    
+    tilemap[1][1] = ET_BlockSolid;
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
 		sf::Event event;
@@ -146,7 +194,7 @@ int main() {
                     
                     if (!io.WantCaptureMouse && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
                         pos -= level_texture_sprite.getPosition();
-                        click_tile(sv2(pos));
+                        click_tile(sv2(pos), event.mouseButton.button == sf::Mouse::Left);
                     }
                 }break;
             }
@@ -154,9 +202,36 @@ int main() {
         }
         ImGui::SFML::Update(window, deltaClock.restart());
 		
-        ImGui::Begin("Heyo");
-        ImGui::Text("Delta %d %d", mouse_delta.x, mouse_delta.y);
+        ImGui::Begin("osked");
+        
+        ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block ); ImGui::SameLine();
+        ImGui::RadioButton("Player", &g_mode, (int)Mode::Player); ImGui::SameLine();
+        ImGui::RadioButton("Enemy",  &g_mode, (int)Mode::Enemy ); ImGui::SameLine();
+        ImGui::RadioButton("Door",   &g_mode, (int)Mode::Door  ); ImGui::SameLine();
+        ImGui::RadioButton("Key",    &g_mode, (int)Mode::Key   ); ImGui::SameLine();
+        ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
+        
+        switch (g_mode) {
+            case Mode::Block: {
+                ImGui::Text("Click to place block, right click to clear.");
+                ImGui::ImageButton(*get_entity_texture(&tool.sel), ImVec2(64,64));
+                
+                if (ImGui::Selectable("Frail", tool.sel.type == ET_BlockFrail)) {
+                    tool.sel.type = ET_BlockFrail;
+                }
+                
+                if (ImGui::Selectable("Solid", tool.sel.type == ET_BlockSolid)) {
+                    tool.sel.type = ET_BlockSolid;
+                }
+                
+            }break;
+            
+            default:break;
+        }
+        
 		ImGui::End();
+        
+        //ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
