@@ -49,6 +49,11 @@ global struct {
         int to_place = ET_BlockFrail;
     } block;
     
+    struct {
+        ivec2 last_player_pos = ivec2{-1, -1};
+        bool looking_left = true;
+    } player;
+    
     Entity sel = {ET_BlockFrail, {0}};
 } tool;
 
@@ -64,6 +69,10 @@ inline sf::Vector2f sv2(const fvec2 &v) {
 #define TILEMAP_COLS (15)
 global EntityType tilemap[TILEMAP_COLS][TILEMAP_ROWS];
 
+internal void clear_tile(ivec2 pos) {
+    tilemap[pos.x][pos.y] = ET_EmptySpace;
+}
+
 internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
     ivec2 tile_pos = map_position_to_tile(pixel_pos);
     fvec2 tile_pixel_pos = tile_to_position(tile_pos);
@@ -71,21 +80,34 @@ internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
     if (tile_pos.x >= 0 && tile_pos.x < TILEMAP_COLS &&
         tile_pos.y >= 0 && tile_pos.y < TILEMAP_ROWS) {
         
-        switch (g_mode) {
+        if (leftmb) {
             
-            case Mode::Block: {
-                if (leftmb)
-                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
-                else 
-                    tilemap[tile_pos.x][tile_pos.y] = ET_EmptySpace;
+            switch (g_mode) {
                 
-            }break;
-            
-            default: break;
+                case Mode::Block: {
+                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
+                    
+                }break;
+                
+                case Mode::Player: {
+                    
+                    if (tool.player.last_player_pos.x != -1) {
+                        clear_tile(tool.player.last_player_pos);
+                    }
+                    
+                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
+                    
+                    tool.player.last_player_pos = tile_pos;
+                }break;
+                
+                default: break;
+            }
+        } else {
+            clear_tile(tile_pos);
         }
     }
+    
 }
-
 
 sf::Texture entities[ET_Count];
 
@@ -105,18 +127,26 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
     for (int c = 0; c < TILEMAP_COLS; c += 1) {
         for (int r = 0; r < TILEMAP_ROWS; r += 1) {
             
-            switch (tilemap[c][r]) {
+            EntityType entity_type = tilemap[c][r];
+            
+            switch (entity_type) {
                 case ET_EmptySpace: break;
                 
-                case ET_BlockFrail: {
-                    bob.setTexture(entities[ET_BlockFrail]);
+                case ET_BlockFrail:
+                case ET_BlockSolid: {
+                    bob.setTexture(entities[entity_type]);
                     bob.setPosition(sf::Vector2f(c * 64, r * 64));
                     drw.draw(bob);
                 }break;
-                
-                case ET_BlockSolid: {
-                    bob.setTexture(entities[ET_BlockSolid]);
+                case ET_Player: {
+                    bob.setTexture(entities[entity_type]);
                     bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                    
+                    if (tool.player.looking_left)
+                        bob.setTextureRect(sf::IntRect(0, 0, 64, 64));
+                    else
+                        bob.setTextureRect(sf::IntRect(64, 0, -64, 64));
+                    
                     drw.draw(bob);
                 }break;
             }
@@ -144,8 +174,10 @@ int main() {
     level_texture.create(15 * 64, 12 * 64);
     level_texture_sprite.setTexture(level_texture.getTexture());
     
+    // NOTE(miked): load stuff here
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
+    entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
     
     tilemap[1][1] = ET_BlockSolid;
     while (window.isOpen()) {
@@ -177,8 +209,7 @@ int main() {
                         mouse_delta.x = dx;
                         mouse_delta.y = dy;
                         
-                        if (!io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) &&
-                            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+                        if (!io.WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
                             
                             sf::Vector2f pos = level_texture_sprite.getPosition();
                             pos += sf::Vector2f(mouse_delta.x, mouse_delta.y);
@@ -213,25 +244,31 @@ int main() {
         
         switch (g_mode) {
             case Mode::Block: {
-                ImGui::Text("Click to place block, right click to clear.");
-                ImGui::ImageButton(*get_entity_texture(&tool.sel), ImVec2(64,64));
+                ImGui::Text("Click to place a block, right click to clear.");
                 
-                if (ImGui::Selectable("Frail", tool.sel.type == ET_BlockFrail)) {
+                if (tool.sel.type != ET_BlockFrail || tool.sel.type != ET_BlockSolid)
                     tool.sel.type = ET_BlockFrail;
-                }
                 
-                if (ImGui::Selectable("Solid", tool.sel.type == ET_BlockSolid)) {
-                    tool.sel.type = ET_BlockSolid;
-                }
+                if (ImGui::Selectable("Frail", tool.sel.type == ET_BlockFrail)) 
+                    tool.sel.type = ET_BlockFrail;
+                
+                if (ImGui::Selectable("Solid", tool.sel.type == ET_BlockSolid)) tool.sel.type = ET_BlockSolid;
                 
             }break;
+            
+            case Mode::Player: {
+                ImGui::Text("Click to place player spawn point");
+                
+                tool.sel.type = ET_Player;
+                ImGui::Checkbox("Looking left?", &tool.player.looking_left);
+            } break;
             
             default:break;
         }
         
 		ImGui::End();
         
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
