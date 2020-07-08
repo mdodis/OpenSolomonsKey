@@ -40,7 +40,6 @@ enum Mode {
     Key,
     Pickup
 };
-
 global int g_mode = Mode::Block;
 
 global struct {
@@ -67,10 +66,16 @@ inline sf::Vector2f sv2(const fvec2 &v) {
 
 #define TILEMAP_ROWS (12)
 #define TILEMAP_COLS (15)
-global EntityType tilemap[TILEMAP_COLS][TILEMAP_ROWS];
+sf::Texture entities[ET_Count];
+sf::Texture enemies[MT_Count];
+global Entity tilemap[TILEMAP_COLS][TILEMAP_ROWS];
+
+inline internal Entity &get_tile_entity(ivec2 pos) {
+    return tilemap[pos.x][pos.y];
+}
 
 internal void clear_tile(ivec2 pos) {
-    tilemap[pos.x][pos.y] = ET_EmptySpace;
+    get_tile_entity(pos).type = ET_EmptySpace;
 }
 
 internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
@@ -85,7 +90,7 @@ internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
             switch (g_mode) {
                 
                 case Mode::Block: {
-                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
+                    get_tile_entity(tile_pos).type = tool.sel.type;
                     
                 }break;
                 
@@ -95,10 +100,14 @@ internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
                         clear_tile(tool.player.last_player_pos);
                     }
                     
-                    tilemap[tile_pos.x][tile_pos.y] = tool.sel.type;
+                    get_tile_entity(tile_pos).type = tool.sel.type;
                     
                     tool.player.last_player_pos = tile_pos;
                 }break;
+                
+                case Mode::Enemy: {
+                    get_tile_entity(tile_pos) = tool.sel;
+                } break;
                 
                 default: break;
             }
@@ -108,8 +117,6 @@ internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
     }
     
 }
-
-sf::Texture entities[ET_Count];
 
 internal sf::Texture *get_entity_texture(Entity *e) {
     switch (e->type) {
@@ -126,8 +133,9 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
     sf::Sprite bob;
     for (int c = 0; c < TILEMAP_COLS; c += 1) {
         for (int r = 0; r < TILEMAP_ROWS; r += 1) {
-            
-            EntityType entity_type = tilemap[c][r];
+            ivec2 tile_pos = ivec2{c, r};
+            Entity &entity = get_tile_entity(tile_pos);
+            EntityType entity_type = entity.type;
             
             switch (entity_type) {
                 case ET_EmptySpace: break;
@@ -147,6 +155,13 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                     else
                         bob.setTextureRect(sf::IntRect(64, 0, -64, 64));
                     
+                    drw.draw(bob);
+                }break;
+                
+                case ET_Enemy: {
+                    EnemyType enemy_type = get_enemy_type(&entity);
+                    bob.setTexture(enemies[enemy_type]);
+                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
                     drw.draw(bob);
                 }break;
             }
@@ -178,8 +193,8 @@ int main() {
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
+    enemies[MT_Goblin].loadFromFile("res/goblin_all.png", tile_offset(0,0));
     
-    tilemap[1][1] = ET_BlockSolid;
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
 		sf::Event event;
@@ -246,13 +261,14 @@ int main() {
             case Mode::Block: {
                 ImGui::Text("Click to place a block, right click to clear.");
                 
-                if (tool.sel.type != ET_BlockFrail || tool.sel.type != ET_BlockSolid)
+                if ((tool.sel.type != ET_BlockFrail) && (tool.sel.type != ET_BlockSolid))
                     tool.sel.type = ET_BlockFrail;
                 
                 if (ImGui::Selectable("Frail", tool.sel.type == ET_BlockFrail)) 
                     tool.sel.type = ET_BlockFrail;
                 
-                if (ImGui::Selectable("Solid", tool.sel.type == ET_BlockSolid)) tool.sel.type = ET_BlockSolid;
+                if (ImGui::Selectable("Solid", tool.sel.type == ET_BlockSolid))
+                    tool.sel.type = ET_BlockSolid;
                 
             }break;
             
@@ -261,6 +277,13 @@ int main() {
                 
                 tool.sel.type = ET_Player;
                 ImGui::Checkbox("Looking left?", &tool.player.looking_left);
+            } break;
+            
+            case Mode::Enemy: {
+                ImGui::Text("Select enemy, edit it's parameters, and place it in the tilemap");
+                tool.sel.type = ET_Enemy;
+                
+                tool.sel.params[0].as_etype = MT_Goblin;
             } break;
             
             default:break;

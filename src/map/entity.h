@@ -123,4 +123,8 @@ struct Entity {
     CustomParameter params[MAX_ENTITY_PARAMS];
 };
 
+inline EnemyType get_enemy_type(const Entity *const entity) {
+    return entity->params[0].as_etype;
+}
+
 #endif //ENTITY_H
