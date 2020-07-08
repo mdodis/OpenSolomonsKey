@@ -64,6 +64,33 @@ inline sf::Vector2f sv2(const fvec2 &v) {
     return sf::Vector2f(v.x, v.y);
 }
 
+internal void custom_param_checkbox_u64(const char *prompt, u64 *destination, u64 truthy, u64 falsy) {
+    bool result = (*destination) == truthy;
+    ImGui::Checkbox(prompt, &result);
+    *destination = (result) ? truthy : falsy;
+}
+
+internal void custom_param_slider_double(const char *prompt, double *destination, float min, float max) {
+    float result = float(*destination);
+    ImGui::SliderFloat(prompt, &result, (float)min, (float)max, "%.1f");
+    *destination = result;
+}
+
+internal void draw_set_enemy_parameters() {
+    Entity *sel = &tool.sel;
+    switch(get_enemy_type(sel)) {
+        case MT_Goblin: {
+            custom_param_checkbox_u64("Looking Left?", &sel->params[1].as_u64, 0, 1);
+            custom_param_slider_double("Speed", &sel->params[2].as_f64, 80.0f, 200.0f);
+        } break;
+        
+        case MT_Ghost: {
+            custom_param_checkbox_u64("Looking Left?", &sel->params[1].as_u64, 0, 1);
+            custom_param_slider_double("Speed", &sel->params[2].as_f64, 100.0f, 300.0f);
+        }break;
+    }
+}
+
 #define TILEMAP_ROWS (12)
 #define TILEMAP_COLS (15)
 sf::Texture entities[ET_Count];
@@ -78,20 +105,19 @@ internal void clear_tile(ivec2 pos) {
     get_tile_entity(pos).type = ET_EmptySpace;
 }
 
-internal void click_tile(fvec2 pixel_pos, bool leftmb = true) {
+internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
     ivec2 tile_pos = map_position_to_tile(pixel_pos);
     fvec2 tile_pixel_pos = tile_to_position(tile_pos);
     
     if (tile_pos.x >= 0 && tile_pos.x < TILEMAP_COLS &&
         tile_pos.y >= 0 && tile_pos.y < TILEMAP_ROWS) {
         
-        if (leftmb) {
+        if (btn == sf::Mouse::Button::Left) {
             
             switch (g_mode) {
                 
                 case Mode::Block: {
                     get_tile_entity(tile_pos).type = tool.sel.type;
-                    
                 }break;
                 
                 case Mode::Player: {
@@ -129,6 +155,35 @@ internal sf::Texture *get_entity_texture(Entity *e) {
     return 0;
 }
 
+internal void draw_enemy(sf::RenderTexture &drw, sf::Sprite &bob, Entity *entity, ivec2 tile_pos) {
+    int c = tile_pos.x;
+    int r = tile_pos.y;
+    EnemyType enemy_type = get_enemy_type(entity);
+    bob.setTexture(enemies[enemy_type]);
+    bob.setPosition(sf::Vector2f(c * 64, r * 64));
+    
+    switch (enemy_type) {
+        case MT_Goblin: {
+            
+            if (entity->params[1].as_u64 == 1)
+                bob.setTextureRect(sf::IntRect(64, 0, -64, 64));
+            else
+                bob.setTextureRect(sf::IntRect(0, 0, 64, 64));
+            
+        } break;
+        
+        case MT_Ghost: {
+            if (entity->params[1].as_u64 == 1)
+                bob.setTextureRect(sf::IntRect(64, 0, -64, 64));
+            else
+                bob.setTextureRect(sf::IntRect(0, 0, 64, 64));
+            
+        }break;
+    }
+    
+    drw.draw(bob);
+}
+
 internal void draw_tilemap(sf::RenderTexture &drw) {
     sf::Sprite bob;
     for (int c = 0; c < TILEMAP_COLS; c += 1) {
@@ -159,10 +214,7 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                 }break;
                 
                 case ET_Enemy: {
-                    EnemyType enemy_type = get_enemy_type(&entity);
-                    bob.setTexture(enemies[enemy_type]);
-                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
-                    drw.draw(bob);
+                    draw_enemy(drw, bob, &entity, tile_pos);
                 }break;
             }
         }
@@ -173,6 +225,12 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
 internal inline sf::IntRect tile_offset(int r, int c) {
     return sf::IntRect(r * 64, c * 64, 64, 64);
 }
+
+inline internal void selectable_enemy(const char *name, EnemyType type, EnemyType *result) {
+    if (ImGui::Selectable(name, *result == type)) 
+        *result = type;
+}
+
 
 int main() {
 	sf::RenderWindow window(sf::VideoMode(g_width, g_height), "Open Solomon's Key Editor");
@@ -194,6 +252,7 @@ int main() {
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
     enemies[MT_Goblin].loadFromFile("res/goblin_all.png", tile_offset(0,0));
+    enemies[MT_Ghost].loadFromFile("res/ghost_all.png", tile_offset(0,0));
     
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
@@ -240,7 +299,7 @@ int main() {
                     
                     if (!io.WantCaptureMouse && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
                         pos -= level_texture_sprite.getPosition();
-                        click_tile(sv2(pos), event.mouseButton.button == sf::Mouse::Left);
+                        click_tile(sv2(pos), event.mouseButton.button);
                     }
                 }break;
             }
@@ -283,7 +342,10 @@ int main() {
                 ImGui::Text("Select enemy, edit it's parameters, and place it in the tilemap");
                 tool.sel.type = ET_Enemy;
                 
-                tool.sel.params[0].as_etype = MT_Goblin;
+                ImGui::Separator();
+                selectable_enemy("Goblin", MT_Goblin, &tool.sel.params[0].as_etype);
+                selectable_enemy("Ghost", MT_Ghost, &tool.sel.params[0].as_etype);
+                draw_set_enemy_parameters();
             } break;
             
             default:break;
