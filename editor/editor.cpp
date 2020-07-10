@@ -39,7 +39,8 @@ enum Mode {
     Enemy,
     Door,
     Key,
-    Pickup
+    Pickup,
+    Hidden,
 };
 global int g_mode = Mode::Block;
 
@@ -249,6 +250,49 @@ inline internal void selectable_pickup(const char *name, PickupType type, Pickup
         *result = type;
 }
 
+internal void select_pickups(PickupType *result) {
+    if (*result < 0 || *result >= PT_Count) *result = PT_Bag100;
+    selectable_pickup("Bag 100", PT_Bag100, result);
+    selectable_pickup("Bag 200", PT_Bag200, result);
+    selectable_pickup("Bag 500", PT_Bag500, result);
+    
+    selectable_pickup("Bag 1K", PT_Bag1000, result);
+    selectable_pickup("Bag 2K", PT_Bag2000, result);
+    selectable_pickup("Bag 5K", PT_Bag5000, result);
+    
+    selectable_pickup("Bag 10K", PT_Bag10000, result);
+    selectable_pickup("Bag 20K", PT_Bag20000, result);
+    
+    selectable_pickup("Jewel 100", PT_Jewel100, result);
+    selectable_pickup("Jewel 200", PT_Jewel200, result);
+    selectable_pickup("Jewel 500", PT_Jewel500, result);
+    
+    selectable_pickup("Jewel 1K", PT_Jewel1000, result);
+    selectable_pickup("Jewel 2K", PT_Jewel2000, result);
+    selectable_pickup("Jewel 5K", PT_Jewel5000, result);
+    
+    selectable_pickup("Jewel 10K", PT_Jewel10000, result);
+    selectable_pickup("Jewel 20K", PT_Jewel20000, result);
+    selectable_pickup("Jewel 50K", PT_Jewel50000, result);
+    
+    selectable_pickup("Bell", PT_Bell, result);
+    selectable_pickup("Destruction Potion", PT_PotionDestruction, result);
+    selectable_pickup("Hourglass", PT_Hourglass, result);
+    selectable_pickup("Switchable Jewel", PT_JewelChange, result);
+    selectable_pickup("Range Jewel", PT_JewelRange, result);
+    selectable_pickup("Super Range Jewel", PT_JewelRange2, result);
+    selectable_pickup("Fire Potion", PT_PotionFire, result);
+    selectable_pickup("Super Fire Potion", PT_PotionSuperFire, result);
+    selectable_pickup("Fire Growth Potion", PT_PotionFireGrowth, result);
+    selectable_pickup("Life Potion", PT_PotionLife, result);
+    selectable_pickup("Time Potion", PT_PotionTime1, result);
+    selectable_pickup("Stronger Time Potion", PT_PotionTime2, result);
+    selectable_pickup("Seal", PT_SolomonSeal, result);
+    selectable_pickup("Sphinx", PT_Sphinx, result);
+    selectable_pickup("Paper Cane", PT_PaperCrane, result);
+    selectable_pickup("Solomon's Key", PT_SolomonsKey, result);
+}
+
 int main() {
 	sf::RenderWindow window(sf::VideoMode(g_width, g_height), "Open Solomon's Key Editor");
     
@@ -346,7 +390,7 @@ int main() {
         }
         ImGui::SFML::Update(window, deltaClock.restart());
 		
-        ImGui::SetNextWindowSize(ImVec2(300, window.getSize().y));
+        ImGui::SetNextWindowSize(ImVec2(256, window.getSize().y));
         ImGui::SetNextWindowPos(ImVec2(0,0));
         
         ImGui::Begin("osked");
@@ -356,6 +400,7 @@ int main() {
         ImGui::RadioButton("Door",   &g_mode, (int)Mode::Door  ); ImGui::SameLine();
         ImGui::RadioButton("Key",    &g_mode, (int)Mode::Key   ); ImGui::SameLine();
         ImGui::RadioButton("Player", &g_mode, (int)Mode::Player);
+        ImGui::RadioButton("Hidden", &g_mode, (int)Mode::Hidden);
         
         switch (g_mode) {
             case Mode::Block: {
@@ -393,16 +438,28 @@ int main() {
             } break;
             
             case Mode::Pickup: {
-                ImGui::Text("Select a pickup and place it on the tilemap");
+                ImGui::TextWrapped("Select a pickup and place it on the tilemap");
+                ImGui::Separator();
                 tool.sel.type = ET_Pickup;
                 
-                selectable_pickup("Bag 10K", PT_Bag10000, &tool.sel.params[0].as_ptype);
+                ImGui::BeginChild("Pickups", ImVec2(ImGui::GetWindowWidth() * 0.95f, 256));
+                select_pickups(&tool.sel.params[0].as_ptype);
+                ImGui::EndChild();
+                
             } break;
+            
+            case Mode::Hidden: {
+                ImGui::TextWrapped("Place a hidden item");
+                // TODO(miked): place enemy behind enemy
+                
+            }break;
             
             default:break;
         }
         
 		ImGui::End();
+        
+        ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
