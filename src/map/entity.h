@@ -115,6 +115,7 @@ union CustomParameter {
     double as_f64;
     i64    as_i64;
     EnemyType as_etype;
+    PickupType as_ptype;
     void *as_ptr;
 };
 

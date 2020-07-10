@@ -6,6 +6,7 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <fstream>
+#include <stdio.h>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui-SFML.h"
@@ -76,17 +77,16 @@ internal void custom_param_slider_double(const char *prompt, double *destination
     *destination = result;
 }
 
-internal void draw_set_enemy_parameters() {
-    Entity *sel = &tool.sel;
-    switch(get_enemy_type(sel)) {
+internal void draw_set_enemy_parameters(Entity *entity) {
+    switch(get_enemy_type(entity)) {
         case MT_Goblin: {
-            custom_param_checkbox_u64("Looking Left?", &sel->params[1].as_u64, 0, 1);
-            custom_param_slider_double("Speed", &sel->params[2].as_f64, 80.0f, 200.0f);
+            custom_param_checkbox_u64("Looking Left?", &entity->params[1].as_u64, 0, 1);
+            custom_param_slider_double("Speed", &entity->params[2].as_f64, 80.0f, 200.0f);
         } break;
         
         case MT_Ghost: {
-            custom_param_checkbox_u64("Looking Left?", &sel->params[1].as_u64, 0, 1);
-            custom_param_slider_double("Speed", &sel->params[2].as_f64, 100.0f, 300.0f);
+            custom_param_checkbox_u64("Looking Left?", &entity->params[1].as_u64, 0, 1);
+            custom_param_slider_double("Speed", &entity->params[2].as_f64, 100.0f, 300.0f);
         }break;
     }
 }
@@ -95,6 +95,8 @@ internal void draw_set_enemy_parameters() {
 #define TILEMAP_COLS (15)
 sf::Texture entities[ET_Count];
 sf::Texture enemies[MT_Count];
+sf::Texture pickups[PT_Count];
+
 global Entity tilemap[TILEMAP_COLS][TILEMAP_ROWS];
 
 inline internal Entity &get_tile_entity(ivec2 pos) {
@@ -132,6 +134,10 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
                 }break;
                 
                 case Mode::Enemy: {
+                    get_tile_entity(tile_pos) = tool.sel;
+                } break;
+                
+                case Mode::Pickup: {
                     get_tile_entity(tile_pos) = tool.sel;
                 } break;
                 
@@ -216,6 +222,13 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                 case ET_Enemy: {
                     draw_enemy(drw, bob, &entity, tile_pos);
                 }break;
+                
+                case ET_Pickup: {
+                    PickupType pickup_type = entity.params[0].as_ptype;
+                    bob.setTexture(pickups[pickup_type]);
+                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                    drw.draw(bob);
+                }break;
             }
         }
     }
@@ -231,6 +244,10 @@ inline internal void selectable_enemy(const char *name, EnemyType type, EnemyTyp
         *result = type;
 }
 
+inline internal void selectable_pickup(const char *name, PickupType type, PickupType *result) {
+    if (ImGui::Selectable(name, *result == type)) 
+        *result = type;
+}
 
 int main() {
 	sf::RenderWindow window(sf::VideoMode(g_width, g_height), "Open Solomon's Key Editor");
@@ -246,13 +263,15 @@ int main() {
     sf::Sprite level_texture_sprite;
     level_texture.create(15 * 64, 12 * 64);
     level_texture_sprite.setTexture(level_texture.getTexture());
-    
+    //level_texture_sprite.setOrigin(level_texture.getSize().x / 2, level_texture.getSize().y / 2);
     // NOTE(miked): load stuff here
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
     enemies[MT_Goblin].loadFromFile("res/goblin_all.png", tile_offset(0,0));
     enemies[MT_Ghost].loadFromFile("res/ghost_all.png", tile_offset(0,0));
+    
+    pickups[PT_Bag10000].loadFromFile("res/items.png", tile_offset(0,0));
     
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
@@ -296,9 +315,15 @@ int main() {
                 
                 case sf::Event::MouseButtonPressed: {
                     sf::Vector2f pos(event.mouseButton.x, event.mouseButton.y);
+                    sf::Vector2f scale = level_texture_sprite.getScale();
                     
                     if (!io.WantCaptureMouse && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
-                        pos -= level_texture_sprite.getPosition();
+                        sf::Vector2f offset;
+                        sf::Vector2f sz = sf::Vector2f(level_texture.getSize());
+                        sf::Vector2f szo = sf::Vector2f(level_texture.getSize());
+                        
+                        offset = level_texture_sprite.getPosition();
+                        pos -= offset;
                         click_tile(sv2(pos), event.mouseButton.button);
                     }
                 }break;
@@ -345,7 +370,14 @@ int main() {
                 ImGui::Separator();
                 selectable_enemy("Goblin", MT_Goblin, &tool.sel.params[0].as_etype);
                 selectable_enemy("Ghost", MT_Ghost, &tool.sel.params[0].as_etype);
-                draw_set_enemy_parameters();
+                draw_set_enemy_parameters(&tool.sel);
+            } break;
+            
+            case Mode::Pickup: {
+                ImGui::Text("Select a pickup and place it on the tilemap");
+                tool.sel.type = ET_Pickup;
+                
+                selectable_pickup("Bag 10K", PT_Bag10000, &tool.sel.params[0].as_ptype);
             } break;
             
             default:break;
@@ -353,7 +385,7 @@ int main() {
         
 		ImGui::End();
         
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
