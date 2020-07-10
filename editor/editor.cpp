@@ -313,6 +313,16 @@ int main() {
                     g_mouse_y = y;
                 }break;
                 
+                case sf::Event::MouseWheelScrolled: {
+                    
+                    if (!io.WantCaptureMouse && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+                        auto scale = level_texture_sprite.getScale();
+                        scale.x += event.mouseWheelScroll.delta * 0.025f;
+                        scale.y += event.mouseWheelScroll.delta * 0.025f;
+                        level_texture_sprite.setScale(scale);
+                    }
+                } break;
+                
                 case sf::Event::MouseButtonPressed: {
                     sf::Vector2f pos(event.mouseButton.x, event.mouseButton.y);
                     sf::Vector2f scale = level_texture_sprite.getScale();
@@ -324,6 +334,10 @@ int main() {
                         
                         offset = level_texture_sprite.getPosition();
                         pos -= offset;
+                        
+                        pos.x /= (sz.x * scale.x) / szo.x;
+                        pos.y /= (sz.y * scale.y) / szo.y;
+                        
                         click_tile(sv2(pos), event.mouseButton.button);
                     }
                 }break;
