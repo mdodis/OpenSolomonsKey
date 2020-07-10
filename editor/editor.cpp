@@ -335,8 +335,8 @@ int main() {
                         offset = level_texture_sprite.getPosition();
                         pos -= offset;
                         
-                        pos.x /= (sz.x * scale.x) / szo.x;
-                        pos.y /= (sz.y * scale.y) / szo.y;
+                        pos.x *= szo.x / (sz.x * scale.x);
+                        pos.y *= szo.y / (sz.y * scale.y);
                         
                         click_tile(sv2(pos), event.mouseButton.button);
                     }
@@ -346,18 +346,21 @@ int main() {
         }
         ImGui::SFML::Update(window, deltaClock.restart());
 		
-        ImGui::Begin("osked");
+        ImGui::SetNextWindowSize(ImVec2(300, window.getSize().y));
+        ImGui::SetNextWindowPos(ImVec2(0,0));
         
+        ImGui::Begin("osked");
         ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block ); ImGui::SameLine();
-        ImGui::RadioButton("Player", &g_mode, (int)Mode::Player); ImGui::SameLine();
         ImGui::RadioButton("Enemy",  &g_mode, (int)Mode::Enemy ); ImGui::SameLine();
+        ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
         ImGui::RadioButton("Door",   &g_mode, (int)Mode::Door  ); ImGui::SameLine();
         ImGui::RadioButton("Key",    &g_mode, (int)Mode::Key   ); ImGui::SameLine();
-        ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
+        ImGui::RadioButton("Player", &g_mode, (int)Mode::Player);
         
         switch (g_mode) {
             case Mode::Block: {
-                ImGui::Text("Click to place a block, right click to clear.");
+                ImGui::TextWrapped("Click to place a block, right click to clear.");
+                ImGui::Separator();
                 
                 if ((tool.sel.type != ET_BlockFrail) && (tool.sel.type != ET_BlockSolid))
                     tool.sel.type = ET_BlockFrail;
@@ -371,17 +374,19 @@ int main() {
             }break;
             
             case Mode::Player: {
-                ImGui::Text("Click to place player spawn point");
+                ImGui::TextWrapped("Click to place player spawn point");
+                ImGui::Separator();
                 
                 tool.sel.type = ET_Player;
                 ImGui::Checkbox("Looking left?", &tool.player.looking_left);
             } break;
             
             case Mode::Enemy: {
-                ImGui::Text("Select enemy, edit it's parameters, and place it in the tilemap");
+                ImGui::TextWrapped("Select enemy, edit it's parameters, and place it in the tilemap");
+                ImGui::Separator();
+                
                 tool.sel.type = ET_Enemy;
                 
-                ImGui::Separator();
                 selectable_enemy("Goblin", MT_Goblin, &tool.sel.params[0].as_etype);
                 selectable_enemy("Ghost", MT_Ghost, &tool.sel.params[0].as_etype);
                 draw_set_enemy_parameters(&tool.sel);
@@ -398,8 +403,6 @@ int main() {
         }
         
 		ImGui::End();
-        
-        //ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
