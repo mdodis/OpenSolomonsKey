@@ -105,7 +105,9 @@ inline internal Entity &get_tile_entity(ivec2 pos) {
 }
 
 internal void clear_tile(ivec2 pos) {
-    get_tile_entity(pos).type = ET_EmptySpace;
+    Entity &entity = get_tile_entity(pos);
+    entity.type = ET_EmptySpace;
+    entity.params[0].as_ptype = PT_Count;
 }
 
 internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
@@ -142,8 +144,18 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
                     get_tile_entity(tile_pos) = tool.sel;
                 } break;
                 
+                case Mode::Hidden: {
+                    
+                    Entity &entity = get_tile_entity(tile_pos);
+                    entity.params[0].as_ptype = tool.sel.params[0].as_ptype;
+                    
+                } break;
+                
                 default: break;
             }
+        } else if (g_mode == Mode::Hidden) {
+            Entity &entity = get_tile_entity(tile_pos);
+            entity.params[0].as_ptype = PT_Count;
         } else {
             clear_tile(tile_pos);
         }
@@ -200,13 +212,24 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
             EntityType entity_type = entity.type;
             
             switch (entity_type) {
-                case ET_EmptySpace: break;
-                
+                case ET_EmptySpace:
                 case ET_BlockFrail:
                 case ET_BlockSolid: {
-                    bob.setTexture(entities[entity_type]);
-                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
-                    drw.draw(bob);
+                    
+                    if (entity_type != ET_EmptySpace) {
+                        bob.setTexture(entities[entity_type]);
+                        bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                        drw.draw(bob);
+                    }
+                    
+                    if (entity.params[0].as_ptype < PT_Count && g_mode == Mode::Hidden) {
+                        bob.setTexture(pickups[entity.params[0].as_ptype]);
+                        bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                        bob.setColor(sf::Color(255,255,255,126));
+                        drw.draw(bob);
+                        bob.setColor(sf::Color(255,255,255,255));
+                    }
+                    
                 }break;
                 case ET_Player: {
                     bob.setTexture(entities[entity_type]);
@@ -293,6 +316,14 @@ internal void select_pickups(PickupType *result) {
     selectable_pickup("Solomon's Key", PT_SolomonsKey, result);
 }
 
+internal void select_enemies(EnemyType *result) {
+    
+    if (*result < 0 || *result >= MT_Count) *result = MT_Goblin;
+    
+    selectable_enemy("Goblin", MT_Goblin, &tool.sel.params[0].as_etype);
+    selectable_enemy("Ghost", MT_Ghost, &tool.sel.params[0].as_etype);
+}
+
 int main() {
 	sf::RenderWindow window(sf::VideoMode(g_width, g_height), "Open Solomon's Key Editor");
     
@@ -312,10 +343,59 @@ int main() {
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
+    
+    enemies[MT_Gargoyle].loadFromFile("res/gargoyle_all.png", tile_offset(0,2));
+    enemies[MT_Wyvern].loadFromFile("res/wyvern_all.png", tile_offset(0,0));
+    enemies[MT_Dragon].loadFromFile("res/dragon_all.png", tile_offset(0,0));
     enemies[MT_Goblin].loadFromFile("res/goblin_all.png", tile_offset(0,0));
     enemies[MT_Ghost].loadFromFile("res/ghost_all.png", tile_offset(0,0));
     
-    pickups[PT_Bag10000].loadFromFile("res/items.png", tile_offset(0,0));
+    pickups[PT_Bag10000].loadFromFile("res/pickups.png", tile_offset(0,0));
+    pickups[PT_Bag20000].loadFromFile("res/pickups.png", tile_offset(1,0));
+    pickups[PT_Bag100].loadFromFile("res/pickups.png", tile_offset(2,0));
+    pickups[PT_Bag200].loadFromFile("res/pickups.png", tile_offset(3,0));
+    pickups[PT_Bag500].loadFromFile("res/pickups.png", tile_offset(4,0));
+    pickups[PT_Bag1000].loadFromFile("res/pickups.png", tile_offset(5,0));
+    pickups[PT_Bag2000].loadFromFile("res/pickups.png", tile_offset(6,0));
+    
+    pickups[PT_Bag5000].loadFromFile("res/pickups.png", tile_offset(0,1));
+    pickups[PT_Bell].loadFromFile("res/pickups.png", tile_offset(1,1));
+    pickups[PT_Jewel20000].loadFromFile("res/pickups.png", tile_offset(2,1));
+    pickups[PT_Jewel1000].loadFromFile("res/pickups.png", tile_offset(3,1));
+    pickups[PT_Jewel2000].loadFromFile("res/pickups.png", tile_offset(4,1));
+    pickups[PT_Jewel10000].loadFromFile("res/pickups.png", tile_offset(5,1));
+    pickups[PT_PotionDestruction].loadFromFile("res/pickups.png", tile_offset(6,1));
+    
+    pickups[PT_Hourglass].loadFromFile("res/pickups.png", tile_offset(0,2));
+    pickups[PT_Jewel5000].loadFromFile("res/pickups.png", tile_offset(1,2));
+    pickups[PT_Jewel50000].loadFromFile("res/pickups.png", tile_offset(2,2));
+    pickups[PT_Jewel100].loadFromFile("res/pickups.png", tile_offset(3,2));
+    pickups[PT_Jewel200].loadFromFile("res/pickups.png", tile_offset(4,2));
+    pickups[PT_Jewel500].loadFromFile("res/pickups.png", tile_offset(5,2));
+    pickups[PT_JewelChange].loadFromFile("res/pickups.png", tile_offset(6,2));
+    
+    pickups[PT_JewelRange].loadFromFile("res/pickups.png", tile_offset(0,3));
+    pickups[PT_JewelRange2].loadFromFile("res/pickups.png", tile_offset(1,3));
+    pickups[PT_PotionFire].loadFromFile("res/pickups.png", tile_offset(2,3));
+    pickups[PT_PotionSuperFire].loadFromFile("res/pickups.png", tile_offset(3,3));
+    pickups[PT_PotionFireGrowth].loadFromFile("res/pickups.png", tile_offset(4,3));
+    pickups[PT_PotionLife].loadFromFile("res/pickups.png", tile_offset(5,3));
+    pickups[PT_PotionTime1].loadFromFile("res/pickups.png", tile_offset(6,3));
+    
+    pickups[PT_PotionTime2].loadFromFile("res/pickups.png", tile_offset(0,4));
+    pickups[PT_ScrollExtension].loadFromFile("res/pickups.png", tile_offset(1,4));
+    pickups[PT_SolomonSeal].loadFromFile("res/pickups.png", tile_offset(2,4));
+    pickups[PT_Sphinx].loadFromFile("res/pickups.png", tile_offset(3,4));
+    pickups[PT_PaperCrane].loadFromFile("res/pickups.png", tile_offset(4,4));
+    pickups[PT_SolomonsKey].loadFromFile("res/pickups.png", tile_offset(5,4));
+    
+    for (int c = 0; c < TILEMAP_COLS; c += 1) {
+        for (int r = 0; r < TILEMAP_ROWS; r += 1) {
+            tilemap[c][r].params[0].as_ptype = PT_Count;
+        }
+    }
+    
+    tool.sel.params[0].as_ptype = PT_Count;
     
     while (window.isOpen()) {
         sf::Vector2i mouse_delta(0,0);
@@ -432,8 +512,8 @@ int main() {
                 
                 tool.sel.type = ET_Enemy;
                 
-                selectable_enemy("Goblin", MT_Goblin, &tool.sel.params[0].as_etype);
-                selectable_enemy("Ghost", MT_Ghost, &tool.sel.params[0].as_etype);
+                select_enemies(&tool.sel.params[0].as_etype);
+                
                 draw_set_enemy_parameters(&tool.sel);
             } break;
             
@@ -449,8 +529,13 @@ int main() {
             } break;
             
             case Mode::Hidden: {
-                ImGui::TextWrapped("Place a hidden item");
                 // TODO(miked): place enemy behind enemy
+                ImGui::TextWrapped("Place a hidden item");
+                ImGui::Separator();
+                
+                ImGui::BeginChild("Pickups", ImVec2(ImGui::GetWindowWidth() * 0.95f, 256));
+                select_pickups(&tool.sel.params[0].as_ptype);
+                ImGui::EndChild();
                 
             }break;
             
