@@ -28,8 +28,8 @@ typedef int32_t   b32;
 #include "map/entity.h"
 #include "resources.h"
 
-global unsigned g_width = 700;
-global unsigned g_height = 500;
+global unsigned g_width = 1100;
+global unsigned g_height = 755;
 global int g_mouse_x = -1;
 global int g_mouse_y = -1;
 
@@ -332,6 +332,9 @@ int main() {
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	sf::Clock deltaClock;
     
+    persist sf::Cursor cursor_default;
+    cursor_default.loadFromSystem(sf::Cursor::Type::Arrow);
+    
     sf::RectangleShape rect(sf::Vector2f(64.f,64.f));
     
     sf::RenderTexture level_texture;
@@ -388,6 +391,11 @@ int main() {
     pickups[PT_Sphinx].loadFromFile("res/pickups.png", tile_offset(3,4));
     pickups[PT_PaperCrane].loadFromFile("res/pickups.png", tile_offset(4,4));
     pickups[PT_SolomonsKey].loadFromFile("res/pickups.png", tile_offset(5,4));
+    
+    // NOTE: defaults
+    
+    level_texture_sprite.setScale(sf::Vector2f(0.775, 0.775));
+    level_texture_sprite.setPosition(sf::Vector2f(324, 78));
     
     for (int c = 0; c < TILEMAP_COLS; c += 1) {
         for (int r = 0; r < TILEMAP_ROWS; r += 1) {
@@ -468,6 +476,27 @@ int main() {
             }
             
         }
+        
+        static ImGuiIO& ioImgui = ImGui::GetIO();
+        
+        persist bool imguiHasCursorPrev = true;
+        
+        bool imguiHasCursor = ioImgui.WantCaptureMouse || ioImgui.WantCaptureKeyboard;
+        
+        if (imguiHasCursor != imguiHasCursorPrev)
+        {
+            if (imguiHasCursor)
+            {
+                ioImgui.ConfigFlags &= !ImGuiConfigFlags_NoMouseCursorChange;
+            }
+            else
+            {
+                ioImgui.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
+                window.setMouseCursor(cursor_default);
+            }
+            imguiHasCursorPrev = imguiHasCursor;
+        }
+        
         ImGui::SFML::Update(window, deltaClock.restart());
 		
         ImGui::SetNextWindowSize(ImVec2(256, window.getSize().y));
@@ -544,7 +573,7 @@ int main() {
         
 		ImGui::End();
         
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
