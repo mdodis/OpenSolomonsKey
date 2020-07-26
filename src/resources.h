@@ -53,6 +53,7 @@ B("res/backgrounds/14.png")\
 B("res/backgrounds/15.png")\
 B("res/backgrounds/16.png")\
 B("res/backgrounds/17.png")\
+B("res/backgrounds/18.png")\
 B("res/backgrounds/19.png")\
 B("res/backgrounds/20.png")\
 B("res/backgrounds/21.png")\
@@ -61,7 +62,6 @@ B("res/backgrounds/23.png")\
 B("res/backgrounds/24.png")\
 B("res/backgrounds/25.png")\
 B("res/backgrounds/26.png")\
-B("res/backgrounds/27.png")\
 
 
 /* ANIMATIONS
