@@ -59,8 +59,16 @@ global struct {
         ivec2 last_door_pos = ivec2{-1, -1};
     } door;
     
+    struct {
+        ivec2 last_key_pos = ivec2{-1, -1};
+    } key;
+    
     Entity sel = {ET_BlockFrail, {0}};
 } tool;
+
+internal void save_level() {
+    
+}
 
 inline fvec2 sv2(const sf::Vector2f& v) {
     return fvec2{v.x, v.y};
@@ -148,6 +156,16 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
                     get_tile_entity(tile_pos).type = tool.sel.type;
                     
                     tool.door.last_door_pos = tile_pos;
+                } break;
+                
+                case Mode::Key: {
+                    if (tool.key.last_key_pos.x != -1) {
+                        clear_tile(tool.key.last_key_pos);
+                    }
+                    
+                    get_tile_entity(tile_pos).type = tool.sel.type;
+                    
+                    tool.key.last_key_pos = tile_pos;
                 } break;
                 
                 case Mode::Enemy: {
@@ -257,6 +275,8 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                     drw.draw(bob);
                 }break;
                 
+                // TODO(miked): different keys
+                case ET_Key:
                 case ET_Door: {
                     bob.setTexture(entities[entity_type]);
                     bob.setPosition(sf::Vector2f(c * 64, r * 64));
@@ -367,6 +387,7 @@ int main() {
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
     entities[ET_Door].loadFromFile("res/essentials.png", tile_offset(4,2));
+    entities[ET_Key].loadFromFile("res/essentials.png", tile_offset(0,4));
     
     enemies[MT_Gargoyle].loadFromFile("res/gargoyle_all.png", tile_offset(0,2));
     enemies[MT_Wyvern].loadFromFile("res/wyvern_all.png", tile_offset(0,0));
@@ -523,7 +544,14 @@ int main() {
         ImGui::SetNextWindowSize(ImVec2(256, window.getSize().y));
         ImGui::SetNextWindowPos(ImVec2(0,0));
         
-        ImGui::Begin("osked");
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoCollapse;
+        bool p_open = true;
+        ImGui::Begin("osked", &p_open, window_flags);
+        
+        if (ImGui::Button("Save")) {
+            save_level();
+        }
+        
         ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block ); ImGui::SameLine();
         ImGui::RadioButton("Enemy",  &g_mode, (int)Mode::Enemy ); ImGui::SameLine();
         ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
@@ -561,6 +589,13 @@ int main() {
                 ImGui::Separator();
                 
                 tool.sel.type = ET_Door;
+            }break;
+            
+            case Mode::Key: {
+                ImGui::TextWrapped("Click to place key");
+                ImGui::Separator();
+                
+                tool.sel.type = ET_Key;
             }break;
             
             case Mode::Enemy: {
