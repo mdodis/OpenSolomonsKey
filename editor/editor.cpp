@@ -46,6 +46,11 @@ enum Mode {
 };
 global int g_mode = Mode::Block;
 
+#define TILEMAP_ROWS (12)
+#define TILEMAP_COLS (15)
+
+global Entity tilemap[TILEMAP_COLS][TILEMAP_ROWS];
+
 global struct {
     
     struct {
@@ -71,7 +76,24 @@ global struct {
 } tool;
 
 internal void save_level() {
+    FILE *f = fopen("level_15.osk", "wb");
+    if (!f) exit(0);
     
+    fprintf(f, "BG %d\n", tool.background_num);
+    
+    for (int r = 0; r < TILEMAP_ROWS; r += 1) {
+        
+        for (int c = 0; c < TILEMAP_COLS; c += 1) {
+            
+            const Entity &current_entity = tilemap[c][r];
+            
+            fprintf(f, "%d ", current_entity.type);
+            
+        }
+        fprintf(f, "\n");
+    }
+    
+    fclose(f);
 }
 
 inline fvec2 sv2(const sf::Vector2f& v) {
@@ -108,14 +130,10 @@ internal void draw_set_enemy_parameters(Entity *entity) {
     }
 }
 
-#define TILEMAP_ROWS (12)
-#define TILEMAP_COLS (15)
 sf::Texture backgrounds[27];
 sf::Texture entities[ET_Count];
 sf::Texture enemies[MT_Count];
 sf::Texture pickups[PT_Count];
-
-global Entity tilemap[TILEMAP_COLS][TILEMAP_ROWS];
 
 inline internal Entity &get_tile_entity(ivec2 pos) {
     return tilemap[pos.x][pos.y];
