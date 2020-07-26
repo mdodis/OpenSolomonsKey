@@ -287,7 +287,7 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                     }
                     
                 }break;
-                case ET_Player: {
+                case ET_PlayerSpawnPoint: {
                     bob.setTexture(entities[entity_type]);
                     bob.setPosition(sf::Vector2f(c * 64, r * 64));
                     
@@ -411,7 +411,7 @@ int main() {
     // NOTE(miked): load stuff here
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
-    entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
+    entities[ET_PlayerSpawnPoint].loadFromFile("res/dana_all.png", tile_offset(0,0));
     entities[ET_Door].loadFromFile("res/essentials.png", tile_offset(4,2));
     entities[ET_Key].loadFromFile("res/essentials.png", tile_offset(0,4));
     
@@ -623,7 +623,7 @@ int main() {
                 ImGui::TextWrapped("Click to place player spawn point");
                 ImGui::Separator();
                 
-                tool.sel.type = ET_Player;
+                tool.sel.type = ET_PlayerSpawnPoint;
                 ImGui::Checkbox("Looking left?", &tool.player.looking_left);
             } break;
             
