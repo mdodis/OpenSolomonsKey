@@ -7,6 +7,7 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <fstream>
 #include <stdio.h>
+#include <string>
 
 #include "imgui/imgui.h"
 #include "imgui/imgui-SFML.h"
@@ -41,6 +42,7 @@ enum Mode {
     Key,
     Pickup,
     Hidden,
+    Background,
 };
 global int g_mode = Mode::Block;
 
@@ -62,6 +64,8 @@ global struct {
     struct {
         ivec2 last_key_pos = ivec2{-1, -1};
     } key;
+    
+    int background_num = 0;
     
     Entity sel = {ET_BlockFrail, {0}};
 } tool;
@@ -106,6 +110,7 @@ internal void draw_set_enemy_parameters(Entity *entity) {
 
 #define TILEMAP_ROWS (12)
 #define TILEMAP_COLS (15)
+sf::Texture backgrounds[27];
 sf::Texture entities[ET_Count];
 sf::Texture enemies[MT_Count];
 sf::Texture pickups[PT_Count];
@@ -382,6 +387,8 @@ int main() {
     level_texture.create(15 * 64, 12 * 64);
     level_texture_sprite.setTexture(level_texture.getTexture());
     //level_texture_sprite.setOrigin(level_texture.getSize().x / 2, level_texture.getSize().y / 2);
+    
+    // TODO(miked): loading everything at the beginning slows down application startup considerably. Maybe texture cache?
     // NOTE(miked): load stuff here
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
@@ -434,8 +441,15 @@ int main() {
     pickups[PT_PaperCrane].loadFromFile("res/pickups.png", tile_offset(4,4));
     pickups[PT_SolomonsKey].loadFromFile("res/pickups.png", tile_offset(5,4));
     
-    // NOTE: defaults
+    for (int bg_index = 0; bg_index < 27; bg_index += 1) {
+        std::string name("res/backgrounds/");
+        name.append(std::to_string(bg_index));
+        name.append(".png");
+        backgrounds[bg_index].loadFromFile(name.c_str());
+    }
     
+    
+    // NOTE: defaults
     level_texture_sprite.setScale(sf::Vector2f(0.775, 0.775));
     level_texture_sprite.setPosition(sf::Vector2f(324, 78));
     
@@ -552,6 +566,7 @@ int main() {
             save_level();
         }
         
+        ImGui::RadioButton("Background",  &g_mode, (int)Mode::Background ); ImGui::SameLine();
         ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block ); ImGui::SameLine();
         ImGui::RadioButton("Enemy",  &g_mode, (int)Mode::Enemy ); ImGui::SameLine();
         ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
@@ -561,6 +576,15 @@ int main() {
         ImGui::RadioButton("Hidden", &g_mode, (int)Mode::Hidden);
         
         switch (g_mode) {
+            
+            case Mode::Background: {
+                ImGui::TextWrapped("Select level background");
+                ImGui::Separator();
+                
+                ImGui::SliderInt("index", &tool.background_num, 0, 26);
+                
+            } break;
+            
             case Mode::Block: {
                 ImGui::TextWrapped("Click to place a block, right click to clear.");
                 ImGui::Separator();
@@ -636,7 +660,7 @@ int main() {
         
 		ImGui::End();
         
-        //ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
@@ -646,6 +670,12 @@ int main() {
                 level_texture.draw(rect);
             }
         }
+        
+        sf::Sprite level_sprite;
+        level_sprite.setTexture(backgrounds[tool.background_num]);
+        level_sprite.setPosition(0,0);
+        level_texture.draw(level_sprite);
+        
         draw_tilemap(level_texture);
         level_texture.display();
         
