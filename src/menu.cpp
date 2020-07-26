@@ -95,6 +95,8 @@ void scene_menu(float dt) {
             load_next_map();
         }
         
+        // TODO(miked): menu needs to scroll properly here
+        // TODO(miked): level 10.osk should be after level_9.osk
         // render
         glClearColor( 0.0, 0.0,  0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
