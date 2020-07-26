@@ -265,6 +265,7 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
             ivec2 tile_pos = ivec2{c, r};
             Entity &entity = get_tile_entity(tile_pos);
             EntityType entity_type = entity.type;
+            bob.setTextureRect(sf::IntRect(0, 0, 64, 64));
             
             switch (entity_type) {
                 case ET_EmptySpace:
