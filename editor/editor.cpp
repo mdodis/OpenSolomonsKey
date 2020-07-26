@@ -55,6 +55,10 @@ global struct {
         bool looking_left = true;
     } player;
     
+    struct {
+        ivec2 last_door_pos = ivec2{-1, -1};
+    } door;
+    
     Entity sel = {ET_BlockFrail, {0}};
 } tool;
 
@@ -135,6 +139,16 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
                     
                     tool.player.last_player_pos = tile_pos;
                 }break;
+                
+                case Mode::Door: {
+                    if (tool.door.last_door_pos.x != -1) {
+                        clear_tile(tool.door.last_door_pos);
+                    }
+                    
+                    get_tile_entity(tile_pos).type = tool.sel.type;
+                    
+                    tool.door.last_door_pos = tile_pos;
+                } break;
                 
                 case Mode::Enemy: {
                     get_tile_entity(tile_pos) = tool.sel;
@@ -243,6 +257,12 @@ internal void draw_tilemap(sf::RenderTexture &drw) {
                     drw.draw(bob);
                 }break;
                 
+                case ET_Door: {
+                    bob.setTexture(entities[entity_type]);
+                    bob.setPosition(sf::Vector2f(c * 64, r * 64));
+                    drw.draw(bob);
+                } break;
+                
                 case ET_Enemy: {
                     draw_enemy(drw, bob, &entity, tile_pos);
                 }break;
@@ -346,6 +366,7 @@ int main() {
     entities[ET_BlockFrail].loadFromFile("res/essentials.png", tile_offset(0,0));
     entities[ET_BlockSolid].loadFromFile("res/essentials.png", tile_offset(0,1));
     entities[ET_Player].loadFromFile("res/dana_all.png", tile_offset(0,0));
+    entities[ET_Door].loadFromFile("res/essentials.png", tile_offset(4,2));
     
     enemies[MT_Gargoyle].loadFromFile("res/gargoyle_all.png", tile_offset(0,2));
     enemies[MT_Wyvern].loadFromFile("res/wyvern_all.png", tile_offset(0,0));
@@ -534,6 +555,13 @@ int main() {
                 tool.sel.type = ET_Player;
                 ImGui::Checkbox("Looking left?", &tool.player.looking_left);
             } break;
+            
+            case Mode::Door: {
+                ImGui::TextWrapped("Click to place door");
+                ImGui::Separator();
+                
+                tool.sel.type = ET_Door;
+            }break;
             
             case Mode::Enemy: {
                 ImGui::TextWrapped("Select enemy, edit it's parameters, and place it in the tilemap");
