@@ -1,20 +1,11 @@
 
-int extract_file_level_number(char *str, char **out_end) {
-    
-    // level_<num>
-    char *end;
-    long int result = strtol(str + (6), &end, 10);
-    
-    if (out_end) *out_end = end;
-    return result;
-}
-
 global int current_menu_item = 0;
 global float menu_timer = 0.f;
 enum MenuState {
     MENU_MAIN,
     MENU_SELECT
 };
+
 global int current_menu_state = MENU_MAIN;
 global int select_menu_line_offset = 0;
 global int select_menu_current_level = 0;
@@ -89,14 +80,12 @@ void scene_menu(float dt) {
         select_menu_current_level = clamp(0, g_map_list.size() - 1, select_menu_current_level);
         
         if (GET_KEYPRESS(space_pressed)) {
-            int lvl = extract_file_level_number(g_map_list[select_menu_current_level], 0);
+            int lvl = extract_file_level_number(g_map_list[select_menu_current_level]);
             g_scene.current_level_counter = lvl - 1;
             current_menu_state = MENU_MAIN;
             load_next_map();
         }
         
-        // TODO(miked): menu needs to scroll properly here
-        // TODO(miked): level 10.osk should be after level_9.osk
         // render
         glClearColor( 0.0, 0.0,  0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -104,14 +93,18 @@ void scene_menu(float dt) {
         draw_extra_stuff();
         gl_background_draw();
         
-        int i = 0;
-        while (i < g_map_list.size() && (i < 12)) {
+        const int page_size = 12;
+        int level_page_offset = ((select_menu_current_level) / page_size);
+        
+        int i = level_page_offset * page_size;
+        while ((i < g_map_list.size()) && (i - level_page_offset * page_size) < page_size) {
             
+            const int display_index = i % page_size;
             
             if (select_menu_current_level == i) {
-                draw_text(g_map_list[i], i + 3, 4 + 1, true, 50.f, NRGBA{sr,sg,sb,1});
+                draw_text(g_map_list[i], display_index + 3, 4 + 1, true, 50.f, NRGBA{sr,sg,sb,1});
             } else {
-                draw_text(g_map_list[i], i + 3, 4, true, 50.f);
+                draw_text(g_map_list[i], display_index + 3, 4, true, 50.f);
             }
             
             i++;

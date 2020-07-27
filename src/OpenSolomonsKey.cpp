@@ -14,6 +14,7 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <algorithm>
 #include <GL/gl.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -115,6 +116,28 @@ internal void draw_extra_stuff() {
     
 }
 
+
+int extract_file_level_number(char *str) {
+    // level_<num>
+    char *c;
+    
+    c = str + 6;
+    int result = 0;
+    while (isdigit(*c)) {
+        result *= 10;
+        result += (*c) - '0';
+        c++;
+    }
+    
+    return result;
+}
+
+bool level_string_cmp(char *s1, char *s2) {
+    int n1 = extract_file_level_number(s1);
+    int n2 = extract_file_level_number(s2);
+    return n1 < n2;
+}
+
 std::vector<char *> g_map_list;
 
 void cb_init() {
@@ -124,7 +147,7 @@ void cb_init() {
     load_sound_resources();
     gl_load_background_texture(17);
     g_map_list = list_maps();
-    
+    std::sort(g_map_list.begin(), g_map_list.end(), level_string_cmp);
     return;
 }
 
