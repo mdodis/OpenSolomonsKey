@@ -75,6 +75,23 @@ global struct {
     Entity sel = {ET_BlockFrail, {0}};
 } tool;
 
+internal void save_enemy_type_custom(FILE *f, const Entity &enemy) {
+    switch (get_enemy_type(&enemy)) {
+        
+        case MT_Goblin: {
+            fprintf(f, "%Iu,%f ", enemy.params[1].as_u64, enemy.params[2].as_f64);
+        }break;
+        
+        case MT_Ghost: {
+            fprintf(f, "%Iu,%f ", enemy.params[1].as_u64, enemy.params[2].as_f64);
+        } break;
+        
+        default: {
+            exit(1);
+        }break;
+    }
+}
+
 internal void save_level() {
     FILE *f = fopen("level_15.osk", "wb");
     if (!f) exit(0);
@@ -87,7 +104,32 @@ internal void save_level() {
             
             const Entity &current_entity = tilemap[c][r];
             
-            fprintf(f, "%d ", current_entity.type);
+            switch (current_entity.type) {
+                
+                case ET_PlayerSpawnPoint:
+                case ET_Door:
+                case ET_Key:
+                case ET_BlockSolid:
+                case ET_BlockFrail:
+                case ET_EmptySpace: {
+                    PickupType hidden_pickup = current_entity.params[0].as_ptype;
+                    if (pickup_type_is_valid(hidden_pickup))
+                        fprintf(f, "%d,%d ", current_entity.type, hidden_pickup);
+                    else 
+                        fprintf(f, "%d ", current_entity.type);
+                } break;
+                
+                case ET_Pickup: {
+                    PickupType ptype = current_entity.params[0].as_ptype;
+                    fprintf(f, "%d,%d ", ET_Pickup, ptype);
+                } break;
+                
+                case ET_Enemy: {
+                    EnemyType etype = get_enemy_type(&current_entity);
+                    fprintf(f, "%d,%d,", ET_Enemy, etype);
+                    save_enemy_type_custom(f, current_entity);
+                }break;
+            }
             
         }
         fprintf(f, "\n");
