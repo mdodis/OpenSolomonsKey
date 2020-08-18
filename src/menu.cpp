@@ -81,6 +81,9 @@ void scene_menu(float dt) {
         
         if (GET_KEYPRESS(space_pressed)) {
             int lvl = extract_file_level_number(g_map_list[select_menu_current_level]);
+            
+            g_scene.player_lives = 3;
+            
             g_scene.current_level_counter = lvl - 1;
             current_menu_state = MENU_MAIN;
             load_next_map();

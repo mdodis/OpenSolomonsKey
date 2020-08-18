@@ -99,12 +99,11 @@ b32 wgl_is_extension_supported(char* extname,  char* ext_string) {
 // have a context.
 internal void
 win32_init_gl_extensions() {
-    WNDCLASSA window_class = {
-        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-        .lpfnWndProc = DefWindowProcA,
-        .hInstance = GetModuleHandle(0),
-        .lpszClassName = "Dummy_WGL_djuasiodwa",
-    };
+    WNDCLASSA window_class = {0};
+    window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    window_class.lpfnWndProc = DefWindowProcA;
+    window_class.hInstance = GetModuleHandle(0);
+    window_class.lpszClassName = "Dummy_WGL_djuasiodwa";
     
     if (!RegisterClassA(&window_class))
         inform("Failed to register dummy OpenGL window.");
@@ -124,17 +123,16 @@ win32_init_gl_extensions() {
     
     HDC dummy_dc = GetDC(dummy_window);
     
-    PIXELFORMATDESCRIPTOR pfd = {
-        .nSize = sizeof(pfd),
-        .nVersion = 1,
-        .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-        .iPixelType = PFD_TYPE_RGBA,
-        .cColorBits = 32,
-        .cAlphaBits = 8,
-        .cDepthBits = 24,
-        .cStencilBits = 8,
-        .iLayerType = PFD_MAIN_PLANE,
-    };
+    PIXELFORMATDESCRIPTOR pfd = {0};
+    pfd.nSize = sizeof(pfd);
+    pfd.nVersion = 1;
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    pfd.iPixelType = PFD_TYPE_RGBA;
+    pfd.cColorBits = 32;
+    pfd.cAlphaBits = 8;
+    pfd.cDepthBits = 24;
+    pfd.cStencilBits = 8;
+    pfd.iLayerType = PFD_MAIN_PLANE;
     
     int pixel_format = ChoosePixelFormat(dummy_dc, &pfd);
     if (!pixel_format)
@@ -503,20 +501,18 @@ win32_windproc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 internal void
 win32_init(HINSTANCE hInstance) {
     // create the actual window
-    WNDCLASSA window_class = {
-        .style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
-        .lpfnWndProc = win32_windproc,
-        .hInstance = hInstance,
-        .hCursor = LoadCursor(0, IDC_ARROW),
-        .hbrBackground = 0,
-        .lpszClassName = OSK_CLASS_NAME,
-    };
+    WNDCLASSA window_class = {0};
+    window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    window_class.lpfnWndProc = win32_windproc;
+    window_class.hInstance = hInstance;
+    window_class.hCursor = LoadCursor(0, IDC_ARROW);
+    window_class.hbrBackground = 0;
+    window_class.lpszClassName = OSK_CLASS_NAME;
     fail_unless(RegisterClassA(&window_class), "Failed to register class");
     
-    RECT rect = {
-        .right = 640,
-        .bottom = 480
-    };
+    RECT rect = {0};
+    rect.right = 640;
+    rect.bottom = 480;
     // DWORD window_style = WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME;
     DWORD window_style = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&rect, window_style, false);

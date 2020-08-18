@@ -53,29 +53,24 @@ global struct {
 } g_scene;
 
 inline internal Sprite make_effect(fvec2 position, u32 effect_type) {
-    return Sprite {
-        .tilemap = &GET_CHAR_TILEMAP(Effect),
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .current_animation = effect_type,
-        .animation_set = GET_CHAR_ANIMSET(Effect),
-        .entity = {
-            .type = ET_Effect,
-        }
-    };
+    Sprite result;
+    result.tilemap = &GET_CHAR_TILEMAP(Effect);
+    result.position = position;
+    result.collision_box = {0,0,64,64};
+    result.current_animation = effect_type;
+    result.animation_set = GET_CHAR_ANIMSET(Effect);
+    result.entity.type = ET_Effect;
+    return result;
 }
 
 inline internal Sprite make_goblin(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Goblin),
-        .position = position,
-        .collision_box = {5, 0, 45, 64},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(Goblin),
-        .entity = {
-            .type = ET_Enemy,
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Goblin);
+    res.position = position;
+    res.collision_box = {5, 0, 45, 64};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(Goblin);
+    res.entity.type = ET_Enemy;
     res.entity.params[0].as_etype = MT_Goblin;
     /*
 param 0 etype
@@ -88,32 +83,26 @@ param 3 spawn/fall state
 }
 
 inline internal Sprite make_demon_head(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(DemonHead),
-        .position = position,
-        .collision_box = {5,0,45,64},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(DemonHead),
-        .entity = {
-            .type = ET_Enemy,
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(DemonHead);
+    res.position = position;
+    res.collision_box = {5,0,45,64};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(DemonHead);
+    res.entity.type = ET_Enemy;
     res.entity.params[0].as_etype = MT_Demonhead;
     
     return res;
 }
 
 inline internal Sprite make_ghost(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Ghost),
-        .position = position,
-        .collision_box = {0, 0, 64, 64},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(Ghost),
-        .entity = {
-            .type = ET_Enemy,
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Ghost);
+    res.position = position;
+    res.collision_box = {0, 0, 64, 64};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(Ghost);
+    res.entity.type = ET_Enemy;
     
     res.entity.params[0].as_etype = MT_Ghost;
     
@@ -121,16 +110,13 @@ inline internal Sprite make_ghost(fvec2 position) {
 }
 
 inline internal Sprite make_wyvern(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Wyvern),
-        .position = position,
-        .collision_box = {10, 0, 54, 64},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(Wyvern),
-        .entity = {
-            .type = ET_Enemy
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Wyvern);
+    res.position = position;
+    res.collision_box = {10, 0, 54, 64};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(Wyvern);
+    res.entity.type = ET_Enemy;
     
     res.entity.params[0].as_etype = MT_Wyvern;
     return res;
@@ -147,54 +133,52 @@ internal bool player_add_fireball() {
 }
 
 inline internal Sprite make_player(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Dana),
-        .size = fvec2{64, 64},
-        .position = position,
-        .collision_box = {5, 14, 45, 50},
-        .mirror = {true, false},
-        .mark_for_removal = false,
-        
-        .animation_set = GET_CHAR_ANIMSET(Dana),
-        .entity = {
-            ET_Player,
-            {0,0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Dana);
+    res.size = fvec2{64, 64};
+    res.position = position;
+    res.collision_box = {5, 14, 45, 50};
+    res.mirror = {true, false};
+    res.mark_for_removal = false;
+    
+    res.animation_set = GET_CHAR_ANIMSET(Dana);
+    res.entity = {
+        ET_Player,
+        {0,0}
     };
     
     return res;
 }
 
 inline internal Sprite make_door(fvec2 position) {
-    return Sprite {
-        .tilemap = &GET_CHAR_TILEMAP(Door),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        .current_animation = GET_CHAR_ANIMENUM(Door, Close),
-        .animation_set = GET_CHAR_ANIMSET(Door),
-        .entity = {
-            ET_Door,
-            {0,0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Door);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    res.current_animation = GET_CHAR_ANIMENUM(Door, Close);
+    res.animation_set = GET_CHAR_ANIMSET(Door);
+    res.entity = {
+        ET_Door,
+        {0,0}
     };
+    return res;
 }
 
 inline internal Sprite make_dfireball(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(DFireball),
-        .size = {55,55},
-        .position = position,
-        .collision_box = {8,8,40,40},
-        .mirror = {true, false},
-        .animation_set = GET_CHAR_ANIMSET(DFireball),
-        .entity = {
-            ET_DFireball,
-            {0,0}
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(DFireball);
+    res.size = {55,55};
+    res.position = position;
+    res.collision_box = {8,8,40,40};
+    res.mirror = {true, false};
+    res.animation_set = GET_CHAR_ANIMSET(DFireball);
     
+    res.entity = {
+        ET_DFireball,
+        {0,0}
+    };
     res.entity.params[0].as_f64 = 1.0;
     res.entity.params[1].as_f64 = 0.0;
     
@@ -204,18 +188,18 @@ inline internal Sprite make_dfireball(fvec2 position) {
 
 
 inline internal Sprite make_starring(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Effect),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        .current_animation = GET_CHAR_ANIMENUM(Effect, Star),
-        .animation_set = GET_CHAR_ANIMSET(Effect),
-        .entity = {
-            ET_Count,
-            {u64(0.f),u64(0.f)}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Effect);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    res.current_animation = GET_CHAR_ANIMENUM(Effect, Star);
+    res.animation_set = GET_CHAR_ANIMSET(Effect);
+    
+    res.entity = {
+        ET_Count,
+        {u64(0.f),u64(0.f)}
     };
     
     return res;
@@ -223,43 +207,42 @@ inline internal Sprite make_starring(fvec2 position) {
 }
 
 inline internal Sprite make_fairie(fvec2 position, long type) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Fairie),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        
-        // type will go here!!!! and not in custom params
-        .current_animation = u32(type),
-        .animation_set = GET_CHAR_ANIMSET(Fairie),
-        .entity = {
-            ET_Fairie,
-            {0,0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Fairie);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    
+    // type will go here!!!! and not in custom params
+    res.current_animation = u32(type);
+    res.animation_set = GET_CHAR_ANIMSET(Fairie);
+    
+    res.entity = {
+        ET_Fairie,
+        {0,0}
     };
     
     return res;
 }
 
 inline internal Sprite make_key(fvec2 position) {
-    Sprite res =
-    {
-        .tilemap = &GET_CHAR_TILEMAP(Key),
-        .size = {64,64},
-        .position = position,
-        .rotation = 0.f,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        
-        .animation_playing = false,
-        .current_animation = 0,
-        .animation_set = GET_CHAR_ANIMSET(Key),
-        
-        .entity = {
-            ET_Key,
-            {u64(0.f),u64(0.f)}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Key);
+    res.size = {64,64};
+    res.position = position;
+    res.rotation = 0.f;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    
+    res.animation_playing = false;
+    res.current_animation = 0;
+    res.animation_set = GET_CHAR_ANIMSET(Key);
+    
+    
+    res.entity = {
+        ET_Key,
+        {u64(0.f),u64(0.f)}
     };
     
     return res;
@@ -271,22 +254,20 @@ internal void set_pickup_collision_box(Sprite *pickup) {
 }
 
 inline internal Sprite make_pickup(fvec2 position, u64 type, u64 id = 0) {
-    Sprite res = {
-        
-        .tilemap = &GET_TILEMAP_TEXTURE(TM_pickups),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        .animation_playing = false,
-        .current_animation = 0,
-        .animation_set = 0,
-        .entity = {
-            ET_Pickup,
-            {type, 0, 0, 0, 0}
-        }
-    };
+    Sprite res;
+    res.tilemap = &GET_TILEMAP_TEXTURE(TM_pickups);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    res.animation_playing = false;
+    res.current_animation = 0;
+    res.animation_set = 0;
     
+    res.entity = {
+        ET_Pickup,
+        {type, 0, 0, 0, 0}
+    };
     set_pickup_collision_box(&res);
     /*
 param 0 is te pickup's type
@@ -314,142 +295,142 @@ internal void pickup_change_to(Sprite *pickup, PickupType to) {
 }
 
 inline internal Sprite make_blueflame(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(BlueFlame),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {16, 16, 32, 48},
-        .animation_playing = true,
-        .current_animation = GET_CHAR_ANIMENUM(BlueFlame, Normal),
-        .animation_set = GET_CHAR_ANIMSET(BlueFlame),
-        .entity = {
-            ET_Enemy,
-            {0, 0, 0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(BlueFlame);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {16, 16, 32, 48};
+    res.animation_playing = true;
+    res.current_animation = GET_CHAR_ANIMENUM(BlueFlame, Normal);
+    res.animation_set = GET_CHAR_ANIMSET(BlueFlame);
+    
+    res.entity = {
+        ET_Enemy,
+        {0, 0, 0}
     };
     
-    result.entity.params[0].as_etype = MT_BlueFlame;
-    result.entity.params[1].as_f64 = +1.0;
-    result.entity.params[2].as_f64 = -FLT_MAX;
+    res.entity.params[0].as_etype = MT_BlueFlame;
+    res.entity.params[1].as_f64 = +1.0;
+    res.entity.params[2].as_f64 = -FLT_MAX;
     
-    return result;
+    return res;
 }
 
 inline internal Sprite make_kmirror(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(KMirror),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .animation_playing = false,
-        .current_animation = GET_CHAR_ANIMENUM(KMirror, Default),
-        .animation_set = GET_CHAR_ANIMSET(KMirror),
-        .entity = {
-            ET_Enemy,
-            {0,0,0, 0, 0,}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(KMirror);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.animation_playing = false;
+    res.current_animation = GET_CHAR_ANIMENUM(KMirror, Default);
+    res.animation_set = GET_CHAR_ANIMSET(KMirror);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0,0, 0, 0,}
     };
     
-    result.entity.params[0].as_etype = MT_KMirror;
-    result.entity.params[1].as_f64 = 0.f;
-    result.entity.params[2].as_f64 = 0.f;
-    result.entity.params[3].as_f64 = 1.f;
-    result.entity.params[4].as_f64 = 1.f;
-    result.entity.params[5].as_ptr = 0;
-    result.entity.params[6].as_ptr = 0;
+    res.entity.params[0].as_etype = MT_KMirror;
+    res.entity.params[1].as_f64 = 0.f;
+    res.entity.params[2].as_f64 = 0.f;
+    res.entity.params[3].as_f64 = 1.f;
+    res.entity.params[4].as_f64 = 1.f;
+    res.entity.params[5].as_ptr = 0;
+    res.entity.params[6].as_ptr = 0;
     
-    return result;
+    return res;
 }
 
 inline internal Sprite make_panel_monster(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(PanelMonster),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .animation_playing = true,
-        .current_animation = GET_CHAR_ANIMENUM(PanelMonster, Wait),
-        .animation_set = GET_CHAR_ANIMSET(PanelMonster),
-        .entity = {
-            ET_Enemy,
-            {0,0,0, 0, 0,}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(PanelMonster);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.animation_playing = true;
+    res.current_animation = GET_CHAR_ANIMENUM(PanelMonster, Wait);
+    res.animation_set = GET_CHAR_ANIMSET(PanelMonster);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0,0, 0, 0,}
     };
     
-    result.entity.params[0].as_etype = MT_PanelMonster;
-    return result;
+    res.entity.params[0].as_etype = MT_PanelMonster;
+    return res;
 }
 
 inline internal Sprite make_panel_monster_flame(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(PanelMonsterFlame),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {10,16,42,32},
-        .mirror = {true, false},
-        .animation_playing = true,
-        .current_animation = GET_CHAR_ANIMENUM(PanelMonsterFlame, Create),
-        .animation_set = GET_CHAR_ANIMSET(PanelMonsterFlame),
-        .entity = {
-            ET_Enemy,
-            {0,0,0,0,0,}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(PanelMonsterFlame);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {10,16,42,32};
+    res.mirror = {true, false};
+    res.animation_playing = true;
+    res.current_animation = GET_CHAR_ANIMENUM(PanelMonsterFlame, Create);
+    res.animation_set = GET_CHAR_ANIMSET(PanelMonsterFlame);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0,0,0,0,}
     };
     
-    result.entity.params[0].as_etype = MT_PanelMonsterFlame;
-    return result;
+    res.entity.params[0].as_etype = MT_PanelMonsterFlame;
+    return res;
 }
 
 inline internal Sprite make_dragon(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(Dragon),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {10,0,54,64},
-        .mirror = {true, false},
-        .animation_playing = true,
-        .current_animation = GET_CHAR_ANIMENUM(Dragon, Walk),
-        .animation_set = GET_CHAR_ANIMSET(Dragon),
-        .entity = {
-            ET_Enemy,
-            {0,0,0,0,0,}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Dragon);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {10,0,54,64};
+    res.mirror = {true, false};
+    res.animation_playing = true;
+    res.current_animation = GET_CHAR_ANIMENUM(Dragon, Walk);
+    res.animation_set = GET_CHAR_ANIMSET(Dragon);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0,0,0,0,}
     };
-    result.entity.params[0].as_etype = MT_Dragon;
-    return result;
+    res.entity.params[0].as_etype = MT_Dragon;
+    return res;
 }
 
 inline internal Sprite make_dragon_fire(fvec2 position) {
-    Sprite result = {
-        .tilemap = &GET_CHAR_TILEMAP(Dragon),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {0,0,64,64},
-        .mirror = {false, false},
-        .animation_playing = true,
-        .current_animation = GET_CHAR_ANIMENUM(DragonFire, Default),
-        .animation_set = GET_CHAR_ANIMSET(DragonFire),
-        .entity = {
-            ET_Enemy,
-            {0,0,0,0,0,}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Dragon);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {0,0,64,64};
+    res.mirror = {false, false};
+    res.animation_playing = true;
+    res.current_animation = GET_CHAR_ANIMENUM(DragonFire, Default);
+    res.animation_set = GET_CHAR_ANIMSET(DragonFire);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0,0,0,0,}
     };
-    result.entity.params[0].as_etype = MT_DragonFire;
-    return result;
+    res.entity.params[0].as_etype = MT_DragonFire;
+    return res;
 }
 
 inline internal Sprite make_spark_ball(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(SparkBall),
-        .size = {55,55},
-        .position = position,
-        .collision_box = {8,8,40,40},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(SparkBall),
-        .entity = {
-            ET_Enemy,
-            {0,0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(SparkBall);
+    res.size = {55,55};
+    res.position = position;
+    res.collision_box = {8,8,40,40};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(SparkBall);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0}
     };
     
     res.entity.params[0].as_etype = MT_SparkBall;
@@ -457,17 +438,17 @@ inline internal Sprite make_spark_ball(fvec2 position) {
 }
 
 inline internal Sprite make_gargoyle(fvec2 position) {
-    Sprite res = {
-        .tilemap = &GET_CHAR_TILEMAP(Gargoyle),
-        .size = {64,64},
-        .position = position,
-        .collision_box = {8,0,40,64},
-        .mirror = {false, false},
-        .animation_set = GET_CHAR_ANIMSET(Gargoyle),
-        .entity = {
-            ET_Enemy,
-            {0,0}
-        }
+    Sprite res;
+    res.tilemap = &GET_CHAR_TILEMAP(Gargoyle);
+    res.size = {64,64};
+    res.position = position;
+    res.collision_box = {8,0,40,64};
+    res.mirror = {false, false};
+    res.animation_set = GET_CHAR_ANIMSET(Gargoyle);
+    
+    res.entity = {
+        ET_Enemy,
+        {0,0}
     };
     /*
 1: speed

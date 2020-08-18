@@ -121,14 +121,13 @@ internal void audio_play_sound(const RESSound* resound, b32 looping = false, Sou
     if (g_audio.all_sounds_size >= AUDIO_MAX_SOUNDS)
         return;
     
-    Sound new_sound = {
-        .volume = vol,
-        .max_counter = resound->num_samples,
-        .looping = looping,
-        .playing = play,
-        .resource = resound,
-        .type = sound_type
-    };
+    Sound new_sound;
+    new_sound.volume = vol;
+    new_sound.max_counter = resound->num_samples;
+    new_sound.looping = looping;
+    new_sound.playing = play;
+    new_sound.resource = resound;
+    new_sound.type = sound_type;
     
     g_audio.all_sounds[g_audio.all_sounds_size++] = new_sound;
 }
