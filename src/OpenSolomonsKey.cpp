@@ -14,6 +14,7 @@ sox [input] -r 48k -c 2 -b 16 [output]
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <algorithm>
 #include <GL/gl.h>
 #define STB_IMAGE_IMPLEMENTATION
