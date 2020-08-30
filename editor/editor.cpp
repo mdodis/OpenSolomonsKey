@@ -791,7 +791,7 @@ int main() {
         
 		ImGui::End();
         
-        ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
         
         window.clear();
         level_texture.clear();
