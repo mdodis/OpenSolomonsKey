@@ -92,8 +92,8 @@ internal void save_enemy_type_custom(FILE *f, const Entity &enemy) {
     }
 }
 
-internal void save_level() {
-    FILE *f = fopen("level_15.osk", "wb");
+internal void save_level(const char *path) {
+    FILE *f = fopen(path, "wb");
     if (!f) exit(0);
     
     fprintf(f, "BG %d\n", tool.background_num);
@@ -154,6 +154,7 @@ internal void custom_param_checkbox_u64(const char *prompt, u64 *destination, u6
 
 internal void custom_param_slider_double(const char *prompt, double *destination, float min, float max) {
     float result = float(*destination);
+    result = clamp(min, max, result);
     ImGui::SliderFloat(prompt, &result, (float)min, (float)max, "%.1f");
     *destination = result;
 }
@@ -624,11 +625,29 @@ int main() {
         ImGui::Begin("osked", &p_open, window_flags);
         
         if (ImGui::Button("Save")) {
-            save_level();
+            ImGui::OpenPopup("Save Level");
+        }
+        
+        
+        if (ImGui::BeginPopupModal("Save Level", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            
+            static char save_location[256] = "level_0.osk"; ImGui::InputText("Name", save_location, 256);
+            
+            if (ImGui::Button("Ok")) {
+                save_level(save_location);
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::EndPopup();
         }
         
         ImGui::RadioButton("Background",  &g_mode, (int)Mode::Background ); ImGui::SameLine();
-        ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block ); ImGui::SameLine();
+        ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block );
         ImGui::RadioButton("Enemy",  &g_mode, (int)Mode::Enemy ); ImGui::SameLine();
         ImGui::RadioButton("Pickup", &g_mode, (int)Mode::Pickup);
         ImGui::RadioButton("Door",   &g_mode, (int)Mode::Door  ); ImGui::SameLine();
