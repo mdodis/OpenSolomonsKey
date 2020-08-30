@@ -188,6 +188,21 @@ internal void clear_tile(ivec2 pos) {
     entity.params[0].as_ptype = PT_Count;
 }
 
+global ivec2 g_edit_tile_pos;
+global bool g_popup_open = false;
+internal void edit_tile(ivec2 pos) {
+    
+    Entity &entity = get_tile_entity(pos);
+    EntityType type = entity.type;
+    g_edit_tile_pos = pos;
+    switch(type) {
+        
+        case ET_Enemy: {
+            g_popup_open = true;
+        } break;
+    }
+}
+
 internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
     ivec2 tile_pos = map_position_to_tile(pixel_pos);
     fvec2 tile_pixel_pos = tile_to_position(tile_pos);
@@ -245,7 +260,10 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
                 case Mode::Hidden: {
                     
                     Entity &entity = get_tile_entity(tile_pos);
-                    entity.params[0].as_ptype = tool.sel.params[0].as_ptype;
+                    
+                    if (entity.type == ET_BlockSolid || entity.type == ET_BlockFrail || entity.type == ET_EmptySpace) {
+                        entity.params[0].as_ptype = tool.sel.params[0].as_ptype;
+                    }
                     
                 } break;
                 
@@ -253,12 +271,34 @@ internal void click_tile(fvec2 pixel_pos, sf::Mouse::Button btn) {
             }
         } else if (g_mode == Mode::Hidden) {
             Entity &entity = get_tile_entity(tile_pos);
-            entity.params[0].as_ptype = PT_Count;
-        } else {
+            
+            if (entity.type == ET_BlockSolid || entity.type == ET_BlockFrail || entity.type == ET_EmptySpace) {
+                entity.params[0].as_ptype = PT_Count;
+            }
+        } else if (btn == sf::Mouse::Button::Right) {
             clear_tile(tile_pos);
+        } else if (btn == sf::Mouse::Button::Middle) {
+            edit_tile(tile_pos);
         }
     }
     
+}
+
+internal void edit_tile_impl() {
+    Entity &entity = get_tile_entity(g_edit_tile_pos);
+    EntityType type = entity.type;
+    
+    
+    if (ImGui::BeginPopupModal("Edit Enemy", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+        
+        draw_set_enemy_parameters(&entity);
+        
+        if (ImGui::Button("Ok")) {
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::EndPopup();
+    }
 }
 
 internal sf::Texture *get_entity_texture(Entity *e) {
@@ -628,12 +668,11 @@ int main() {
             ImGui::OpenPopup("Save Level");
         }
         
-        
         if (ImGui::BeginPopupModal("Save Level", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
             
             static char save_location[256] = "level_0.osk"; ImGui::InputText("Name", save_location, 256);
             
-            if (ImGui::Button("Ok")) {
+            if (ImGui::Button("Save Level")) {
                 save_level(save_location);
                 ImGui::CloseCurrentPopup();
             }
@@ -645,6 +684,18 @@ int main() {
             
             ImGui::EndPopup();
         }
+        
+        
+        
+        if (g_popup_open) {
+            g_popup_open = false;
+            
+            if (get_tile_entity(g_edit_tile_pos).type == ET_Enemy) {
+                ImGui::OpenPopup("Edit Enemy");
+            }
+        }
+        
+        edit_tile_impl();
         
         ImGui::RadioButton("Background",  &g_mode, (int)Mode::Background ); ImGui::SameLine();
         ImGui::RadioButton("Block",  &g_mode, (int)Mode::Block );
